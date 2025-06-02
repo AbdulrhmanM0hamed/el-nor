@@ -1,17 +1,15 @@
 import 'package:beat_elslam/core/utils/theme/app_theme.dart';
-import 'package:beat_elslam/features/home/view/home_View.dart';
-import 'package:beat_elslam/features/prayer_times/services/prayer_reminder_service.dart';
+import 'package:beat_elslam/features/main_layout/main_layout_screen.dart';
+import 'package:beat_elslam/features/home/prayer_times/services/prayer_reminder_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/helper/on_genrated_routes.dart';
-import 'features/prayer_times/data/repositories/prayer_times_repository.dart';
-import 'features/prayer_times/presentation/cubit/prayer_times_cubit.dart';
-import 'features/quran/data/models/surah_model.dart';
-import 'features/asma_allah/models/allah_name_model.dart';
+
+import 'features/home/quran/data/models/surah_model.dart';
+import 'features/home/asma_allah/models/allah_name_model.dart';
 
 void main() async {
   try {
@@ -55,14 +53,7 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider<PrayerTimesCubit>(
-              create: (context) => PrayerTimesCubit(PrayerTimesRepositoryImpl()),
-            ),
-          ],
-          child: MaterialApp(
-            useInheritedMediaQuery: true,
+        return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'بيت الاسلام',
             theme: AppTheme.lightTheme,
@@ -75,9 +66,8 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             onGenerateRoute: onGenratedRoutes,
-            home: const HomeView(),
-          ),
-        );
+            home: const MainLayoutScreen(),
+          );
       },
     );
   }
