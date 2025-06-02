@@ -276,10 +276,6 @@ class SurahList {
     return rawJsonData.length;
   }
   
-  static List<Surah> _processSurahsFromJson(List<dynamic> jsonData) {
-    return _processAndReturnSurahs(jsonData);
-  }
-  
   static List<Surah> _processAndReturnSurahs(List<dynamic> jsonData) {
     // Process each JSON object into a Surah
     return jsonData.map((json) {
