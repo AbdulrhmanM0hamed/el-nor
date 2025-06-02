@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/admin/presentation/cubit/admin_cubit.dart';
 import '../../features/home/quran/presentation/cubit/quran_cubit.dart';
 import '../../features/quran_circles/presentation/cubit/memorization_circles_cubit.dart';
 import '../config/supabase_config.dart';
@@ -35,5 +36,10 @@ Future<void> init() async {
   
   sl.registerFactory<MemorizationCirclesCubit>(
     () => MemorizationCirclesCubit(),
+  );
+  
+  // Registrar AdminCubit para la gestión de usuarios y círculos
+  sl.registerFactory<AdminCubit>(
+    () => AdminCubit(sl<SupabaseClient>()),
   );
 }

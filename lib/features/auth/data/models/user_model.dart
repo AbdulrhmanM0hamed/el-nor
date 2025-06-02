@@ -9,6 +9,7 @@ class UserModel extends Equatable {
   final String? profileImageUrl;
   final DateTime createdAt;
   final bool isAdmin;
+  final bool isTeacher; // حقل جديد لتحديد ما إذا كان المستخدم معلمًا
 
   const UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel extends Equatable {
     this.profileImageUrl,
     required this.createdAt,
     this.isAdmin = false,
+    this.isTeacher = false, // القيمة الافتراضية هي طالب (ليس معلمًا)
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class UserModel extends Equatable {
       profileImageUrl: json['profile_image_url'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       isAdmin: json['is_admin'] as bool? ?? false,
+      isTeacher: json['is_teacher'] as bool? ?? false, // قراءة حقل is_teacher من JSON
     );
   }
 
@@ -44,6 +47,7 @@ class UserModel extends Equatable {
       'profile_image_url': profileImageUrl,
       'created_at': createdAt.toIso8601String(),
       'is_admin': isAdmin,
+      'is_teacher': isTeacher, // إضافة حقل is_teacher إلى JSON
     };
   }
 
@@ -56,6 +60,7 @@ class UserModel extends Equatable {
     String? profileImageUrl,
     DateTime? createdAt,
     bool? isAdmin,
+    bool? isTeacher,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -66,9 +71,10 @@ class UserModel extends Equatable {
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       createdAt: createdAt ?? this.createdAt,
       isAdmin: isAdmin ?? this.isAdmin,
+      isTeacher: isTeacher ?? this.isTeacher, // تحديث حقل isTeacher في نسخة جديدة
     );
   }
 
   @override
-  List<Object?> get props => [id, email, name, phone, age, profileImageUrl, createdAt, isAdmin];
+  List<Object?> get props => [id, email, name, phone, age, profileImageUrl, createdAt, isAdmin, isTeacher];
 }

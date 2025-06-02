@@ -70,6 +70,7 @@ dependencies:
   vector_math: ^2.1.4
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.3
   flutter_lints: ^2.0.0
   flutter_test:
     sdk: flutter

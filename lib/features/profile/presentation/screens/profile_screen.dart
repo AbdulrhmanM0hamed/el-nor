@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
+import '../../../admin/presentation/screens/circle_management_screen.dart';
+import '../../../admin/presentation/screens/user_management_screen.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
@@ -131,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileHeader() {
     return Container(
       width: double.infinity,
-      height: 200.h,
+      height: 220.h, // زيادة الارتفاع قليلاً لإضافة شارة الدور
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.logoTeal, AppColors.logoTeal.withOpacity(0.7)],
@@ -146,19 +148,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 50.r,
-            backgroundColor: Colors.white,
-            backgroundImage: _user?.profileImageUrl != null && _user!.profileImageUrl!.isNotEmpty
-                ? NetworkImage(_user!.profileImageUrl!)
-                : null,
-            child: _user?.profileImageUrl == null || _user!.profileImageUrl!.isEmpty
-                ? Icon(
-                    Icons.person,
-                    size: 50.sp,
-                    color: AppColors.logoTeal,
-                  )
-                : null,
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              CircleAvatar(
+                radius: 50.r,
+                backgroundColor: Colors.white,
+                backgroundImage: _user?.profileImageUrl != null && _user!.profileImageUrl!.isNotEmpty
+                    ? NetworkImage(_user!.profileImageUrl!)
+                    : null,
+                child: _user?.profileImageUrl == null || _user!.profileImageUrl!.isEmpty
+                    ? Icon(
+                        Icons.person,
+                        size: 50.sp,
+                        color: AppColors.logoTeal,
+                      )
+                    : null,
+              ),
+              // شارة لدور المستخدم
+              if (_user != null)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: _getUserRoleBadgeColor(),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Text(
+                    _getUserRoleText(),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
           ),
           SizedBox(height: 16.h),
           Text(
@@ -180,6 +205,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+  
+  // دالة للحصول على نص دور المستخدم
+  String _getUserRoleText() {
+    if (_user?.isAdmin == true) {
+      return 'مشرف'; // مشرف
+    } else if (_user?.isTeacher == true) {
+      return 'معلم'; // معلم
+    } else {
+      return 'طالب'; // طالب
+    }
+  }
+  
+  // دالة للحصول على لون شارة دور المستخدم
+  Color _getUserRoleBadgeColor() {
+    if (_user?.isAdmin == true) {
+      return Colors.red; // لون للمشرف
+    } else if (_user?.isTeacher == true) {
+      return AppColors.logoOrange; // لون للمعلم
+    } else {
+      return Colors.green; // لون للطالب
+    }
   }
 
   Widget _buildUserInfo() {
@@ -216,12 +263,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildInfoRow(Icons.calendar_today, 'تاريخ الانضمام', _user?.createdAt != null 
               ? '${_user!.createdAt.day}/${_user!.createdAt.month}/${_user!.createdAt.year}'
               : 'غير متوفر'),
+          SizedBox(height: 12.h),
+          _buildInfoRow(
+            _user?.isAdmin == true ? Icons.admin_panel_settings : 
+            _user?.isTeacher == true ? Icons.school : Icons.person,
+            'الدور',
+            _getUserRoleText(),
+            valueColor: _getUserRoleBadgeColor(),
+          ),
         ],
       ),
     );
   }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  
+  Widget _buildInfoRow(IconData icon, String label, String value, {Color? valueColor}) {
     return Row(
       children: [
         Icon(
@@ -242,12 +297,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           value,
           style: TextStyle(
             fontSize: 16.sp,
-            color: Colors.black87,
+            color: valueColor ?? Colors.black87,
+            fontWeight: valueColor != null ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ],
     );
   }
+
+
 
   Widget _buildStatistics() {
     return Container(
@@ -318,12 +376,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       margin: EdgeInsets.all(16.w),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // أزرار للمشرفين فقط
+          if (_user?.isAdmin == true) ...[  
+            Text(
+              'إدارة النظام',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.logoTeal,
+              ),
+            ),
+            Divider(height: 16.h),
+            _buildActionButton(
+              'إدارة المستخدمين',
+              Icons.people,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UserManagementScreenWrapper(),
+                  ),
+                );
+              },
+              color: AppColors.logoTeal,
+            ),
+            SizedBox(height: 12.h),
+            _buildActionButton(
+              'إدارة حلقات التحفيظ',
+              Icons.group_add,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CircleManagementScreenWrapper(),
+                  ),
+                );
+              },
+              color: Colors.amber,
+            ),
+            SizedBox(height: 12.h),
+            _buildActionButton(
+              'تعيين معلمين للحلقات',
+              Icons.assignment_ind,
+              () {
+                // فتح شاشة تعيين المعلمين
+              },
+              color: AppColors.logoOrange,
+            ),
+            SizedBox(height: 24.h),
+          ],
+          
+          // أزرار للمعلمين فقط
+          if (_user?.isTeacher == true && _user?.isAdmin != true) ...[  
+            Text(
+              'إدارة الحلقات',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.logoTeal,
+              ),
+            ),
+            Divider(height: 16.h),
+            _buildActionButton(
+              'تقييم الطلاب',
+              Icons.rate_review,
+              () {
+                // فتح شاشة تقييم الطلاب
+              },
+              color: Colors.amber,
+            ),
+            SizedBox(height: 12.h),
+            _buildActionButton(
+              'تسجيل الحضور والغياب',
+              Icons.fact_check,
+              () {
+                // فتح شاشة تسجيل الحضور والغياب
+              },
+              color: AppColors.logoTeal,
+            ),
+            SizedBox(height: 24.h),
+          ],
+          
+          // أزرار لجميع المستخدمين
+          Text(
+            'إعدادات الحساب',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.logoTeal,
+            ),
+          ),
+          Divider(height: 16.h),
           _buildActionButton(
             'تعديل الملف الشخصي',
             Icons.edit,
             () {
-              // Implementar edición de perfil
+              // تنفيذ تعديل الملف الشخصي
             },
           ),
           SizedBox(height: 12.h),
@@ -331,7 +481,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'تغيير كلمة المرور',
             Icons.lock,
             () {
-              // Implementar cambio de contraseña
+              // تنفيذ تغيير كلمة المرور
             },
           ),
           SizedBox(height: 12.h),

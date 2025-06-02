@@ -37,6 +37,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String phone,
     required int age,
     File? profileImage,
+    bool isTeacher = false, // إضافة معلمة لتحديد ما إذا كان المستخدم معلمًا
   }) async {
     try {
       // التسجيل باستخدام Supabase Auth
@@ -81,6 +82,7 @@ class AuthRepositoryImpl implements AuthRepository {
         'profile_image_url': profileImageUrl,
         'created_at': DateTime.now().toIso8601String(),
         'is_admin': false,
+        'is_teacher': isTeacher, // إضافة حقل is_teacher إلى البيانات
       };
 
       try {
@@ -209,6 +211,7 @@ class AuthRepositoryImpl implements AuthRepository {
             'profile_image_url': null,
             'created_at': DateTime.now().toIso8601String(),
             'is_admin': false,
+            'is_teacher': false, // إضافة حقل is_teacher بقيمة افتراضية false (طالب)
           };
           
           // محاولة إدراج البيانات
