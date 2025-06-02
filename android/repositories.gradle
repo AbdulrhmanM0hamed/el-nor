@@ -1,0 +1,5 @@
+repositories {
+    maven {
+        url "https://repo.transistorsoft.com/repository/maven-public"
+    }
+} 
