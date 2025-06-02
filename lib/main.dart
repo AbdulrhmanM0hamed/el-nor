@@ -1,6 +1,6 @@
 import 'package:beat_elslam/core/utils/theme/app_theme.dart';
-import 'package:beat_elslam/features/main_layout/main_layout_screen.dart';
-import 'package:beat_elslam/features/home/prayer_times/services/prayer_reminder_service.dart';
+import 'package:beat_elslam/features/auth/presentation/screens/splash_screen.dart';
+import 'package:beat_elslam/core/services/service_locator.dart' as di;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,8 +19,8 @@ void main() async {
     // Initialize timezone data for scheduling notifications
     tz.initializeTimeZones();
 
-    
-
+    // Initialize service locator (incluye inicialización de Supabase)
+    await di.init();
     
     // Set preferred orientations
     await SystemChrome.setPreferredOrientations([
@@ -54,20 +54,20 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'بيت الاسلام',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            //  themeMode: themeMode,
-            supportedLocales: const [Locale('ar')],
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            onGenerateRoute: onGenratedRoutes,
-            home: const MainLayoutScreen(),
-          );
+          debugShowCheckedModeBanner: false,
+          title: 'النور',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          //  themeMode: themeMode,
+          supportedLocales: const [Locale('ar')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          onGenerateRoute: onGenratedRoutes,
+          home: const SplashScreen(),
+        );
       },
     );
   }

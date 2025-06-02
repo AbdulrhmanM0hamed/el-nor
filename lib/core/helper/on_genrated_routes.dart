@@ -1,8 +1,15 @@
+import 'package:beat_elslam/features/auth/presentation/screens/login_screen.dart';
+import 'package:beat_elslam/features/auth/presentation/screens/register_screen.dart';
+import 'package:beat_elslam/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:beat_elslam/features/auth/presentation/screens/splash_screen.dart';
 import 'package:beat_elslam/features/home/asma_allah/presentation/screens/asma_allah_screen.dart';
 import 'package:beat_elslam/features/home/view/home_View.dart';
+import 'package:beat_elslam/features/main_layout/main_layout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
+import '../services/service_locator.dart' as di;
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/home/azkar/presentation/screens/azkar_screen.dart';
 import '../../features/home/azkar/presentation/screens/azkar_details_screen.dart';
 import '../../features/home/azkar/models/azkar_model.dart';
@@ -27,6 +34,42 @@ Route<dynamic> onGenratedRoutes(RouteSettings settings) {
   _logger.i('Navigating to: ${settings.name}');
   
   switch (settings.name) {
+    // Rutas de autenticación
+    case SplashScreen.routeName:
+      _logger.i('Navigating to SplashScreen');
+      return MaterialPageRoute(builder: (context) => const SplashScreen());
+      
+    case LoginScreen.routeName:
+      _logger.i('Navigating to LoginScreen');
+      return MaterialPageRoute(
+        builder: (context) => BlocProvider<AuthCubit>(
+          create: (context) => di.sl<AuthCubit>(),
+          child: const LoginScreen(),
+        ),
+      );
+      
+    case RegisterScreen.routeName:
+      _logger.i('Navigating to RegisterScreen');
+      return MaterialPageRoute(
+        builder: (context) => BlocProvider<AuthCubit>(
+          create: (context) => di.sl<AuthCubit>(),
+          child: const RegisterScreen(),
+        ),
+      );
+      
+    case ResetPasswordScreen.routeName:
+      _logger.i('Navigating to ResetPasswordScreen');
+      return MaterialPageRoute(
+        builder: (context) => BlocProvider<AuthCubit>(
+          create: (context) => di.sl<AuthCubit>(),
+          child: const ResetPasswordScreen(),
+        ),
+      );
+      
+    case '/main':
+      _logger.i('Navigating to MainLayoutScreen');
+      return MaterialPageRoute(builder: (context) => const MainLayoutScreen());
+      
     case HomeView.routeName:
       _logger.i('Navigating to HomeView');
       return MaterialPageRoute(builder: (context) => const HomeView());

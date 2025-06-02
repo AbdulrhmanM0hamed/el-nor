@@ -55,15 +55,16 @@ dependencies:
   geolocator: ^14.0.0
   get_it: ^8.0.3
   hijri: ^3.0.0
+  image_picker: ^1.1.2
   intl: ^0.19.0
   just_audio: ^0.9.36
   just_audio_background: ^0.0.1-beta.11
   location: ^8.0.0
   logger: ^2.5.0
-
   path_provider: ^2.1.5
   pdfrx: ^1.1.25
   shared_preferences: ^2.5.3
+  supabase_flutter: ^2.9.0
   syncfusion_flutter_pdfviewer: ^29.1.39
   timezone: ^0.10.0
   vector_math: ^2.1.4

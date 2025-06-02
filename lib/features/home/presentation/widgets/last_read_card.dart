@@ -79,6 +79,12 @@ class _LastReadCardState extends State<LastReadCard> {
       // تحميل جميع السور
       await SurahList.loadSurahsPaginated(page: 1, pageSize: 114);
       
+      // التحقق مما إذا كان الويدجيت لا يزال موجودًا في الشجرة
+      if (!mounted) {
+        debugPrint('Widget is no longer mounted, cancelling setState');
+        return;
+      }
+      
       // العثور على السورة بناءً على رقم الصفحة
       final surah = _findSurahByPageNumber(lastPage);
       
@@ -94,21 +100,27 @@ class _LastReadCardState extends State<LastReadCard> {
         'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
       ];
       
-      setState(() {
-        _pageNumber = lastPage;
-        _surahName = surah.transliteration;
-        _surahNameArabic = surah.name;
-        _hijriDate = '${hijriMonths[hijriMonth - 1]} - $hijriDay-$hijriYear';
-        _isLoading = false;
-      });
+      // التحقق مرة أخرى قبل استدعاء setState
+      if (mounted) {
+        setState(() {
+          _pageNumber = lastPage;
+          _surahName = surah.transliteration;
+          _surahNameArabic = surah.name;
+          _hijriDate = '${hijriMonths[hijriMonth - 1]} - $hijriDay-$hijriYear';
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading last read data: $e');
-      setState(() {
-        _surahName = 'Al-Fatiha';
-        _surahNameArabic = 'الفاتحة';
-        _hijriDate = 'رمضان - ${DateFormat('dd-yyyy').format(DateTime.now())}';
-        _isLoading = false;
-      });
+      // التحقق مما إذا كان الويدجيت لا يزال موجودًا في الشجرة قبل استدعاء setState
+      if (mounted) {
+        setState(() {
+          _surahName = 'Al-Fatiha';
+          _surahNameArabic = 'الفاتحة';
+          _hijriDate = 'رمضان - ${DateFormat('dd-yyyy').format(DateTime.now())}';
+          _isLoading = false;
+        });
+      }
     }
   }
   
