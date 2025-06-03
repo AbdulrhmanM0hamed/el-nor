@@ -1,4 +1,4 @@
-import 'package:beat_elslam/features/admin/presentation/widgets/circle_details/teacher_section_fixed.dart';
+import 'package:beat_elslam/features/admin/presentation/widgets/circle_details/teacher_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,7 +10,6 @@ import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
 import '../widgets/circle_details/circle_info_card.dart';
 import '../widgets/circle_details/students_section.dart';
-import '../widgets/circle_details/teacher_section_improved.dart';
 import '../widgets/shared/loading_error_handler.dart';
 
 class CircleDetailsScreen extends StatefulWidget {

@@ -10,7 +10,7 @@ import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
 import '../widgets/circle_details/circle_info_card.dart';
 import '../widgets/circle_details/students_section.dart';
-import '../widgets/circle_details/teacher_section_fixed.dart';
+import '../widgets/circle_details/teacher_section.dart';
 import '../widgets/shared/loading_error_handler.dart';
 
 class CircleDetailsScreen extends StatefulWidget {
@@ -332,5 +332,4 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
 
   // Removed _showAssignTeacherDialog and _buildTeacherSelectionContent methods
   // Teacher assignment should only be done from the edit circle dialog
-    }
-  
+}

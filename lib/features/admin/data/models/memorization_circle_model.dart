@@ -7,6 +7,7 @@ class MemorizationCircleModel {
   final String? description;
   final String? teacherId;
   final String? teacherName; // للعرض فقط
+  final String? teacherImageUrl; // لعرض صورة المعلم
   final bool isExam;
   final DateTime startDate;
   final DateTime? endDate;
@@ -23,6 +24,7 @@ class MemorizationCircleModel {
     this.description,
     this.teacherId,
     this.teacherName,
+    this.teacherImageUrl,
     required this.isExam,
     required this.startDate,
     this.endDate,
@@ -66,6 +68,7 @@ class MemorizationCircleModel {
       description: json['description'],
       teacherId: json['teacher_id'],
       teacherName: json['teacher_name'], // قد يكون من استعلام JOIN
+      teacherImageUrl: json['teacher_image_url'],
       isExam: json['is_exam'] ?? false,
       startDate: DateTime.parse(json['start_date']),
       endDate: json['end_date'] != null
@@ -86,6 +89,7 @@ class MemorizationCircleModel {
       'name': name,
       'description': description,
       'teacher_id': teacherId,
+      'teacher_image_url': teacherImageUrl,
       'is_exam': isExam,
       'start_date': startDate.toIso8601String(),
       'end_date': endDate?.toIso8601String(),
@@ -105,6 +109,7 @@ class MemorizationCircleModel {
     String? description,
     String? teacherId,
     String? teacherName,
+    String? teacherImageUrl,
     required bool isExam,
     required DateTime startDate,
     DateTime? endDate,
@@ -118,6 +123,7 @@ class MemorizationCircleModel {
       description: description,
       teacherId: teacherId,
       teacherName: teacherName,
+      teacherImageUrl: teacherImageUrl,
       isExam: isExam,
       startDate: startDate,
       endDate: endDate,
@@ -136,6 +142,7 @@ class MemorizationCircleModel {
     String? description,
     String? teacherId,
     String? teacherName,
+    String? teacherImageUrl,
     bool? isExam,
     DateTime? startDate,
     DateTime? endDate,
@@ -152,6 +159,7 @@ class MemorizationCircleModel {
       description: description ?? this.description,
       teacherId: teacherId ?? this.teacherId,
       teacherName: teacherName ?? this.teacherName,
+      teacherImageUrl: teacherImageUrl ?? this.teacherImageUrl,
       isExam: isExam ?? this.isExam,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,

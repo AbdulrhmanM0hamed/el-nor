@@ -186,10 +186,10 @@ class AdminRepository {
 
   Future<List<MemorizationCircleModel>> getAllCircles() async {
     try {
-      // 1. الحصول على الحلقات مع معلومات المعلم
+      // 1. الحصول على الحلقات مع معلومات المعلم بما في ذلك صورة الملف الشخصي
       final data = await _supabaseClient
           .from('memorization_circles')
-          .select('*, teachers(name)')
+          .select('*, teachers(name, profile_image_url)')
           .order('created_at', ascending: false);
       
       print('تم العثور على ${data.length} حلقة');
@@ -198,9 +198,11 @@ class AdminRepository {
       final List<MemorizationCircleModel> circles = [];
       
       for (final json in data) {
-        // إضافة اسم المعلم من الجدول المرتبط
+        // إضافة اسم المعلم وصورة الملف الشخصي من الجدول المرتبط
         if (json['teachers'] != null) {
           json['teacher_name'] = json['teachers']['name'];
+          json['teacher_image_url'] = json['teachers']['profile_image_url'];
+          print('معلومات المعلم للحلقة ${json['id']}: الاسم=${json['teacher_name']}, الصورة=${json['teacher_image_url']}');
         }
         
         // 3. استخراج معرفات الطلاب من الحقل student_ids مباشرة

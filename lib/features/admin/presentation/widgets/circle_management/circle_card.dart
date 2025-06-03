@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../../core/utils/theme/app_colors.dart';
 import '../../../data/models/memorization_circle_model.dart';
-import '../shared/profile_image.dart';
+import '../shared/profile_image_fixed.dart';
 
 class CircleCard extends StatelessWidget {
   final MemorizationCircleModel circle;
@@ -116,10 +116,11 @@ class CircleCard extends StatelessWidget {
       children: [
         if (circle.teacherId != null && circle.teacherId!.isNotEmpty) ...[
           ProfileImage(
-            imageUrl: null, // Teacher profile image is not directly available in the model
+            imageUrl: circle.teacherImageUrl,
             name: circle.teacherName ?? 'معلم',
             color: AppColors.logoTeal,
-            size: 40,
+            size: 40.0,
+            showDebugLogs: false,
           ),
           SizedBox(width: 12.w),
         ],
