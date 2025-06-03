@@ -169,7 +169,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               children: [
                 SizedBox(height: 4.h),
                 Text(user.email),
-                SizedBox(height: 8.h),
+                SizedBox(height: 4.h),
+                Text(
+                  'الدور: ${_getUserRoleText(user)}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12.sp,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                SizedBox(height: 6.h),
                 Wrap(
                   spacing: 8.w,
                   children: [
@@ -218,25 +227,48 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   void _showEditRoleDialog(BuildContext context, UserModel user) {
-    // Capturar el AdminCubit antes de mostrar el diálogo
     final adminCubit = context.read<AdminCubit>();
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => UserRoleDialog(
         user: user,
-        onRoleChanged: (isAdmin, isTeacher) {
-          // Usar el adminCubit capturado en lugar del contexto del diálogo
+        onRoleChanged: (isAdmin, isTeacher) async {
+          // Store original role status for logging
+          final wasAdmin = user.isAdmin;
+          final wasTeacher = user.isTeacher;
+          
+          final roleChangeText = _getRoleChangeText(wasAdmin, wasTeacher, isAdmin, isTeacher);
+          
+          print('Role change requested for ${user.name}');
+          print('Role change: $roleChangeText');
+          print('Original role: Admin=${wasAdmin}, Teacher=${wasTeacher}');
+          print('New role: Admin=${isAdmin}, Teacher=${isTeacher}');
+          
+          // Update user role in database
           adminCubit.updateUserRole(
             userId: user.id,
             isAdmin: isAdmin,
             isTeacher: isTeacher,
           );
           
-          // Si el usuario se convierte en maestro, agregarlo a la tabla de maestros
+          // Handle teacher record management
           if (isTeacher && !user.isTeacher) {
+            print('Adding teacher record for ${user.name}');
             adminCubit.addTeacher(user);
+          } else if (!isTeacher && user.isTeacher) {
+            print('Removing teacher record for ${user.name}');
+            adminCubit.removeTeacher(user.id);
           }
+          
+          // Show success message with role change details
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('تم تغيير دور ${user.name} $roleChangeText'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
         },
       ),
     );
@@ -247,5 +279,34 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       return '?';
     }
     return name[0].toUpperCase();
+  }
+  
+  // Helper method to get the text representation of a user's role
+  String _getUserRoleText(UserModel user) {
+    if (user.isAdmin) {
+      return 'مشرف';
+    } else if (user.isTeacher) {
+      return 'معلم';
+    } else {
+      return 'طالب';
+    }
+  }
+  
+  // Helper method to get the text representation of a role based on isAdmin and isTeacher flags
+  String _getRoleText(bool isAdmin, bool isTeacher) {
+    if (isAdmin) {
+      return 'مشرف';
+    } else if (isTeacher) {
+      return 'معلم';
+    } else {
+      return 'طالب';
+    }
+  }
+  
+  // Helper method to describe the role change
+  String _getRoleChangeText(bool oldIsAdmin, bool oldIsTeacher, bool newIsAdmin, bool newIsTeacher) {
+    final oldRole = _getRoleText(oldIsAdmin, oldIsTeacher);
+    final newRole = _getRoleText(newIsAdmin, newIsTeacher);
+    return 'من $oldRole إلى $newRole';
   }
 }

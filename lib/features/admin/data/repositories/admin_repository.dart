@@ -79,18 +79,103 @@ class AdminRepository {
     required bool isTeacher,
   }) async {
     try {
+      print('Starting updateUserRole for userId: $userId');
+      print('New roles: isAdmin=$isAdmin, isTeacher=$isTeacher');
+      
       // التحقق من صلاحيات المشرف
       final hasPermission = await checkAdminPermission();
       if (!hasPermission) {
+        print('Permission check failed: User does not have admin permission');
         throw Exception('ليس لديك صلاحية لتعديل أدوار المستخدمين');
       }
+      print('Admin permission check passed');
       
-      // تحديث دور المستخدم
-      await _supabaseClient.from('students').update({
-        'is_admin': isAdmin,
-        'is_teacher': isTeacher,
-      }).eq('id', userId);
+      // First, check if the user exists in the database
+      print('Checking if user exists...');
+      final userExists = await _supabaseClient
+          .from('students')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+      
+      if (userExists == null) {
+        print('Error: User with ID $userId not found in database');
+        throw Exception('المستخدم غير موجود');
+      }
+      
+      print('User found, proceeding with update');
+      
+      // IMPORTANT: The error is due to Row-Level Security (RLS) policies
+      // We need to use a different approach that works with the security policies
+      
+      // Try using a stored procedure or function that has proper permissions
+      print('Attempting to update role via stored procedure...');
+      
+      try {
+        // Try to use an RPC function that has proper permissions
+        await _supabaseClient.rpc(
+          'update_student_role',
+          params: {
+            'student_id': userId,
+            'is_admin_val': isAdmin,
+            'is_teacher_val': isTeacher,
+          },
+        );
+        
+        print('RPC update completed');
+      } catch (rpcError) {
+        print('RPC update failed: $rpcError');
+        print('Falling back to admin service role approach...');
+        
+        // If the RPC approach fails, we need to check if we have access to admin functions
+        try {
+          // Check if we're using a service role client that can bypass RLS
+          final currentUser = _supabaseClient.auth.currentUser;
+          print('Current auth user: ${currentUser?.id}');
+          print('Current auth user role: ${currentUser?.appMetadata['role']}');
+          
+          // Try a direct update with the current client
+          print('Attempting direct update with current permissions...');
+          await _supabaseClient
+              .from('students')
+              .update({
+                'is_admin': isAdmin,
+                'is_teacher': isTeacher,
+              })
+              .eq('id', userId);
+              
+          print('Direct update completed');
+        } catch (directError) {
+          print('Direct update failed: $directError');
+          throw Exception('ليس لديك صلاحيات كافية لتحديث دور المستخدم');
+        }
+      }
+      
+      // Wait to ensure database consistency
+      await Future.delayed(Duration(seconds: 1));
+      
+      // Verify the update by fetching the user
+      print('Verifying update...');
+      final updatedUser = await _supabaseClient
+          .from('students')
+          .select()
+          .eq('id', userId)
+          .single();
+          
+      print('Verification - Updated user data:');
+      print('isAdmin: ${updatedUser['is_admin']}, isTeacher: ${updatedUser['is_teacher']}');
+      
+      // Check if the update was successful
+      if (updatedUser['is_admin'] != isAdmin || updatedUser['is_teacher'] != isTeacher) {
+        print('WARNING: Role update verification failed!');
+        print('Expected: isAdmin=$isAdmin, isTeacher=$isTeacher');
+        print('Actual: isAdmin=${updatedUser['is_admin']}, isTeacher=${updatedUser['is_teacher']}');
+        
+        throw Exception('فشل في تحديث دور المستخدم. تحقق من صلاحياتك في قاعدة البيانات.');
+      }
+      
     } catch (e) {
+      print('Exception in updateUserRole: $e');
       throw Exception('فشل في تحديث دور المستخدم: $e');
     }
   }

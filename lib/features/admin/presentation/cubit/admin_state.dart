@@ -117,6 +117,15 @@ class AdminStudentsLoaded extends AdminState {
   List<Object?> get props => [students];
 }
 
+class AdminTeacherRemoved extends AdminState {
+  final String teacherId;
+
+  const AdminTeacherRemoved(this.teacherId);
+
+  @override
+  List<Object?> get props => [teacherId];
+}
+
 class AdminError extends AdminState {
   final String message;
 

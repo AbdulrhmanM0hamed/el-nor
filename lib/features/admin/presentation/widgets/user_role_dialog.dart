@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../auth/data/models/user_model.dart';
 
+// Define role enum for clearer selection
+enum UserRole { admin, teacher, student }
+
 class UserRoleDialog extends StatefulWidget {
   final UserModel user;
   final Function(bool isAdmin, bool isTeacher) onRoleChanged;
@@ -18,21 +21,28 @@ class UserRoleDialog extends StatefulWidget {
 }
 
 class _UserRoleDialogState extends State<UserRoleDialog> {
-  late bool _isAdmin;
-  late bool _isTeacher;
+  late UserRole _selectedRole;
 
   @override
   void initState() {
     super.initState();
-    _isAdmin = widget.user.isAdmin;
-    _isTeacher = widget.user.isTeacher;
+    // Set initial role based on user's current role
+    if (widget.user.isAdmin) {
+      _selectedRole = UserRole.admin;
+    } else if (widget.user.isTeacher) {
+      _selectedRole = UserRole.teacher;
+    } else {
+      _selectedRole = UserRole.student;
+    }
+    
+    print('الدور الحالي للمستخدم ${widget.user.name}: ${_getRoleText(_selectedRole)}');
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        'تعديل صلاحيات المستخدم',
+        'تعديل دور المستخدم',
         style: TextStyle(
           fontSize: 18.sp,
           fontWeight: FontWeight.bold,
@@ -44,56 +54,67 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'المستخدم: ${widget.user.name}',
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
+          // User info section
+          Container(
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8.r),
             ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'البريد الإلكتروني: ${widget.user.email}',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.black54,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'المستخدم: ${widget.user.name ?? "غير معروف"}',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'البريد الإلكتروني: ${widget.user.email}',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
             ),
           ),
           SizedBox(height: 24.h),
           Text(
-            'الصلاحيات:',
+            'اختر الدور:',
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 8.h),
-          _buildRoleCheckbox(
-            'مشرف (صلاحيات كاملة)',
-            _isAdmin,
-            (value) {
-              setState(() {
-                _isAdmin = value ?? false;
-                // إذا كان المستخدم مشرفًا، فهو أيضًا معلم بشكل تلقائي
-                if (_isAdmin) {
-                  _isTeacher = true;
-                }
-              });
-            },
+          SizedBox(height: 16.h),
+          
+          // Role selection with radio buttons and descriptions
+          _buildRoleOption(
+            title: 'مشرف',
+            description: 'صلاحيات كاملة للنظام وإدارة المستخدمين',
+            icon: Icons.admin_panel_settings,
+            color: Colors.red[700]!,
+            role: UserRole.admin,
           ),
-          SizedBox(height: 8.h),
-          _buildRoleCheckbox(
-            'معلم (يمكنه تقييم الطلاب وإدارة الحضور)',
-            _isTeacher,
-            (value) {
-              setState(() {
-                _isTeacher = value ?? false;
-                // إذا لم يعد المستخدم معلمًا، فلا يمكن أن يكون مشرفًا
-                if (!_isTeacher) {
-                  _isAdmin = false;
-                }
-              });
-            },
+          SizedBox(height: 12.h),
+          _buildRoleOption(
+            title: 'معلم',
+            description: 'يمكنه إدارة الحلقات وتقييم الطلاب',
+            icon: Icons.school,
+            color: Colors.blue[700]!,
+            role: UserRole.teacher,
+          ),
+          SizedBox(height: 12.h),
+          _buildRoleOption(
+            title: 'طالب',
+            description: 'مستخدم عادي بدون صلاحيات خاصة',
+            icon: Icons.person,
+            color: Colors.green[700]!,
+            role: UserRole.student,
           ),
         ],
       ),
@@ -112,7 +133,14 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            widget.onRoleChanged(_isAdmin, _isTeacher);
+            // Convert selected role to isAdmin and isTeacher flags
+            final isAdmin = _selectedRole == UserRole.admin;
+            final isTeacher = _selectedRole == UserRole.admin || _selectedRole == UserRole.teacher;
+            
+            print('تم اختيار الدور: ${_getRoleText(_selectedRole)}');
+            print('isAdmin: $isAdmin, isTeacher: $isTeacher');
+            
+            widget.onRoleChanged(isAdmin, isTeacher);
             Navigator.of(context).pop();
           },
           style: ElevatedButton.styleFrom(
@@ -133,24 +161,81 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
     );
   }
 
-  Widget _buildRoleCheckbox(String label, bool value, Function(bool?) onChanged) {
-    return Row(
-      children: [
-        Checkbox(
-          value: value,
-          onChanged: onChanged,
-          activeColor: AppColors.logoTeal,
-        ),
-        SizedBox(width: 8.w),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14.sp,
-            ),
+  // Build a role option with radio button, icon, title and description
+  Widget _buildRoleOption({
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required UserRole role,
+  }) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedRole = role;
+        });
+      },
+      borderRadius: BorderRadius.circular(8.r),
+      child: Container(
+        padding: EdgeInsets.all(12.r),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: _selectedRole == role ? color : Colors.grey[300]!,
+            width: _selectedRole == role ? 2 : 1,
           ),
+          borderRadius: BorderRadius.circular(8.r),
+          color: _selectedRole == role ? color.withOpacity(0.1) : Colors.transparent,
         ),
-      ],
+        child: Row(
+          children: [
+            Radio<UserRole>(
+              value: role,
+              groupValue: _selectedRole,
+              onChanged: (value) {
+                setState(() {
+                  _selectedRole = value!;
+                });
+              },
+              activeColor: color,
+            ),
+            SizedBox(width: 8.w),
+            Icon(icon, color: color, size: 24.sp),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+  
+  // Helper method to get role text
+  String _getRoleText(UserRole role) {
+    return switch (role) {
+      UserRole.admin => 'مشرف',
+      UserRole.teacher => 'معلم',
+      UserRole.student => 'طالب',
+    };
   }
 }

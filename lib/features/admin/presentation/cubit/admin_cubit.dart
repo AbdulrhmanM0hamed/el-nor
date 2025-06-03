@@ -99,6 +99,27 @@ class AdminCubit extends Cubit<AdminState> {
     }
   }
   
+  // إزالة مستخدم من جدول المعلمين عند إلغاء دور المعلم
+  Future<void> removeTeacher(String userId) async {
+    try {
+      // حذف المعلم من جدول المعلمين
+      await _adminRepository.deleteTeacher(userId);
+      
+      // إعادة تحميل قائمة المعلمين
+      await loadTeachers();
+      
+      emit(AdminTeacherRemoved(userId));
+    } catch (e) {
+      // إذا لم يكن المعلم موجودًا بالفعل، نتجاهل الخطأ
+      if (e.toString().contains('not found') || e.toString().contains('no rows')) {
+        // المعلم غير موجود بالفعل، لا نفعل شيئًا
+        return;
+      } else {
+        emit(AdminError('حدث خطأ أثناء إزالة المعلم: ${e.toString()}'));
+      }
+    }
+  }
+  
   // طرق إدارة حلقات التحفيظ
   
   Future<List<MemorizationCircleModel>> loadAllCircles({bool forceRefresh = false}) async {
