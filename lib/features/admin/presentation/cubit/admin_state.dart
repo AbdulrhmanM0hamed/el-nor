@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import '../../../auth/data/models/user_model.dart';
-import '../../../memorization_circles/data/models/memorization_circle_model.dart';
+import '../../data/models/memorization_circle_model.dart';
+import '../../data/models/teacher_model.dart';
+import '../../data/models/student_model.dart';
 
 abstract class AdminState extends Equatable {
   const AdminState();
@@ -38,7 +40,7 @@ class AdminUserRoleUpdated extends AdminState {
 }
 
 class AdminCirclesLoaded extends AdminState {
-  final List<MemorizationCircle> circles;
+  final List<MemorizationCircleModel> circles;
 
   const AdminCirclesLoaded(this.circles);
 
@@ -46,8 +48,17 @@ class AdminCirclesLoaded extends AdminState {
   List<Object?> get props => [circles];
 }
 
+class AdminTeacherAdded extends AdminState {
+  final TeacherModel teacher;
+
+  const AdminTeacherAdded(this.teacher);
+
+  @override
+  List<Object?> get props => [teacher];
+}
+
 class AdminCircleCreated extends AdminState {
-  final MemorizationCircle circle;
+  final MemorizationCircleModel circle;
 
   const AdminCircleCreated(this.circle);
 
@@ -56,7 +67,7 @@ class AdminCircleCreated extends AdminState {
 }
 
 class AdminCircleUpdated extends AdminState {
-  final MemorizationCircle circle;
+  final MemorizationCircleModel circle;
 
   const AdminCircleUpdated(this.circle);
 
@@ -89,12 +100,21 @@ class AdminTeacherAssigned extends AdminState {
 }
 
 class AdminTeachersLoaded extends AdminState {
-  final List<UserModel> teachers;
+  final List<TeacherModel> teachers;
 
   const AdminTeachersLoaded(this.teachers);
 
   @override
   List<Object?> get props => [teachers];
+}
+
+class AdminStudentsLoaded extends AdminState {
+  final List<StudentModel> students;
+
+  const AdminStudentsLoaded(this.students);
+
+  @override
+  List<Object?> get props => [students];
 }
 
 class AdminError extends AdminState {

@@ -1,5 +1,5 @@
 import 'package:beat_elslam/core/utils/theme/app_theme.dart';
-import 'package:beat_elslam/features/auth/presentation/screens/splash_screen.dart';
+import 'package:beat_elslam/features/auth/presentation/screens/auth_check_screen.dart';
 import 'package:beat_elslam/core/services/service_locator.dart' as di;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           onGenerateRoute: onGenratedRoutes,
-          home: const SplashScreen(),
+          home: const AuthCheckScreen(),
         );
       },
     );

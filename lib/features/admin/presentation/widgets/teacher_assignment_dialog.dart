@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
-import '../../../auth/data/models/user_model.dart';
+import '../../data/models/teacher_model.dart';
 
 class TeacherAssignmentDialog extends StatefulWidget {
-  final List<UserModel> teachers;
+  final List<TeacherModel> teachers;
   final String? currentTeacherId;
   final Function(String teacherId, String teacherName) onAssign;
 
@@ -32,17 +32,15 @@ class _TeacherAssignmentDialogState extends State<TeacherAssignmentDialog> {
     if (selectedTeacherId != null) {
       final teacher = widget.teachers.firstWhere(
         (teacher) => teacher.id == selectedTeacherId,
-        orElse: () => UserModel(
+        orElse: () => TeacherModel(
           id: '',
           name: '',
           email: '',
-          phone: '',
-          isAdmin: false,
-          isTeacher: true,
           createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
       );
-      selectedTeacherName = teacher.name?.isNotEmpty == true ? teacher.name : 'معلم';
+      selectedTeacherName = teacher.name.isNotEmpty ? teacher.name : 'معلم';
     }
   }
 
@@ -94,7 +92,7 @@ class _TeacherAssignmentDialogState extends State<TeacherAssignmentDialog> {
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.w),
                         child: Text(
-                          teacher.name ?? '',
+                          teacher.name,
                           style: TextStyle(fontSize: 14.sp),
                         ),
                       ),
@@ -107,7 +105,7 @@ class _TeacherAssignmentDialogState extends State<TeacherAssignmentDialog> {
                         final teacher = widget.teachers.firstWhere(
                           (teacher) => teacher.id == teacherId,
                         );
-                        selectedTeacherName = teacher.name?.isNotEmpty == true ? teacher.name : 'معلم';
+                        selectedTeacherName = teacher.name.isNotEmpty ? teacher.name : 'معلم';
                       } else {
                         selectedTeacherName = null;
                       }

@@ -6,21 +6,33 @@ import 'auth_state.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;
 
-  AuthCubit(this._authRepository) : super(const AuthInitial()) {
-    checkCurrentUser();
-  }
+  AuthCubit(this._authRepository) : super(const AuthInitial());
 
   Future<void> checkCurrentUser() async {
+    print('AuthCubit: بدء التحقق من المستخدم الحالي');
+    if (isClosed) {
+      print('AuthCubit: تم إغلاق الـ Cubit بالفعل، لا يمكن إصدار حالات جديدة');
+      return;
+    }
     emit(const AuthLoading());
     try {
       final user = await _authRepository.getCurrentUser();
+      if (isClosed) {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد الحصول على المستخدم، لا يمكن إصدار حالات جديدة');
+        return;
+      }
       if (user != null) {
         emit(AuthAuthenticated(user));
       } else {
         emit(const AuthUnauthenticated());
       }
     } catch (e) {
-      emit(AuthError(e.toString()));
+      if (!isClosed) {
+        print('AuthCubit: حدث خطأ: ${e.toString()}');
+        emit(AuthError(e.toString()));
+      } else {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد حدوث خطأ، لا يمكن إصدار حالة الخطأ');
+      }
     }
   }
 
@@ -32,6 +44,10 @@ class AuthCubit extends Cubit<AuthState> {
     required int age,
     File? profileImage,
   }) async {
+    if (isClosed) {
+      print('AuthCubit: تم إغلاق الـ Cubit بالفعل، لا يمكن إصدار حالات جديدة');
+      return;
+    }
     emit(const AuthLoading());
     try {
       final user = await _authRepository.signUp(
@@ -42,47 +58,92 @@ class AuthCubit extends Cubit<AuthState> {
         age: age,
         profileImage: profileImage,
       );
-      emit(AuthSignUpSuccess(user));
+      if (isClosed) {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد إنشاء الحساب، لا يمكن إصدار حالات جديدة');
+        return;
+      }
+      // إصدار حالة واحدة فقط بعد إنشاء الحساب بنجاح
       emit(AuthAuthenticated(user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      if (!isClosed) {
+        print('AuthCubit: حدث خطأ أثناء إنشاء الحساب: ${e.toString()}');
+        emit(AuthError(e.toString()));
+      } else {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد حدوث خطأ، لا يمكن إصدار حالة الخطأ');
+      }
     }
   }
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
+    if (isClosed) {
+      print('AuthCubit: تم إغلاق الـ Cubit بالفعل، لا يمكن إصدار حالات جديدة');
+      return;
+    }
     emit(const AuthLoading());
     try {
       final user = await _authRepository.signIn(
         email: email,
         password: password,
       );
-      emit(AuthSignInSuccess(user));
+      if (isClosed) {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد تسجيل الدخول، لا يمكن إصدار حالات جديدة');
+        return;
+      }
+      // إصدار حالة واحدة فقط بعد تسجيل الدخول بنجاح
       emit(AuthAuthenticated(user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      if (!isClosed) {
+        print('AuthCubit: حدث خطأ أثناء تسجيل الدخول: ${e.toString()}');
+        emit(AuthError(e.toString()));
+      } else {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد حدوث خطأ، لا يمكن إصدار حالة الخطأ');
+      }
     }
   }
 
   Future<void> signOut() async {
+    if (isClosed) {
+      print('AuthCubit: تم إغلاق الـ Cubit بالفعل، لا يمكن إصدار حالات جديدة');
+      return;
+    }
     emit(const AuthLoading());
     try {
       await _authRepository.signOut();
+      if (isClosed) {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد تسجيل الخروج، لا يمكن إصدار حالات جديدة');
+        return;
+      }
       emit(const AuthUnauthenticated());
     } catch (e) {
-      emit(AuthError(e.toString()));
+      if (!isClosed) {
+        print('AuthCubit: حدث خطأ أثناء تسجيل الخروج: ${e.toString()}');
+        emit(AuthError(e.toString()));
+      } else {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد حدوث خطأ، لا يمكن إصدار حالة الخطأ');
+      }
     }
   }
 
   Future<void> resetPassword(String email) async {
+    if (isClosed) {
+      print('AuthCubit: تم إغلاق الـ Cubit بالفعل، لا يمكن إصدار حالات جديدة');
+      return;
+    }
     emit(const AuthLoading());
     try {
       await _authRepository.resetPassword(email);
+      if (isClosed) {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد إعادة تعيين كلمة المرور، لا يمكن إصدار حالات جديدة');
+        return;
+      }
       emit(const AuthResetPasswordSuccess());
     } catch (e) {
-      emit(AuthError(e.toString()));
+      if (!isClosed) {
+        print('AuthCubit: حدث خطأ أثناء إعادة تعيين كلمة المرور: ${e.toString()}');
+        emit(AuthError(e.toString()));
+      } else {
+        print('AuthCubit: تم إغلاق الـ Cubit بعد حدوث خطأ، لا يمكن إصدار حالة الخطأ');
+      }
     }
   }
 }

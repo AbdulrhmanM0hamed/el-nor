@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+
 import '../../../../core/utils/theme/app_colors.dart';
+import '../../data/models/student_model.dart';
+import '../../data/models/surah_assignment.dart';
+import '../../data/models/teacher_model.dart';
 
 class CircleFormDialog extends StatefulWidget {
   final String title;
   final String? initialName;
   final String? initialDescription;
-  final Function(String name, String description) onSave;
+  final DateTime? initialDate;
+  final List<TeacherModel> availableTeachers;
+  final List<SurahAssignment>? initialSurahAssignments;
+  final List<StudentModel>? availableStudents;
+  final List<String>? initialStudentIds;
+  final Function(String name, String description, DateTime startDate, String? teacherId, String? teacherName, List<SurahAssignment> surahAssignments, List<String> studentIds) onSave;
 
   const CircleFormDialog({
     Key? key,
     required this.title,
     this.initialName,
     this.initialDescription,
+    this.initialDate,
+    required this.availableTeachers,
+    this.initialSurahAssignments,
+    this.availableStudents,
+    this.initialStudentIds,
     required this.onSave,
   }) : super(key: key);
 
@@ -20,41 +35,194 @@ class CircleFormDialog extends StatefulWidget {
   State<CircleFormDialog> createState() => _CircleFormDialogState();
 }
 
-class _CircleFormDialogState extends State<CircleFormDialog> {
+class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
+  late DateTime _selectedDate;
+  String? _selectedTeacherId;
+  String? _selectedTeacherName;
+  final List<SurahAssignment> _selectedSurahs = [];
+  final List<String> _selectedStudentIds = [];
+  
+  // Controladores para el diálogo de asignación de suras
+  final TextEditingController _surahNameController = TextEditingController();
+  final TextEditingController _startVerseController = TextEditingController();
+  final TextEditingController _endVerseController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+
+  // Controlador de pestañas
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    // Inicializar el controlador de pestañas
+    _tabController = TabController(length: 4, vsync: this);
+    
+    // Inicializar controladores de texto
     _nameController = TextEditingController(text: widget.initialName ?? '');
     _descriptionController = TextEditingController(text: widget.initialDescription ?? '');
+    _selectedDate = widget.initialDate ?? DateTime.now();
+    
+    // Inicializar suras si existen
+    if (widget.initialSurahAssignments != null) {
+      _selectedSurahs.addAll(widget.initialSurahAssignments!);
+    }
+    
+    // Inicializar estudiantes si existen
+    if (widget.initialStudentIds != null) {
+      _selectedStudentIds.addAll(widget.initialStudentIds!);
+    }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _surahNameController.dispose();
+    _startVerseController.dispose();
+    _endVerseController.dispose();
+    _notesController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        widget.title,
-        style: TextStyle(
-          fontSize: 18.sp,
-          fontWeight: FontWeight.bold,
-          color: AppColors.logoTeal,
-        ),
-        textAlign: TextAlign.center,
-      ),
-      content: Form(
-        key: _formKey,
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          children: [
+            // Encabezado del diálogo
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              decoration: BoxDecoration(
+                color: AppColors.logoTeal,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16.r),
+                  topRight: Radius.circular(16.r),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  widget.title,
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            
+            // Pestañas de navegación
+            TabBar(
+              controller: _tabController,
+              labelColor: AppColors.logoTeal,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: AppColors.logoTeal,
+              tabs: [
+                Tab(text: 'معلومات أساسية', icon: Icon(Icons.info_outline)),
+                Tab(text: 'المعلم', icon: Icon(Icons.person)),
+                Tab(text: 'السور', icon: Icon(Icons.menu_book)),
+                Tab(text: 'الطلاب', icon: Icon(Icons.people)),
+              ],
+            ),
+            
+            // Contenido de las pestañas
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  _buildBasicInfoTab(),
+                  _buildTeacherTab(),
+                  _buildSurahsTab(),
+                  _buildStudentsTab(),
+                ],
+              ),
+            ),
+            
+            // Botones de acción
+            Padding(
+              padding: EdgeInsets.all(16.r),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'إلغاء',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  ElevatedButton(
+                    onPressed: _saveCircle,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.logoTeal,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    child: Text(
+                      'حفظ',
+                      style: TextStyle(fontSize: 14.sp),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Método para guardar el círculo
+  void _saveCircle() {
+    // Primero seleccionar la pestaña de información básica para asegurar que el formulario esté en el árbol
+    _tabController.animateTo(0); // Cambiar a la primera pestaña donde está el formulario
+    
+    // Dar tiempo para que se actualice la UI
+    Future.delayed(Duration(milliseconds: 100), () {
+      // Verificar si el estado del formulario existe antes de validar
+      if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+        widget.onSave(
+          _nameController.text,
+          _descriptionController.text,
+          _selectedDate,
+          _selectedTeacherId,
+          _selectedTeacherName,
+          _selectedSurahs,
+          _selectedStudentIds,
+        );
+        Navigator.of(context).pop();
+      } else {
+        // Si el formulario no es válido o no existe, mostrar un mensaje
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('يرجى التأكد من صحة البيانات المدخلة')),
+        );
+      }
+    });
+  }
+
+  // Pestaña de información básica
+  Widget _buildBasicInfoTab() {
+    return Padding(
+      padding: EdgeInsets.all(16.r),
+      child: Form(
+        key: _formKey,
+        child: ListView(
           children: [
             TextFormField(
               controller: _nameController,
@@ -90,47 +258,438 @@ class _CircleFormDialogState extends State<CircleFormDialog> {
                 return null;
               },
             ),
+            SizedBox(height: 16.h),
+            InkWell(
+              onTap: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDate,
+                  firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.light(
+                          primary: AppColors.logoTeal,
+                          onPrimary: Colors.white,
+                          onSurface: Colors.black,
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (picked != null) {
+                  setState(() {
+                    _selectedDate = picked;
+                  });
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.all(16.r),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today, color: AppColors.logoTeal),
+                    SizedBox(width: 8.w),
+                    Text(
+                      'تاريخ البدء: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+                      style: TextStyle(fontSize: 16.sp),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text(
-            'إلغاء',
+    );
+  }
+
+  // Pestaña de selección de maestro
+  Widget _buildTeacherTab() {
+    return Padding(
+      padding: EdgeInsets.all(16.r),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'اختر المعلم',
             style: TextStyle(
-              color: Colors.grey,
-              fontSize: 14.sp,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.logoTeal,
             ),
+          ),
+          SizedBox(height: 16.h),
+          Expanded(
+            child: widget.availableTeachers.isEmpty
+                ? Center(child: Text('لا يوجد معلمين متاحين'))
+                : ListView.builder(
+                    itemCount: widget.availableTeachers.length,
+                    itemBuilder: (context, index) {
+                      final teacher = widget.availableTeachers[index];
+                      final isSelected = _selectedTeacherId == teacher.id;
+                      
+                      return Card(
+                        elevation: isSelected ? 4 : 1,
+                        margin: EdgeInsets.only(bottom: 8.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                          side: BorderSide(
+                            color: isSelected ? AppColors.logoTeal : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedTeacherId = teacher.id;
+                              _selectedTeacherName = teacher.name;
+                            });
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.all(16.r),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: AppColors.logoTeal,
+                                  radius: 24.r,
+                                  child: Text(
+                                    teacher.name.isNotEmpty ? teacher.name[0] : '?',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 16.w),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        teacher.name,
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (teacher.email.isNotEmpty)
+                                        Text(
+                                          teacher.email,
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: AppColors.logoTeal,
+                                    size: 24.r,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Pestaña de asignación de suras
+  Widget _buildSurahsTab() {
+    return Padding(
+      padding: EdgeInsets.all(16.r),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'السور المحددة',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.logoTeal,
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: _showAddSurahDialog,
+                icon: Icon(Icons.add),
+                label: Text('إضافة سورة'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.logoTeal,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          Expanded(
+            child: _selectedSurahs.isEmpty
+                ? Center(
+                    child: Text(
+                      'لم يتم تحديد أي سور بعد',
+                      style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _selectedSurahs.length,
+                    itemBuilder: (context, index) {
+                      final surah = _selectedSurahs[index];
+                      return Card(
+                        margin: EdgeInsets.only(bottom: 8.h),
+                        child: ListTile(
+                          title: Text(
+                            surah.surahName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.sp,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'الآيات: ${surah.startVerse} - ${surah.endVerse}',
+                            style: TextStyle(fontSize: 14.sp),
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                _selectedSurahs.removeAt(index);
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Pestaña de selección de estudiantes
+  Widget _buildStudentsTab() {
+    return Padding(
+      padding: EdgeInsets.all(16.r),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'اختر الطلاب',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.logoTeal,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Expanded(
+            child: widget.availableStudents == null || widget.availableStudents!.isEmpty
+                ? Center(child: Text('لا يوجد طلاب متاحين'))
+                : ListView.builder(
+                    itemCount: widget.availableStudents!.length,
+                    itemBuilder: (context, index) {
+                      final student = widget.availableStudents![index];
+                      final isSelected = _selectedStudentIds.contains(student.id);
+                      
+                      return Card(
+                        elevation: isSelected ? 4 : 1,
+                        margin: EdgeInsets.only(bottom: 8.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                          side: BorderSide(
+                            color: isSelected ? AppColors.logoTeal : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: CheckboxListTile(
+                          value: isSelected,
+                          onChanged: (selected) {
+                            setState(() {
+                              if (selected == true) {
+                                if (!_selectedStudentIds.contains(student.id)) {
+                                  _selectedStudentIds.add(student.id);
+                                }
+                              } else {
+                                _selectedStudentIds.remove(student.id);
+                              }
+                            });
+                          },
+                          title: Text(
+                            student.name,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            student.email,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          secondary: CircleAvatar(
+                            backgroundColor: AppColors.logoTeal,
+                            radius: 20.r,
+                            backgroundImage: student.imageUrl != null && student.imageUrl!.isNotEmpty
+                                ? NetworkImage(student.imageUrl!)
+                                : null,
+                            child: student.imageUrl == null || student.imageUrl!.isEmpty
+                                ? Text(
+                                    student.name.isNotEmpty ? student.name[0] : '?',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          activeColor: AppColors.logoTeal,
+                          checkColor: Colors.white,
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Diálogo para añadir una nueva sura
+  void _showAddSurahDialog() {
+    _surahNameController.clear();
+    _startVerseController.clear();
+    _endVerseController.clear();
+    _notesController.clear();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'إضافة سورة',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.logoTeal,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _surahNameController,
+                decoration: InputDecoration(
+                  labelText: 'اسم السورة',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _startVerseController,
+                      decoration: InputDecoration(
+                        labelText: 'الآية البداية',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _endVerseController,
+                      decoration: InputDecoration(
+                        labelText: 'الآية النهاية',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+              TextFormField(
+                controller: _notesController,
+                decoration: InputDecoration(
+                  labelText: 'ملاحظات',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                maxLines: 2,
+              ),
+            ],
           ),
         ),
-        ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              widget.onSave(
-                _nameController.text,
-                _descriptionController.text,
-              );
-              Navigator.of(context).pop();
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.logoTeal,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'إلغاء',
+              style: TextStyle(color: Colors.grey),
             ),
           ),
-          child: Text(
-            'حفظ',
-            style: TextStyle(
-              fontSize: 14.sp,
+          ElevatedButton(
+            onPressed: () {
+              if (_surahNameController.text.isNotEmpty &&
+                  _startVerseController.text.isNotEmpty &&
+                  _endVerseController.text.isNotEmpty) {
+                final startVerse = int.tryParse(_startVerseController.text) ?? 1;
+                final endVerse = int.tryParse(_endVerseController.text) ?? startVerse;
+                
+                setState(() {
+                  _selectedSurahs.add(
+                    SurahAssignment(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      surahName: _surahNameController.text,
+                      startVerse: startVerse,
+                      endVerse: endVerse,
+                      assignedDate: DateTime.now(),
+                      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+                    ),
+                  );
+                });
+                
+                Navigator.of(context).pop();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.logoTeal,
+              foregroundColor: Colors.white,
             ),
+            child: Text('إضافة'),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

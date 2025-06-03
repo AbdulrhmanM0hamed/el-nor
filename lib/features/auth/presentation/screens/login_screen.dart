@@ -39,11 +39,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() {
+    print('LoginScreen: الضغط على زر تسجيل الدخول');
     if (_formKey.currentState!.validate()) {
-      context.read<AuthCubit>().signIn(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
+      print('LoginScreen: التحقق من النموذج ناجح');
+      try {
+        print('LoginScreen: محاولة الحصول على AuthCubit من السياق');
+        final authCubit = context.read<AuthCubit>();
+        print('LoginScreen: تم الحصول على AuthCubit بنجاح');
+        print('LoginScreen: استدعاء دالة signIn مع البريد الإلكتروني: ${_emailController.text.trim()}');
+        authCubit.signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        print('LoginScreen: تم استدعاء دالة signIn بنجاح');
+      } catch (e) {
+        print('LoginScreen: خطأ في استدعاء AuthCubit: ${e.toString()}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في استدعاء AuthCubit: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -60,7 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             );
           } else if (state is AuthAuthenticated) {
-            Navigator.pushReplacementNamed(context, '/main');
+            // استخدام pushNamedAndRemoveUntil بدلاً من pushReplacementNamed
+            // لضمان إزالة جميع الشاشات السابقة من المكدس
+            Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
           }
         },
         builder: (context, state) {
@@ -130,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               hint: 'أدخل بريدك الإلكتروني',
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
-                              prefixIcon: Icon(
+                              prefixIcon: const Icon(
                                 Icons.email_outlined,
                                 color: AppColors.logoTeal,
                               ),
@@ -151,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               hint: 'أدخل كلمة المرور',
                               controller: _passwordController,
                               obscureText: _obscurePassword,
-                              prefixIcon: Icon(
+                              prefixIcon:const Icon(
                                 Icons.lock_outline,
                                 color: AppColors.logoTeal,
                               ),
@@ -241,7 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Indicador de carga
               if (state is AuthLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   child: const Center(
                     child: CircularProgressIndicator(),
                   ),

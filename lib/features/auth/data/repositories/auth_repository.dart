@@ -183,19 +183,24 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserModel?> getCurrentUser() async {
     try {
+      print('AuthRepository: Verificando usuario actual en Supabase');
       final user = _supabaseClient.auth.currentUser;
       if (user == null) {
+        print('AuthRepository: No hay usuario autenticado en Supabase');
         return null;
       }
+      print('AuthRepository: Usuario encontrado en Supabase con ID: ${user.id}');
 
       try {
         // Obtener datos del usuario desde la tabla de estudiantes
+        print('AuthRepository: Consultando datos del usuario en la tabla students');
         final userData = await _supabaseClient
             .from('students')
             .select()
             .eq('id', user.id)
             .single();
 
+        print('AuthRepository: Datos del usuario obtenidos correctamente');
         return UserModel.fromJson(userData);
       } catch (dbError) {
         // إذا كان هناك خطأ في الوصول إلى البيانات، نحاول إنشاء سجل جديد

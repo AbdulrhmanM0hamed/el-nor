@@ -1,3 +1,4 @@
+import 'package:beat_elslam/features/admin/data/repositories/admin_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
@@ -23,9 +24,13 @@ Future<void> init() async {
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(sl<SupabaseClient>()),
   );
+  
+  sl.registerLazySingleton<AdminRepository>(
+    () => AdminRepository(sl<SupabaseClient>()),
+  );
 
   // Cubits
-  sl.registerFactory<AuthCubit>(
+  sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(sl<AuthRepository>()),
   );
   
@@ -40,6 +45,6 @@ Future<void> init() async {
   
   // Registrar AdminCubit para la gestión de usuarios y círculos
   sl.registerFactory<AdminCubit>(
-    () => AdminCubit(sl<SupabaseClient>()),
+    () => AdminCubit(sl<AdminRepository>()),
   );
 }

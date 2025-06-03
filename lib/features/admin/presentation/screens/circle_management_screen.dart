@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/services/service_locator.dart';
-import '../../../memorization_circles/data/models/memorization_circle_model.dart';
+import '../../data/models/memorization_circle_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
 import '../widgets/circle_form_dialog.dart';
+import 'circle_details_screen.dart';
 import '../widgets/teacher_assignment_dialog.dart';
 
 class CircleManagementScreen extends StatefulWidget {
@@ -87,7 +89,8 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.logoTeal,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24.w, vertical: 12.h),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.r),
                       ),
@@ -114,7 +117,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     );
   }
 
-  Widget _buildCirclesList(List<MemorizationCircle> circles) {
+  Widget _buildCirclesList(List<MemorizationCircleModel> circles) {
     if (circles.isEmpty) {
       return Center(
         child: Column(
@@ -218,10 +221,10 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'عدد الطلاب: ${circle.studentsCount ?? 0}',
+                  '${circle.studentIds.length} طالب',
                   style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.black87,
+                    fontSize: 12.sp,
+                    color: Colors.grey[600],
                   ),
                 ),
                 SizedBox(height: 16.h),
@@ -235,7 +238,8 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.logoTeal,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 8.h),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
@@ -245,12 +249,13 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
                     ),
                     ElevatedButton.icon(
                       onPressed: () {
-                        // Ver detalles del círculo y sus estudiantes
+                        _showCircleDetailsDialog(circle);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.logoOrange,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 8.h),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.r),
                         ),
@@ -268,40 +273,77 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     );
   }
 
-  void _showAddCircleDialog() {
+  void _showAddCircleDialog() async {
+    // Obtener la referencia al cubit
+    final adminCubit = context.read<AdminCubit>();
+
+    // Cargar profesores y estudiantes antes de mostrar el diálogo
+    final teachers = await adminCubit.loadTeachers();
+    final students = await adminCubit.loadStudents();
+
+    if (!mounted) return; // Verificar si el widget todavía está montado
+
     showDialog(
       context: context,
       builder: (context) => CircleFormDialog(
         title: 'إضافة حلقة حفظ جديدة',
-        onSave: (name, description) {
-          context.read<AdminCubit>().createCircle(
-                name: name,
-                description: description,
-              );
+        availableTeachers: teachers,
+        availableStudents: students,
+        onSave: (name, description, startDate, teacherId, teacherName, surahs,
+            studentIds) {
+          adminCubit.createCircle(
+            name: name,
+            description: description,
+            startDate: startDate,
+            teacherId: teacherId,
+            teacherName: teacherName,
+            surahs: surahs,
+            studentIds: studentIds,
+          );
         },
       ),
     );
   }
 
-  void _showEditCircleDialog(MemorizationCircle circle) {
+  void _showEditCircleDialog(MemorizationCircleModel circle) async {
+    // Obtener la referencia al cubit
+    final adminCubit = context.read<AdminCubit>();
+
+    // Cargar profesores y estudiantes antes de mostrar el diálogo
+    final teachers = await adminCubit.loadTeachers();
+    final students = await adminCubit.loadStudents();
+
+    if (!mounted) return; // Verificar si el widget todavía está montado
+
     showDialog(
       context: context,
       builder: (context) => CircleFormDialog(
         title: 'تعديل حلقة الحفظ',
         initialName: circle.name,
         initialDescription: circle.description,
-        onSave: (name, description) {
-          context.read<AdminCubit>().updateCircle(
-                circleId: circle.id,
-                name: name,
-                description: description,
-              );
+        initialDate: circle.startDate,
+        initialSurahAssignments: circle.surahAssignments,
+        initialStudentIds: circle.studentIds,
+        availableTeachers: teachers,
+        availableStudents: students,
+        onSave: (name, description, startDate, teacherId, teacherName, surahs,
+            studentIds) {
+          adminCubit.updateCircle(
+            id: circle.id,
+            name: name,
+            description: description,
+            startDate: startDate,
+            teacherId: teacherId,
+            teacherName: teacherName,
+            surahs: surahs,
+            studentIds: studentIds,
+          );
         },
       ),
     );
   }
 
-  void _showDeleteConfirmationDialog(MemorizationCircle circle) {
+  void _showDeleteConfirmationDialog(MemorizationCircleModel circle) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -330,35 +372,68 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     );
   }
 
-  void _showAssignTeacherDialog(MemorizationCircle circle) {
-    // Cargar la lista de maestros
-    context.read<AdminCubit>().loadTeachers();
+  // التنقل إلى صفحة تفاصيل الحلقة
+  void _showCircleDetailsDialog(MemorizationCircleModel circle) {
+    // طباعة معلومات الحلقة للتصحيح
+    print('عرض تفاصيل الحلقة: ${circle.name}');
+    print('عدد الطلاب في studentIds: ${circle.studentIds.length}');
+    print('عدد الطلاب في students: ${circle.students.length}');
     
-    // Mostrar el diálogo cuando los maestros estén cargados
+    // التقاط AdminCubit قبل الانتقال
+    final adminCubit = context.read<AdminCubit>();
+    
+    // الانتقال إلى صفحة تفاصيل الحلقة
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (routeContext) => BlocProvider.value(
+          value: adminCubit,
+          child: CircleDetailsScreen(circle: circle),
+        ),
+      ),
+    );
+  }
+
+  // تم إزالة _loadTeacherDetails لأنه غير مستخدم
+  // تم إزالة _formatDate و _buildInfoRow لأنهما غير مستخدمين بعد نقل الكود إلى صفحة تفاصيل الحلقة
+
+  void _showAssignTeacherDialog(MemorizationCircleModel circle) {
+    // التقاط AdminCubit قبل عرض مربع الحوار
+    final adminCubit = context.read<AdminCubit>();
+
+    // تحميل قائمة المعلمين
+    adminCubit.loadTeachers();
+
+    // عرض مربع الحوار
     showDialog(
       context: context,
-      builder: (context) {
-        return BlocBuilder<AdminCubit, AdminState>(
-          builder: (context, state) {
-            if (state is AdminTeachersLoaded) {
-              return TeacherAssignmentDialog(
-                teachers: state.teachers,
-                currentTeacherId: circle.teacherId,
-                onAssign: (teacherId, teacherName) {
-                  context.read<AdminCubit>().assignTeacherToCircle(
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          value: adminCubit, // استخدام نفس الـ cubit من الشاشة الأصلية
+          child: Builder(
+            builder: (builderContext) => BlocBuilder<AdminCubit, AdminState>(
+              builder: (builderContext, state) {
+                if (state is AdminTeachersLoaded) {
+                  return TeacherAssignmentDialog(
+                    teachers: state.teachers,
+                    currentTeacherId: circle.teacherId,
+                    onAssign: (teacherId, teacherName) {
+                      // استخدام adminCubit المُلتقط مسبقاً
+                      adminCubit.assignTeacherToCircle(
                         circleId: circle.id,
                         teacherId: teacherId,
                         teacherName: teacherName,
                       );
-                },
-              );
-            }
-            return const AlertDialog(
-              content: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          },
+                    },
+                  );
+                }
+                return const AlertDialog(
+                  content: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              },
+            ),
+          ),
         );
       },
     );

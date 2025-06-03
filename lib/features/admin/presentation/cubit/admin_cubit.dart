@@ -1,45 +1,31 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
+import '../../data/repositories/admin_repository.dart';
+import '../../data/models/memorization_circle_model.dart';
+import '../../data/models/surah_assignment.dart';
+import '../../data/models/teacher_model.dart';
+import '../../data/models/student_model.dart';
 import '../../../auth/data/models/user_model.dart';
-import '../../../memorization_circles/data/models/memorization_circle_model.dart';
 import 'admin_state.dart';
 
 class AdminCubit extends Cubit<AdminState> {
-  final SupabaseClient _supabaseClient;
-  final _uuid = const Uuid();
+  final AdminRepository _adminRepository;
 
-  AdminCubit(this._supabaseClient) : super(AdminInitial());
+  AdminCubit(this._adminRepository) : super(AdminInitial());
 
   Future<void> loadAllUsers() async {
     try {
       emit(AdminLoading());
 
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
-      }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final isAdmin = userData['is_admin'] ?? false;
+      // التحقق من صلاحيات المشرف
+      final isAdmin = await _adminRepository.checkAdminPermission();
       if (!isAdmin) {
         emit(const AdminError('ليس لديك صلاحية للوصول إلى هذه الصفحة'));
         return;
       }
 
-      // Obtener todos los usuarios
-      final data = await _supabaseClient.from('students').select();
-      final users = data.map((user) => UserModel.fromJson(user)).toList();
-
-      emit(AdminUsersLoaded(users));
+      // الحصول على جميع المستخدمين
+      final data = await _adminRepository.getAllUsers();
+      emit(AdminUsersLoaded(data));
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء تحميل المستخدمين: ${e.toString()}'));
     }
@@ -53,223 +39,195 @@ class AdminCubit extends Cubit<AdminState> {
     try {
       emit(AdminLoading());
 
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
-      }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final currentUserIsAdmin = userData['is_admin'] ?? false;
-      if (!currentUserIsAdmin) {
-        emit(const AdminError('ليس لديك صلاحية لتعديل أدوار المستخدمين'));
-        return;
-      }
-
-      // Actualizar el rol del usuario
-      await _supabaseClient.from('students').update({
-        'is_admin': isAdmin,
-        'is_teacher': isTeacher,
-      }).eq('id', userId);
-
+      // تحديث دور المستخدم باستخدام المستودع
+      await _adminRepository.updateUserRole(
+        userId: userId,
+        isAdmin: isAdmin,
+        isTeacher: isTeacher,
+      );
+      
+      // إرسال حالة تحديث دور المستخدم
       emit(AdminUserRoleUpdated(
         userId: userId,
         isAdmin: isAdmin,
         isTeacher: isTeacher,
       ));
 
-      // Recargar la lista de usuarios para reflejar los cambios
+      // إعادة تحميل قائمة المستخدمين
       await loadAllUsers();
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء تحديث دور المستخدم: ${e.toString()}'));
     }
   }
   
-  // Métodos para gestión de círculos de memorización
+  // إضافة مستخدم كمعلم في جدول المعلمين
+  Future<void> addTeacher(UserModel user) async {
+    try {
+      // تحويل UserModel إلى TeacherModel
+      final now = DateTime.now();
+      final teacherModel = TeacherModel(
+        id: user.id,
+        name: user.name ?? user.email.split('@').first, // استخدام جزء من البريد الإلكتروني إذا كان الاسم فارغًا
+        email: user.email,
+        phone: user.phone,
+        profileImageUrl: user.profileImageUrl,
+        createdAt: now, // Usar la fecha actual para createdAt
+        updatedAt: now,
+      );
+      
+      // التحقق مما إذا كان المعلم موجودًا بالفعل في جدول المعلمين
+      try {
+        // محاولة إضافة المعلم إلى جدول المعلمين
+        await _adminRepository.addTeacher(teacherModel);
+        
+        // إعادة تحميل قائمة المعلمين
+        await loadTeachers();
+        
+        emit(AdminTeacherAdded(teacherModel));
+      } catch (e) {
+        // إذا كان المعلم موجودًا بالفعل، نتجاهل الخطأ
+        if (e.toString().contains('duplicate key')) {
+          // المعلم موجود بالفعل، لا نفعل شيئًا
+          return;
+        } else {
+          // خطأ آخر، نعيد رميه
+          throw e;
+        }
+      }
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء إضافة المعلم: ${e.toString()}'));
+    }
+  }
+  
+  // طرق إدارة حلقات التحفيظ
   
   Future<void> loadAllCircles() async {
     try {
       emit(AdminLoading());
 
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
-      }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final isAdmin = userData['is_admin'] ?? false;
-      if (!isAdmin) {
-        emit(const AdminError('ليس لديك صلاحية للوصول إلى هذه الصفحة'));
-        return;
-      }
-
-      // Obtener todos los círculos de memorización
-      final data = await _supabaseClient.from('memorization_circles').select('''
-        *,
-        teacher:teacher_id(name)
-      ''');
+      // جلب جميع حلقات التحفيظ باستخدام المستودع
+      final circles = await _adminRepository.getAllMemorizationCircles();
       
-      final circles = data.map((circle) {
-        // Extraer el nombre del maestro si existe
-        String? teacherName;
-        if (circle['teacher'] != null) {
-          teacherName = circle['teacher']['name'];
-        }
-        
-        return MemorizationCircle(
-          id: circle['id'],
-          name: circle['name'],
-          description: circle['description'] ?? '',
-          teacherId: circle['teacher_id'],
-          teacherName: teacherName,
-          studentsCount: circle['students_count'],
-          createdAt: DateTime.parse(circle['created_at']),
-        );
-      }).toList();
-
+      // جلب المعلمين والطلاب أيضًا
+      await loadTeachers();
+      await loadStudents();
+      
       emit(AdminCirclesLoaded(circles));
     } catch (e) {
-      emit(AdminError('حدث خطأ أثناء تحميل حلقات الحفظ: ${e.toString()}'));
+      emit(AdminError('حدث خطأ أثناء تحميل حلقات التحفيظ: ${e.toString()}'));
+    }
+  }
+  
+  Future<List<TeacherModel>> loadTeachers() async {
+    try {
+      // جلب جميع المعلمين
+      final teachers = await _adminRepository.getAllTeachers();
+      emit(AdminTeachersLoaded(teachers));
+      return teachers;
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء تحميل المعلمين: ${e.toString()}'));
+      return [];
+    }
+  }
+  
+  Future<List<StudentModel>> loadStudents() async {
+    try {
+      // جلب جميع المستخدمين وتحويلهم إلى طلاب
+      final users = await _adminRepository.getAllUsers();
+      final now = DateTime.now();
+      
+      // تحويل المستخدمين إلى طلاب
+      final students = users.map((user) => StudentModel(
+        id: user.id,
+        name: user.name ?? '',  // name puede ser nulo en UserModel
+        email: user.email,      // email no es nulo en UserModel
+        createdAt: now,
+        updatedAt: now,
+        phoneNumber: user.phone,
+      )).toList();
+      
+      emit(AdminStudentsLoaded(students));
+      return students;
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء تحميل الطلاب: ${e.toString()}'));
+      return [];
     }
   }
 
   Future<void> createCircle({
     required String name,
     required String description,
+    required DateTime startDate,
+    String? teacherId,
+    String? teacherName,
+    List<SurahAssignment>? surahs,
+    List<String>? studentIds,
   }) async {
     try {
       emit(AdminLoading());
 
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
-      }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final isAdmin = userData['is_admin'] ?? false;
-      if (!isAdmin) {
-        emit(const AdminError('ليس لديك صلاحية لإنشاء حلقات حفظ جديدة'));
-        return;
-      }
-
-      // Crear un nuevo círculo de memorización
-      final circleId = _uuid.v4();
-      final now = DateTime.now();
-      
-      final circleData = {
-        'id': circleId,
-        'name': name,
-        'description': description,
-        'created_at': now.toIso8601String(),
-        'created_by': currentUser.id,
-      };
-
-      await _supabaseClient.from('memorization_circles').insert(circleData);
-
-      final newCircle = MemorizationCircle(
-        id: circleId,
+      // إنشاء كائن حلقة تحفيظ جديد
+      final newCircle = MemorizationCircleModel.create(
         name: name,
         description: description,
-        createdAt: now,
+        teacherId: teacherId,
+        teacherName: teacherName,
+        isExam: false,
+        startDate: startDate,
+        surahs: surahs,
+        studentIds: studentIds,
       );
 
-      emit(AdminCircleCreated(newCircle));
+      // إضافة الحلقة باستخدام المستودع
+      final createdCircle = await _adminRepository.addCircle(newCircle);
 
-      // Recargar la lista de círculos para reflejar los cambios
+      emit(AdminCircleCreated(createdCircle));
+
+      // إعادة تحميل قائمة الحلقات لعكس التغييرات
       await loadAllCircles();
     } catch (e) {
-      emit(AdminError('حدث خطأ أثناء إنشاء حلقة الحفظ: ${e.toString()}'));
+      emit(AdminError('حدث خطأ أثناء إنشاء حلقة التحفيظ: ${e.toString()}'));
     }
   }
 
   Future<void> updateCircle({
-    required String circleId,
+    required String id,
     required String name,
     required String description,
+    required DateTime startDate,
+    String? teacherId,
+    String? teacherName,
+    List<SurahAssignment>? surahs,
+    List<String>? studentIds,
   }) async {
     try {
       emit(AdminLoading());
 
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
-      }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final isAdmin = userData['is_admin'] ?? false;
-      if (!isAdmin) {
-        emit(const AdminError('ليس لديك صلاحية لتعديل حلقات الحفظ'));
-        return;
-      }
-
-      // Actualizar el círculo de memorización
-      await _supabaseClient.from('memorization_circles').update({
-        'name': name,
-        'description': description,
-      }).eq('id', circleId);
-
-      // Obtener los datos actualizados del círculo
-      final updatedData = await _supabaseClient
-          .from('memorization_circles')
-          .select('''
-            *,
-            teacher:teacher_id(name)
-          ''')
-          .eq('id', circleId)
-          .single();
-
-      String? teacherName;
-      if (updatedData['teacher'] != null) {
-        teacherName = updatedData['teacher']['name'];
-      }
-
-      final updatedCircle = MemorizationCircle(
-        id: updatedData['id'],
-        name: updatedData['name'],
-        description: updatedData['description'] ?? '',
-        teacherId: updatedData['teacher_id'],
+      // الحصول على الحلقة الحالية
+      final circles = await _adminRepository.getAllMemorizationCircles();
+      final circle = circles.firstWhere((c) => c.id == id);
+      
+      // تحديث الحلقة بالبيانات الجديدة
+      final updatedCircle = circle.copyWith(
+        name: name,
+        description: description,
+        startDate: startDate,
+        teacherId: teacherId,
         teacherName: teacherName,
-        studentsCount: updatedData['students_count'],
-        createdAt: DateTime.parse(updatedData['created_at']),
+        surahAssignments: surahs,
+        studentIds: studentIds,
+        updatedAt: DateTime.now(),
       );
+      
+      // حفظ التغييرات
+      final savedCircle = await _adminRepository.updateCircle(updatedCircle);
 
-      emit(AdminCircleUpdated(updatedCircle));
+      emit(AdminCircleUpdated(savedCircle));
 
-      // Recargar la lista de círculos para reflejar los cambios
+      // إعادة تحميل قائمة الحلقات لعكس التغييرات
       await loadAllCircles();
     } catch (e) {
-      emit(AdminError('حدث خطأ أثناء تحديث حلقة الحفظ: ${e.toString()}'));
+      emit(AdminError('حدث خطأ أثناء تحديث حلقة التحفيظ: ${e.toString()}'));
     }
   }
 
@@ -277,35 +235,15 @@ class AdminCubit extends Cubit<AdminState> {
     try {
       emit(AdminLoading());
 
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
-      }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final isAdmin = userData['is_admin'] ?? false;
-      if (!isAdmin) {
-        emit(const AdminError('ليس لديك صلاحية لحذف حلقات الحفظ'));
-        return;
-      }
-
-      // Eliminar el círculo de memorización
-      await _supabaseClient.from('memorization_circles').delete().eq('id', circleId);
+      // حذف الحلقة باستخدام المستودع
+      await _adminRepository.deleteCircle(circleId);
 
       emit(AdminCircleDeleted(circleId));
 
-      // Recargar la lista de círculos para reflejar los cambios
+      // إعادة تحميل قائمة الحلقات لعكس التغييرات
       await loadAllCircles();
     } catch (e) {
-      emit(AdminError('حدث خطأ أثناء حذف حلقة الحفظ: ${e.toString()}'));
+      emit(AdminError('حدث خطأ أثناء حذف حلقة التحفيظ: ${e.toString()}'));
     }
   }
 
@@ -317,80 +255,77 @@ class AdminCubit extends Cubit<AdminState> {
     try {
       emit(AdminLoading());
 
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
+      // طباعة معلومات للتشخيص
+      print('محاولة تعيين المعلم $teacherName (المعرف: $teacherId) للحلقة $circleId');
+
+      // تحديث الحلقة بمعلم جديد مباشرة في قاعدة البيانات
+      try {
+        // تحديث حقل teacher_id فقط في قاعدة البيانات
+        await _adminRepository.updateCircleTeacher(circleId, teacherId);
+        
+        emit(AdminTeacherAssigned(
+          circleId: circleId,
+          teacherId: teacherId,
+          teacherName: teacherName,
+        ));
+
+        // إعادة تحميل قائمة الحلقات لعكس التغييرات
+        await loadAllCircles();
+      } catch (e) {
+        print('خطأ في تحديث معلم الحلقة: $e');
+        throw Exception('فشل في تحديث معلم الحلقة: $e');
       }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final isAdmin = userData['is_admin'] ?? false;
-      if (!isAdmin) {
-        emit(const AdminError('ليس لديك صلاحية لتعيين معلمين للحلقات'));
-        return;
-      }
-
-      // Asignar el maestro al círculo de memorización
-      await _supabaseClient.from('memorization_circles').update({
-        'teacher_id': teacherId,
-      }).eq('id', circleId);
-
-      emit(AdminTeacherAssigned(
-        circleId: circleId,
-        teacherId: teacherId,
-        teacherName: teacherName,
-      ));
-
-      // Recargar la lista de círculos para reflejar los cambios
-      await loadAllCircles();
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء تعيين المعلم للحلقة: ${e.toString()}'));
     }
   }
   
-  // Método para cargar solo los usuarios que son maestros
-  Future<void> loadTeachers() async {
+  // طريقة لاستدعاء تحميل المعلمين من المستودع
+  Future<void> reloadTeachers() async {
     try {
-      emit(AdminLoading());
-
-      // Verificar si el usuario actual es administrador
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        emit(const AdminError('لم يتم تسجيل الدخول'));
-        return;
-      }
-
-      // Obtener información del usuario actual
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      final isAdmin = userData['is_admin'] ?? false;
-      if (!isAdmin) {
-        emit(const AdminError('ليس لديك صلاحية للوصول إلى هذه الصفحة'));
-        return;
-      }
-
-      // Obtener todos los usuarios que son maestros
-      final data = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('is_teacher', true);
-      
-      final teachers = data.map((user) => UserModel.fromJson(user)).toList();
-
-      emit(AdminTeachersLoaded(teachers));
+      // استدعاء الطريقة المعرفة مسبقًا
+      await loadTeachers();
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء تحميل المعلمين: ${e.toString()}'));
+    }
+  }
+  
+  // تحميل طلاب حلقة محددة
+  Future<void> loadCircleStudents(String circleId, List<String> studentIds) async {
+    try {
+      emit(AdminLoading());
+      
+      // طباعة معلومات للتصحيح
+      print('تحميل بيانات ${studentIds.length} طالب للحلقة $circleId');
+      
+      if (studentIds.isEmpty) {
+        // إذا لم يكن هناك طلاب، نعود إلى الحالة السابقة
+        final circles = await _adminRepository.getAllCircles();
+        emit(AdminCirclesLoaded(circles));
+        return;
+      }
+      
+      // تحميل بيانات الطلاب من المستودع
+      final students = await _adminRepository.getStudentsByIds(studentIds);
+      print('تم تحميل ${students.length} طالب من أصل ${studentIds.length}');
+      
+      // تحميل جميع الحلقات
+      final circles = await _adminRepository.getAllCircles();
+      
+      // تحديث الحلقة المحددة بالطلاب المحملين
+      final updatedCircles = circles.map((circle) {
+        if (circle.id == circleId) {
+          // تحديث الحلقة بالطلاب الجدد
+          return circle.copyWith(students: students);
+        }
+        return circle;
+      }).toList();
+      
+      // إرسال الحالة المحدثة
+      emit(AdminCirclesLoaded(updatedCircles));
+    } catch (e) {
+      print('خطأ في تحميل طلاب الحلقة: $e');
+      emit(AdminError('حدث خطأ أثناء تحميل طلاب الحلقة: ${e.toString()}'));
     }
   }
 }

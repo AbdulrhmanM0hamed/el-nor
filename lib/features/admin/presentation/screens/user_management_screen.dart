@@ -218,16 +218,25 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   void _showEditRoleDialog(BuildContext context, UserModel user) {
+    // Capturar el AdminCubit antes de mostrar el diálogo
+    final adminCubit = context.read<AdminCubit>();
+    
     showDialog(
       context: context,
-      builder: (context) => UserRoleDialog(
+      builder: (dialogContext) => UserRoleDialog(
         user: user,
         onRoleChanged: (isAdmin, isTeacher) {
-          context.read<AdminCubit>().updateUserRole(
-                userId: user.id,
-                isAdmin: isAdmin,
-                isTeacher: isTeacher,
-              );
+          // Usar el adminCubit capturado en lugar del contexto del diálogo
+          adminCubit.updateUserRole(
+            userId: user.id,
+            isAdmin: isAdmin,
+            isTeacher: isTeacher,
+          );
+          
+          // Si el usuario se convierte en maestro, agregarlo a la tabla de maestros
+          if (isTeacher && !user.isTeacher) {
+            adminCubit.addTeacher(user);
+          }
         },
       ),
     );
