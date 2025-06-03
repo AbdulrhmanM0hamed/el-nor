@@ -12,6 +12,8 @@ class CircleFormDialog extends StatefulWidget {
   final String? initialName;
   final String? initialDescription;
   final DateTime? initialDate;
+  final String? initialTeacherId;
+  final String? initialTeacherName;
   final List<TeacherModel> availableTeachers;
   final List<SurahAssignment>? initialSurahAssignments;
   final List<StudentModel>? availableStudents;
@@ -24,6 +26,8 @@ class CircleFormDialog extends StatefulWidget {
     this.initialName,
     this.initialDescription,
     this.initialDate,
+    this.initialTeacherId,
+    this.initialTeacherName,
     required this.availableTeachers,
     this.initialSurahAssignments,
     this.availableStudents,
@@ -73,6 +77,13 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
     // Inicializar estudiantes si existen
     if (widget.initialStudentIds != null) {
       _selectedStudentIds.addAll(widget.initialStudentIds!);
+    }
+    
+    // Initialize selected teacher from the initial values
+    if (widget.initialTeacherId != null && widget.initialTeacherId!.isNotEmpty) {
+      _selectedTeacherId = widget.initialTeacherId;
+      _selectedTeacherName = widget.initialTeacherName;
+      print('CircleFormDialog: Initialized selected teacher: $_selectedTeacherName (ID: $_selectedTeacherId)');
     }
   }
 

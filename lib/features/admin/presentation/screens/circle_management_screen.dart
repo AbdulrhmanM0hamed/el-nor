@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
-import '../widgets/circle_form_dialog.dart';
+import '../widgets/circle_management/circles_list.dart';
 import 'circle_details_screen.dart';
-import '../widgets/teacher_assignment_dialog.dart';
+import '../widgets/circle_form_dialog.dart';
+// Removed unused import
 
 class CircleManagementScreen extends StatefulWidget {
   static const String routeName = '/circle-management';
@@ -54,57 +54,16 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
       ),
       body: BlocBuilder<AdminCubit, AdminState>(
         builder: (context, state) {
-          if (state is AdminLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.logoTeal,
-              ),
-            );
-          } else if (state is AdminCirclesLoaded) {
-            return _buildCirclesList(state.circles);
-          } else if (state is AdminError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64.sp,
-                    color: Colors.red,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    state.message,
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 24.h),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<AdminCubit>().loadAllCircles();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.logoTeal,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 24.w, vertical: 12.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
-              ),
-            );
-          } else {
-            return const Center(
-              child: Text('حدث خطأ غير متوقع'),
-            );
-          }
+          // Handle different states with CirclesList widget
+          return CirclesList(
+            circles: state is AdminCirclesLoaded ? state.circles : [],
+            isLoading: state is AdminLoading,
+            errorMessage: state is AdminError ? state.message : null,
+            onRetry: () => context.read<AdminCubit>().loadAllCircles(),
+            onCircleTap: (circle) => _showCircleDetailsDialog(circle),
+            onEditCircle: (circle) => _showEditCircleDialog(circle),
+            onDeleteCircle: (circle) => _showDeleteConfirmationDialog(circle),
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -117,161 +76,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     );
   }
 
-  Widget _buildCirclesList(List<MemorizationCircleModel> circles) {
-    if (circles.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.group_off,
-              size: 64.sp,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'لا توجد حلقات حفظ حالياً',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'اضغط على زر الإضافة لإنشاء حلقة جديدة',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: EdgeInsets.all(16.w),
-      itemCount: circles.length,
-      itemBuilder: (context, index) {
-        final circle = circles[index];
-        return Card(
-          margin: EdgeInsets.only(bottom: 16.h),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.group,
-                      color: AppColors.logoTeal,
-                      size: 24.sp,
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: Text(
-                        circle.name,
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.logoTeal,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      color: AppColors.logoOrange,
-                      onPressed: () {
-                        _showEditCircleDialog(circle);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      color: Colors.red,
-                      onPressed: () {
-                        _showDeleteConfirmationDialog(circle);
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  'الوصف: ${circle.description}',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'المعلم: ${circle.teacherName ?? 'غير محدد'}',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  '${circle.studentIds.length} طالب',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _showAssignTeacherDialog(circle);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.logoTeal,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 8.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                      ),
-                      icon: const Icon(Icons.person_add),
-                      label: const Text('تعيين معلم'),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _showCircleDetailsDialog(circle);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.logoOrange,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 8.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                      ),
-                      icon: const Icon(Icons.visibility),
-                      label: const Text('عرض التفاصيل'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  // Method removed as it's now handled directly in the build method
 
   void _showAddCircleDialog() async {
     // Obtener la referencia al cubit
@@ -315,13 +120,19 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
 
     if (!mounted) return; // Verificar si el widget todavía está montado
 
+    // Debug print to confirm teacher data is being passed
+    print('CircleManagementScreen: Showing edit dialog for circle ${circle.id}');
+    print('CircleManagementScreen: Teacher ID: ${circle.teacherId}, Teacher Name: ${circle.teacherName}');
+
     showDialog(
       context: context,
       builder: (context) => CircleFormDialog(
-        title: 'تعديل حلقة الحفظ',
+        title: 'تعديل حلقة ${circle.name}',
         initialName: circle.name,
         initialDescription: circle.description,
         initialDate: circle.startDate,
+        initialTeacherId: circle.teacherId,
+        initialTeacherName: circle.teacherName,
         initialSurahAssignments: circle.surahAssignments,
         initialStudentIds: circle.studentIds,
         availableTeachers: teachers,
@@ -395,47 +206,5 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
 
   // تم إزالة _loadTeacherDetails لأنه غير مستخدم
   // تم إزالة _formatDate و _buildInfoRow لأنهما غير مستخدمين بعد نقل الكود إلى صفحة تفاصيل الحلقة
-
-  void _showAssignTeacherDialog(MemorizationCircleModel circle) {
-    // التقاط AdminCubit قبل عرض مربع الحوار
-    final adminCubit = context.read<AdminCubit>();
-
-    // تحميل قائمة المعلمين
-    adminCubit.loadTeachers();
-
-    // عرض مربع الحوار
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return BlocProvider.value(
-          value: adminCubit, // استخدام نفس الـ cubit من الشاشة الأصلية
-          child: Builder(
-            builder: (builderContext) => BlocBuilder<AdminCubit, AdminState>(
-              builder: (builderContext, state) {
-                if (state is AdminTeachersLoaded) {
-                  return TeacherAssignmentDialog(
-                    teachers: state.teachers,
-                    currentTeacherId: circle.teacherId,
-                    onAssign: (teacherId, teacherName) {
-                      // استخدام adminCubit المُلتقط مسبقاً
-                      adminCubit.assignTeacherToCircle(
-                        circleId: circle.id,
-                        teacherId: teacherId,
-                        teacherName: teacherName,
-                      );
-                    },
-                  );
-                }
-                return const AlertDialog(
-                  content: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
+  // تم إزالة _showAssignTeacherDialog لأنه غير مستخدم بعد استخدام CirclesList
 }

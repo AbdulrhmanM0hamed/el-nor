@@ -1,13 +1,17 @@
+import 'package:beat_elslam/features/admin/presentation/widgets/shared/profile_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/utils/theme/app_colors.dart';
-import '../../data/models/memorization_circle_model.dart'; // Contains CircleStudent class
+import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/teacher_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
+import '../widgets/circle_details/circle_info_card.dart';
+import '../widgets/circle_details/students_section.dart';
+import '../widgets/circle_details/teacher_section_fixed.dart';
+import '../widgets/shared/loading_error_handler.dart';
 
 class CircleDetailsScreen extends StatefulWidget {
   final MemorizationCircleModel circle;
@@ -21,27 +25,175 @@ class CircleDetailsScreen extends StatefulWidget {
 class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
   late AdminCubit _adminCubit;
   late MemorizationCircleModel _circle;
-  bool _isLoading = false;
+  bool _isLoading = true;
+  bool _isRefreshing = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _adminCubit = context.read<AdminCubit>();
     _circle = widget.circle;
-    _loadCircleData();
+    _adminCubit = context.read<AdminCubit>();
+    
+    // Ensure we have the latest circle data
+    print('CircleDetailsScreen: Initializing with circle ID: ${_circle.id}');
+    print('CircleDetailsScreen: Initial teacher ID: ${_circle.teacherId}, name: ${_circle.teacherName}');
+    
+    // Load data when the screen is first shown, with a slight delay to allow build to complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCircleData();
+    });
+  }
+  
+  @override
+  void dispose() {
+    // When leaving this screen, ensure we reload circles in the parent screen
+    // This prevents the issue where circles disappear when returning
+    _adminCubit.loadAllCircles();
+    super.dispose();
+  }
+  
+  // Update our local circle with the latest data from state
+  void _updateCircleFromState() {
+    final currentState = _adminCubit.state;
+    
+    // First check if we have teacher data available
+    TeacherModel? matchingTeacher;
+    if (currentState is AdminTeachersLoaded && 
+        _circle.teacherId != null && 
+        _circle.teacherId!.isNotEmpty) {
+      
+      // Try to find the teacher by ID
+      final teachers = currentState.teachers;
+      final matchingTeachers = teachers.where((t) => t.id == _circle.teacherId).toList();
+      if (matchingTeachers.isNotEmpty) {
+        matchingTeacher = matchingTeachers.first;
+        print('CircleDetailsScreen: Found matching teacher in state: ${matchingTeacher.name}');
+      }
+    }
+    
+    // Then check for updated circle data
+    if (currentState is AdminCirclesLoaded) {
+      // Find our circle in the updated list
+      final updatedCircle = currentState.circles.firstWhere(
+        (c) => c.id == _circle.id,
+        orElse: () => _circle,
+      );
+      
+      // If we found a matching teacher but the circle doesn't have the teacher name, update it
+      if (matchingTeacher != null && 
+          (updatedCircle.teacherName == null || updatedCircle.teacherName!.isEmpty)) {
+        // Create a new circle with the teacher name
+        final circleWithTeacherName = updatedCircle.copyWith(teacherName: matchingTeacher.name);
+        print('CircleDetailsScreen: Adding teacher name ${matchingTeacher.name} to circle');
+        
+        setState(() {
+          _circle = circleWithTeacherName;
+        });
+        return;
+      }
+      
+      // Otherwise just update with the circle from state if it's different
+      if (updatedCircle != _circle) {
+        print('CircleDetailsScreen: Updating circle data from state');
+        print('CircleDetailsScreen: Circle updated - Teacher ID: ${updatedCircle.teacherId}, Teacher Name: ${updatedCircle.teacherName}');
+        setState(() {
+          _circle = updatedCircle;
+        });
+      }
+    }
   }
 
-  void _loadCircleData() {
-    if (_circle.students.isEmpty && _circle.studentIds.isNotEmpty) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _loadCircleData() async {
+    if (_isRefreshing) return;
+    
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
+    try {
+      // First, check if we have a valid teacher ID but no teacher data
+      final bool needsTeacherData = _circle.teacherId != null && 
+                                   _circle.teacherId!.isNotEmpty && 
+                                   (_circle.teacherName == null || _circle.teacherName!.isEmpty);
       
-      // Load teachers for display
-      _adminCubit.loadTeachers();
+      if (needsTeacherData) {
+        print('CircleDetailsScreen: Circle has teacherId but no teacherName, prioritizing teacher data loading');
+      }
       
-      // Load students directly for this specific circle
-      _adminCubit.loadCircleStudents(_circle.id, _circle.studentIds);
+      // Always load teachers first to ensure they're available
+      print('CircleDetailsScreen: Loading teachers');
+      await _adminCubit.loadTeachers();
+      
+      // Short delay to allow state to update
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      // If the current state has teachers, try to find the teacher for this circle
+      final currentState = _adminCubit.state;
+      if (currentState is AdminTeachersLoaded && 
+          _circle.teacherId != null && 
+          _circle.teacherId!.isNotEmpty) {
+        
+        final teachers = currentState.teachers;
+        print('CircleDetailsScreen: ${teachers.length} teachers loaded, looking for teacher ${_circle.teacherId}');
+        
+        // Try to find the teacher by ID
+        final matchingTeachers = teachers.where((t) => t.id == _circle.teacherId).toList();
+        if (matchingTeachers.isNotEmpty) {
+          final teacher = matchingTeachers.first;
+          print('CircleDetailsScreen: Found matching teacher: ${teacher.name}');
+          
+          // Update the circle with the teacher name if it's missing
+          if (_circle.teacherName == null || _circle.teacherName!.isEmpty) {
+            setState(() {
+              _circle = _circle.copyWith(teacherName: teacher.name);
+            });
+            print('CircleDetailsScreen: Updated circle with teacher name: ${teacher.name}');
+          }
+        } else {
+          print('CircleDetailsScreen: No matching teacher found for ID: ${_circle.teacherId}');
+        }
+      }
+      
+      // Then load the latest circle data to ensure it's up to date
+      print('CircleDetailsScreen: Loading all circles');
+      await _adminCubit.loadAllCircles();
+      
+      // Update our circle with the latest data
+      _updateCircleFromState();
+      
+      // Only load students if needed
+      if (_circle.students.isEmpty && _circle.studentIds.isNotEmpty) {
+        print('CircleDetailsScreen: Loading students for circle ${_circle.id}');
+        // Load students directly for this specific circle
+        await _adminCubit.loadCircleStudents(_circle.id, _circle.studentIds);
+      }
+      
+      // Final update of circle data
+      _updateCircleFromState();
+      print('CircleDetailsScreen: Circle updated - Teacher ID: ${_circle.teacherId}, Teacher Name: ${_circle.teacherName}');
+      
+      // Ensure we're not stuck in a loading state even if teacher data is missing
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        // Force a refresh of the teacher section
+        if (_circle.teacherId != null && _circle.teacherId!.isNotEmpty) {
+          print('CircleDetailsScreen: Forcing refresh of teacher data');
+          _adminCubit.loadTeachers(); // Non-awaited to prevent blocking UI
+        }
+      }
+    } catch (e) {
+      print('CircleDetailsScreen: Error loading data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
     }
   }
 
@@ -70,416 +222,115 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
               orElse: () => _circle,
             );
             
+            print('CircleDetailsScreen: Circle updated - Teacher ID: ${updatedCircle.teacherId}, Teacher Name: ${updatedCircle.teacherName}');
+            
             // Update the circle data and loading state
             setState(() {
               _circle = updatedCircle;
               _isLoading = false;
+              _isRefreshing = false;
+              _errorMessage = null;
             });
+          } else if (state is AdminTeacherAssigned) {
+            if (state.circleId == _circle.id) {
+              print('CircleDetailsScreen: Teacher assigned - ID: ${state.teacherId}, Name: ${state.teacherName}');
+              
+              // Update the local circle data with the new teacher info
+              setState(() {
+                _circle = _circle.copyWith(
+                  teacherId: state.teacherId,
+                  teacherName: state.teacherName,
+                );
+              });
+            }
+          } else if (state is AdminError) {
+            setState(() {
+              _isLoading = false;
+              _isRefreshing = false;
+              _errorMessage = state.message;
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         },
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(16.r),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildCircleInfoCard(),
-                SizedBox(height: 16.h),
-                _buildTeacherSection(),
-                SizedBox(height: 16.h),
-                _buildStudentsSection(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCircleInfoCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16.r),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'معلومات الحلقة',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.logoTeal,
+        child: LoadingErrorHandler(
+          isLoading: _isLoading && !_isRefreshing,
+          errorMessage: _errorMessage,
+          onRetry: _loadCircleData,
+          child: SafeArea(
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(16.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_isRefreshing)
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 16.h),
+                      child: Center(
+                        child: Text(
+                          'جاري تحديث البيانات...',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  CircleInfoCard(circle: _circle),
+                  SizedBox(height: 16.h),
+                  _buildTeacherSection(),
+                  SizedBox(height: 16.h),
+                  StudentsSection(circle: _circle, isLoading: _isLoading || _isRefreshing),
+                ],
               ),
             ),
-            Divider(height: 16.h),
-            _buildInfoRow('اسم الحلقة:', _circle.name),
-            _buildInfoRow('تاريخ البدء:', _formatDate(_circle.startDate)),
-            _buildInfoRow('عدد الطلاب:', '${_circle.studentIds.length}'),
-            if (_circle.description != null && _circle.description!.isNotEmpty)
-              _buildInfoRow('الوصف:', _circle.description!),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildTeacherSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16.r),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'المعلم',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.logoTeal,
-              ),
-            ),
-            Divider(height: 16.h),
-            FutureBuilder<List<TeacherModel>>(
-              future: _adminCubit.loadTeachers(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: CircularProgressIndicator(color: AppColors.logoTeal),
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  return Padding(
-                    padding: EdgeInsets.all(16.r),
-                    child: Text(
-                      'خطأ: ${snapshot.error}',
-                      style: TextStyle(color: Colors.red, fontSize: 14.sp),
-                    ),
-                  );
-                } else if (snapshot.hasData) {
-                  final teachers = snapshot.data!;
-                  final teacher = teachers.firstWhere(
-                    (t) => t.id == _circle.teacherId,
-                    orElse: () => TeacherModel(
-                      id: '',
-                      name: 'غير محدد',
-                      email: '',
-                      createdAt: DateTime.now(),
-                      updatedAt: DateTime.now(),
-                      profileImageUrl: '',
-                    ),
-                  );
-                  return _buildTeacherCard(teacher);
-                } else {
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('لا يوجد معلمين'),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-      ),
+    return BlocBuilder<AdminCubit, AdminState>(
+      builder: (context, state) {
+        // Determine if we should show loading state
+        bool isLoadingTeachers = false;
+        if (state is AdminLoading) {
+          isLoadingTeachers = true;
+        }
+        
+        // Get the list of teachers if available
+        List<TeacherModel> teachers = [];
+        if (state is AdminTeachersLoaded) {
+          teachers = state.teachers;
+          print('CircleDetailsScreen: TeacherSection has ${teachers.length} teachers available');
+        }
+        
+        // If we have a teacher ID but no teachers loaded, show loading
+        if (_circle.teacherId != null && 
+            _circle.teacherId!.isNotEmpty && 
+            teachers.isEmpty) {
+          isLoadingTeachers = true;
+          print('CircleDetailsScreen: Has teacher ID but no teachers loaded, showing loading');
+        }
+        
+        return TeacherSection(
+          circle: _circle,
+          teachers: teachers,
+          isLoading: isLoadingTeachers,
+          onAssignTeacher: null, // Removed ability to change teacher from details screen
+        );
+      },
     );
   }
 
-  Widget _buildTeacherCard(TeacherModel teacher) {
-    return Container(
-      padding: EdgeInsets.all(12.r),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Row(
-        children: [
-          _buildProfileImage(
-            imageUrl: teacher.profileImageUrl,
-            name: teacher.name,
-            color: AppColors.logoTeal,
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  teacher.name,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                if (teacher.email.isNotEmpty) ...[
-                  SizedBox(height: 4.h),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.email_outlined,
-                        size: 14.sp,
-                        color: Colors.grey.shade600,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        teacher.email,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStudentsSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16.r),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'الطلاب',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.logoTeal,
-                  ),
-                ),
-                Text(
-                  '${_circle.studentIds.length} طالب',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-            Divider(height: 16.h),
-            _buildStudentsList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStudentsList() {
-    if (_circle.studentIds.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 16.h),
-        child: Center(
-          child: Text(
-            'لا يوجد طلاب مسجلين في هذه الحلقة',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey[600],
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ),
-      );
-    } else if (_isLoading || (_circle.students.isEmpty && _circle.studentIds.isNotEmpty)) {
-      return Container(
-        height: 120.h,
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(color: AppColors.logoOrange),
-            SizedBox(height: 12.h),
-            Text(
-              'جاري تحميل بيانات ${_circle.studentIds.length} طالب...',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return ListView.separated(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: _circle.students.length,
-        separatorBuilder: (context, index) => SizedBox(height: 8.h),
-        itemBuilder: (context, index) {
-          final student = _circle.students[index];
-          return _buildStudentCard(student);
-        },
-      );
+  // Removed _showAssignTeacherDialog and _buildTeacherSelectionContent methods
+  // Teacher assignment should only be done from the edit circle dialog
     }
-  }
-
-  Widget _buildStudentCard(CircleStudent student) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8.r),
-          onTap: () {
-            // يمكن إضافة عملية عند الضغط على الطالب
-          },
-          child: Padding(
-            padding: EdgeInsets.all(12.r),
-            child: Row(
-              children: [
-                _buildProfileImage(
-                  imageUrl: student.profileImageUrl,
-                  name: student.name,
-                  color: AppColors.logoOrange,
-                ),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        student.name,
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 14.sp,
-                            color: Colors.grey.shade600,
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            student.evaluations.isNotEmpty
-                                ? _formatDate(student.evaluations.last.date)
-                                : 'لا يوجد تقييم سابق',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey.shade400,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileImage({
-    required String? imageUrl,
-    required String name,
-    required Color color,
-  }) {
-    return Container(
-      width: 50.w,
-      height: 50.w,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: color.withOpacity(0.5),
-          width: 2,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(25.r),
-        child: imageUrl != null && imageUrl.isNotEmpty
-            ? Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildNameInitial(name, color),
-              )
-            : _buildNameInitial(name, color),
-      ),
-    );
-  }
-
-  Widget _buildNameInitial(String name, Color color) {
-    return Center(
-      child: Text(
-        name.isNotEmpty ? name[0] : '?',
-        style: TextStyle(
-          fontSize: 20.sp,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.start,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'غير محدد';
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
-}
+  

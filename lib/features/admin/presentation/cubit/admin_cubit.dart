@@ -101,20 +101,66 @@ class AdminCubit extends Cubit<AdminState> {
   
   // طرق إدارة حلقات التحفيظ
   
-  Future<void> loadAllCircles() async {
+  Future<List<MemorizationCircleModel>> loadAllCircles({bool forceRefresh = false}) async {
     try {
-      emit(AdminLoading());
-
-      // جلب جميع حلقات التحفيظ باستخدام المستودع
-      final circles = await _adminRepository.getAllMemorizationCircles();
+      // Check if we already have circles loaded and this is not a forced refresh
+      if (!forceRefresh && state is AdminCirclesLoaded) {
+        final currentState = state as AdminCirclesLoaded;
+        
+        // If we already have circles, just return them without emitting a new state
+        print('AdminCubit: Circles already loaded, returning existing data');
+        return currentState.circles;
+      }
       
-      // جلب المعلمين والطلاب أيضًا
-      await loadTeachers();
-      await loadStudents();
+      // Preserve teacher data if available
+      List<TeacherModel> currentTeachers = [];
+      if (state is AdminTeachersLoaded) {
+        currentTeachers = (state as AdminTeachersLoaded).teachers;
+        print('AdminCubit: Preserving ${currentTeachers.length} teachers during circle load');
+      }
       
-      emit(AdminCirclesLoaded(circles));
+      // Only emit loading if we don't already have data or this is a forced refresh
+      if (!(state is AdminCirclesLoaded) || forceRefresh) {
+        emit(AdminLoading());
+      }
+      
+      // Fetch all circles
+      final circles = await _adminRepository.getAllCircles();
+      
+      // If we have teacher data, try to enhance the circles with teacher names
+      if (currentTeachers.isNotEmpty) {
+        final enhancedCircles = circles.map((circle) {
+          // If the circle has a teacherId but no teacherName, try to find the teacher
+          if (circle.teacherId != null && 
+              circle.teacherId!.isNotEmpty && 
+              (circle.teacherName == null || circle.teacherName!.isEmpty)) {
+            
+            // Find the matching teacher
+            final matchingTeachers = currentTeachers.where((t) => t.id == circle.teacherId).toList();
+            if (matchingTeachers.isNotEmpty) {
+              final teacher = matchingTeachers.first;
+              print('AdminCubit: Enhanced circle ${circle.id} with teacher name: ${teacher.name}');
+              // Create a new circle with the teacher name
+              return circle.copyWith(teacherName: teacher.name);
+            }
+          }
+          return circle;
+        }).toList();
+        
+        // Re-emit teacher data first to avoid losing it
+        emit(AdminTeachersLoaded(currentTeachers));
+        
+        // Then emit enhanced circles loaded
+        emit(AdminCirclesLoaded(enhancedCircles));
+        return enhancedCircles;
+      } else {
+        // Just emit circles loaded without enhancement
+        emit(AdminCirclesLoaded(circles));
+        return circles;
+      }
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء تحميل حلقات التحفيظ: ${e.toString()}'));
+      return [];
     }
   }
   
@@ -253,7 +299,19 @@ class AdminCubit extends Cubit<AdminState> {
     required String teacherName,
   }) async {
     try {
-      emit(AdminLoading());
+      // Store current state to preserve data
+      final currentState = state;
+      List<TeacherModel> currentTeachers = [];
+      
+      // Preserve teacher data if available
+      if (currentState is AdminTeachersLoaded) {
+        currentTeachers = currentState.teachers;
+      }
+      
+      // Only emit loading if we don't have teacher data to preserve
+      if (currentTeachers.isEmpty) {
+        emit(AdminLoading());
+      }
 
       // طباعة معلومات للتشخيص
       print('محاولة تعيين المعلم $teacherName (المعرف: $teacherId) للحلقة $circleId');
@@ -263,6 +321,12 @@ class AdminCubit extends Cubit<AdminState> {
         // تحديث حقل teacher_id فقط في قاعدة البيانات
         await _adminRepository.updateCircleTeacher(circleId, teacherId);
         
+        // If we have teacher data, re-emit it first to preserve it
+        if (currentTeachers.isNotEmpty) {
+          emit(AdminTeachersLoaded(currentTeachers));
+        }
+        
+        // Then emit the teacher assigned state
         emit(AdminTeacherAssigned(
           circleId: circleId,
           teacherId: teacherId,
@@ -270,7 +334,9 @@ class AdminCubit extends Cubit<AdminState> {
         ));
 
         // إعادة تحميل قائمة الحلقات لعكس التغييرات
-        await loadAllCircles();
+        // Use a more targeted approach instead of reloading everything
+        final circles = await _adminRepository.getAllMemorizationCircles();
+        emit(AdminCirclesLoaded(circles));
       } catch (e) {
         print('خطأ في تحديث معلم الحلقة: $e');
         throw Exception('فشل في تحديث معلم الحلقة: $e');
