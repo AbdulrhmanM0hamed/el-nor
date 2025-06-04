@@ -33,11 +33,36 @@ class UserManagementScreenWrapper extends StatelessWidget {
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  List<StudentModel> _filteredUsers = [];
+  List<StudentModel> _allUsers = [];
+
   @override
   void initState() {
     super.initState();
     // Cargar la lista de usuarios al iniciar la pantalla
     context.read<AdminCubit>().loadAllUsers();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterUsers(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredUsers = _allUsers;
+      } else {
+        _filteredUsers = _allUsers.where((user) {
+          final name = user.name?.toLowerCase() ?? '';
+          final email = user.email.toLowerCase();
+          final searchQuery = query.toLowerCase();
+          return name.contains(searchQuery) || email.contains(searchQuery);
+        }).toList();
+      }
+    });
   }
 
   @override
@@ -55,84 +80,138 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
-      body: BlocConsumer<AdminCubit, AdminState>(
-        listener: (context, state) {
-          if (state is AdminError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16.r),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _filterUsers,
+              decoration: InputDecoration(
+                hintText: 'البحث عن مستخدم...',
+                prefixIcon: const Icon(Icons.search, color: AppColors.logoTeal),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: const BorderSide(color: AppColors.logoTeal),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: const BorderSide(color: AppColors.logoTeal, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
-            );
-          } else if (state is AdminUsersLoaded) {
-            // Show success message when users are loaded after role update
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم تحديث دور المستخدم بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is AdminLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.logoTeal,
-              ),
-            );
-          } else if (state is AdminUsersLoaded) {
-            return _buildUsersList(state.users);
-          } else if (state is AdminError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64.sp,
-                    color: Colors.red,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    state.message,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: Colors.red,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 24.h),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<AdminCubit>().loadAllUsers();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.logoTeal,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
-              ),
-            );
-          }
-          
-          if (state is AdminInitial) {
-            context.read<AdminCubit>().loadAllUsers();
-          }
-          
-          return const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.logoTeal,
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: BlocConsumer<AdminCubit, AdminState>(
+              listener: (context, state) {
+                if (state is AdminError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } else if (state is AdminUsersLoaded) {
+                  setState(() {
+                    _allUsers = state.users;
+                    _filteredUsers = state.users;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تم تحديث دور المستخدم بنجاح'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is AdminLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.logoTeal,
+                    ),
+                  );
+                } else if (state is AdminUsersLoaded) {
+                  return _buildUsersList(_filteredUsers);
+                } else if (state is AdminError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64.sp,
+                          color: Colors.red,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          state.message,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 24.h),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<AdminCubit>().loadAllUsers();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.logoTeal,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('إعادة المحاولة'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                
+                if (state is AdminInitial) {
+                  context.read<AdminCubit>().loadAllUsers();
+                }
+                
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.logoTeal,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildUsersList(List<StudentModel> users) {
+    if (users.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 64.sp,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'لا يوجد مستخدمين مطابقين للبحث',
+              style: TextStyle(
+                fontSize: 16.sp,
+                color: Colors.grey[700],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: EdgeInsets.all(16.r),
       itemCount: users.length,
@@ -147,15 +226,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           child: ListTile(
             contentPadding: EdgeInsets.all(16.r),
             leading: CircleAvatar(
+              radius: 30.r,
               backgroundColor: AppColors.logoTeal,
-              child: Text(
-                _getInitial(user.name),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.sp,
-                ),
-              ),
+              backgroundImage: user.profileImageUrl != null
+                  ? NetworkImage(user.profileImageUrl!)
+                  : null,
+              child: user.profileImageUrl == null
+                  ? Text(
+                      _getInitial(user.name),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.sp,
+                      ),
+                    )
+                  : null,
             ),
             title: Text(
               user.name ?? '',
