@@ -52,9 +52,21 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
-      body: BlocBuilder<AdminCubit, AdminState>(
+      body: BlocConsumer<AdminCubit, AdminState>(
+        listener: (context, state) {
+          if (state is AdminError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (state is AdminCircleCreated || state is AdminCircleUpdated) {
+            // Refresh the circles list after successful create/update
+            context.read<AdminCubit>().loadAllCircles(forceRefresh: true);
+          }
+        },
         builder: (context, state) {
-          // Handle different states with CirclesList widget
           return CirclesList(
             circles: state is AdminCirclesLoaded ? state.circles : [],
             isLoading: state is AdminLoading,
@@ -76,8 +88,6 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     );
   }
 
-  // Method removed as it's now handled directly in the build method
-
   void _showAddCircleDialog() async {
     // Obtener la referencia al cubit
     final adminCubit = context.read<AdminCubit>();
@@ -88,7 +98,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
 
     if (!mounted) return; // Verificar si el widget todavía está montado
 
-    showDialog(
+    final result = await showDialog(
       context: context,
       builder: (context) => CircleFormDialog(
         title: 'إضافة حلقة حفظ جديدة',
@@ -108,6 +118,11 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         },
       ),
     );
+
+    // Refresh circles list if dialog was saved successfully
+    if (result == true) {
+      adminCubit.loadAllCircles();
+    }
   }
 
   void _showEditCircleDialog(MemorizationCircleModel circle) async {
@@ -124,7 +139,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     print('CircleManagementScreen: Showing edit dialog for circle ${circle.id}');
     print('CircleManagementScreen: Teacher ID: ${circle.teacherId}, Teacher Name: ${circle.teacherName}');
 
-    showDialog(
+    final result = await showDialog(
       context: context,
       builder: (context) => CircleFormDialog(
         title: 'تعديل حلقة ${circle.name}',
@@ -152,6 +167,11 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         },
       ),
     );
+
+    // Refresh circles list if dialog was saved successfully
+    if (result == true) {
+      adminCubit.loadAllCircles();
+    }
   }
 
   void _showDeleteConfirmationDialog(MemorizationCircleModel circle) {

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/theme/app_colors.dart';
+import '../../../../core/services/service_locator.dart';
 import '../../data/models/student_model.dart';
 import '../../data/models/surah_assignment.dart';
+import '../cubit/admin_cubit.dart';
+import '../cubit/admin_state.dart';
+import '../widgets/shared/profile_image.dart';
 
 class CircleFormDialog extends StatefulWidget {
   final String title;
@@ -100,99 +105,102 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Encabezado del diálogo
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 16.h),
-              decoration: BoxDecoration(
-                color: AppColors.logoTeal,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16.r),
-                  topRight: Radius.circular(16.r),
+    return BlocProvider(
+      create: (context) => sl<AdminCubit>(),
+      child: Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Encabezado del diálogo
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                decoration: BoxDecoration(
+                  color: AppColors.logoTeal,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16.r),
+                    topRight: Radius.circular(16.r),
+                  ),
                 ),
-              ),
-              child: Center(
-                child: Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                child: Center(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-            
-            // Pestañas de navegación
-            TabBar(
-              controller: _tabController,
-              labelColor: AppColors.logoTeal,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: AppColors.logoTeal,
-              tabs: [
-                Tab(text: 'معلومات أساسية', icon: Icon(Icons.info_outline)),
-                Tab(text: 'المعلم', icon: Icon(Icons.person)),
-                Tab(text: 'السور', icon: Icon(Icons.menu_book)),
-                Tab(text: 'الطلاب', icon: Icon(Icons.people)),
-              ],
-            ),
-            
-            // Contenido de las pestañas
-            Expanded(
-              child: TabBarView(
+              
+              // Pestañas de navegación
+              TabBar(
                 controller: _tabController,
-                physics: NeverScrollableScrollPhysics(),
-                children: [
-                  _buildBasicInfoTab(),
-                  _buildTeacherTab(),
-                  _buildSurahsTab(),
-                  _buildStudentsTab(),
+                labelColor: AppColors.logoTeal,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: AppColors.logoTeal,
+                tabs: [
+                  Tab(text: 'معلومات أساسية', icon: Icon(Icons.info_outline)),
+                  Tab(text: 'المعلم', icon: Icon(Icons.person)),
+                  Tab(text: 'السور', icon: Icon(Icons.menu_book)),
+                  Tab(text: 'الطلاب', icon: Icon(Icons.people)),
                 ],
               ),
-            ),
-            
-            // Botones de acción
-            Padding(
-              padding: EdgeInsets.all(16.r),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'إلغاء',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  ElevatedButton(
-                    onPressed: _saveCircle,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.logoTeal,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: Text(
-                      'حفظ',
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-                  ),
-                ],
+              
+              // Contenido de las pestañas
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    _buildBasicInfoTab(),
+                    _buildTeacherTab(),
+                    _buildSurahsTab(),
+                    _buildStudentsTab(),
+                  ],
+                ),
               ),
-            ),
-          ],
+              
+              // Botones de acción
+              Padding(
+                padding: EdgeInsets.all(16.r),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'إلغاء',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    ElevatedButton(
+                      onPressed: _saveCircle,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.logoTeal,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      child: Text(
+                        'حفظ',
+                        style: TextStyle(fontSize: 14.sp),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -216,7 +224,9 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
           _selectedSurahs,
           _selectedStudentIds,
         );
-        Navigator.of(context).pop();
+        
+        // Close the dialog and refresh circles
+        Navigator.of(context).pop(true); // Return true to indicate successful save
       } else {
         // Si el formulario no es válido o no existe, mostrar un mensaje
         ScaffoldMessenger.of(context).showSnackBar(
@@ -321,100 +331,109 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
 
   // Pestaña de selección de maestro
   Widget _buildTeacherTab() {
-    return Padding(
-      padding: EdgeInsets.all(16.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'اختر المعلم',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.logoTeal,
+    return BlocProvider(
+      create: (context) => sl<AdminCubit>()..loadTeachers(),
+      child: Padding(
+        padding: EdgeInsets.all(16.r),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'اختر المعلم',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.logoTeal,
+              ),
             ),
-          ),
-          SizedBox(height: 16.h),
-          Expanded(
-            child: widget.availableTeachers.isEmpty
-                ? Center(child: Text('لا يوجد معلمين متاحين'))
-                : ListView.builder(
-                    itemCount: widget.availableTeachers.length,
-                    itemBuilder: (context, index) {
-                      final teacher = widget.availableTeachers[index];
-                      final isSelected = _selectedTeacherId == teacher.id;
-                      
-                      return Card(
-                        elevation: isSelected ? 4 : 1,
-                        margin: EdgeInsets.only(bottom: 8.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          side: BorderSide(
-                            color: isSelected ? AppColors.logoTeal : Colors.transparent,
-                            width: 2,
-                          ),
+            SizedBox(height: 16.h),
+            Expanded(
+              child: widget.availableTeachers.isEmpty
+                  ? Center(child: Text('لا يوجد معلمين متاحين'))
+                  : BlocBuilder<AdminCubit, AdminState>(
+                      builder: (context, state) {
+                        if (state is AdminTeachersLoaded) {
+                          return ListView.builder(
+                            itemCount: state.teachers.length,
+                            itemBuilder: (context, index) {
+                              final teacher = state.teachers[index];
+                              final isSelected = _selectedTeacherId == teacher.id;
+                              return _buildTeacherCard(teacher, isSelected);
+                            },
+                          );
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTeacherCard(StudentModel teacher, bool isSelected) {
+    return Card(
+      elevation: isSelected ? 4 : 1,
+      margin: EdgeInsets.only(bottom: 8.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.r),
+        side: BorderSide(
+          color: isSelected ? AppColors.logoTeal : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      color: isSelected ? AppColors.logoTeal.withOpacity(0.1) : null,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedTeacherId = teacher.id;
+            _selectedTeacherName = teacher.name;
+          });
+        },
+        child: Padding(
+          padding: EdgeInsets.all(16.r),
+          child: Row(
+            children: [
+              ProfileImage(
+                color: Colors.white,
+                imageUrl: teacher.profileImageUrl,
+                name: teacher.name,
+                size: 48.r,
+              ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      teacher.name,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? AppColors.logoTeal : null,
+                      ),
+                    ),
+                    if (teacher.email.isNotEmpty)
+                      Text(
+                        teacher.email,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey,
                         ),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedTeacherId = teacher.id;
-                              _selectedTeacherName = teacher.name;
-                            });
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.all(16.r),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: AppColors.logoTeal,
-                                  radius: 24.r,
-                                  child: Text(
-                                    teacher.name.isNotEmpty ? teacher.name[0] : '?',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18.sp,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 16.w),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        teacher.name,
-                                        style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      if (teacher.email.isNotEmpty)
-                                        Text(
-                                          teacher.email,
-                                          style: TextStyle(
-                                            fontSize: 14.sp,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                if (isSelected)
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: AppColors.logoTeal,
-                                    size: 24.r,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Icon(
+                  Icons.check_circle,
+                  color: AppColors.logoTeal,
+                  size: 24.r,
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -495,91 +514,127 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
 
   // Pestaña de selección de estudiantes
   Widget _buildStudentsTab() {
-    return Padding(
-      padding: EdgeInsets.all(16.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'اختر الطلاب',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.logoTeal,
+    return BlocProvider(
+      create: (context) => sl<AdminCubit>()..loadStudents(),
+      child: Padding(
+        padding: EdgeInsets.all(16.r),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'اختر الطلاب',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.logoTeal,
+              ),
             ),
+            SizedBox(height: 8.h),
+            Expanded(
+              child: widget.availableStudents?.isEmpty ?? true
+                  ? Center(child: Text('لا يوجد طلاب متاحين'))
+                  : BlocBuilder<AdminCubit, AdminState>(
+                      builder: (context, state) {
+                        if (state is AdminStudentsLoaded) {
+                          final students = state.students.where((s) => !s.isTeacher && !s.isAdmin).toList();
+                          return ListView.builder(
+                            itemCount: students.length,
+                            itemBuilder: (context, index) {
+                              final student = students[index];
+                              final isSelected = _selectedStudentIds.contains(student.id);
+                              return _buildStudentCard(student, isSelected);
+                            },
+                          );
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStudentCard(StudentModel student, bool isSelected) {
+    return Card(
+      elevation: isSelected ? 4 : 1,
+      margin: EdgeInsets.only(bottom: 8.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.r),
+        side: BorderSide(
+          color: isSelected ? AppColors.logoTeal : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      color: isSelected ? AppColors.logoTeal.withOpacity(0.1) : null,
+      child: CheckboxListTile(
+        value: isSelected,
+        onChanged: (selected) {
+          setState(() {
+            if (selected == true) {
+              if (!_selectedStudentIds.contains(student.id)) {
+                _selectedStudentIds.add(student.id);
+              }
+            } else {
+              _selectedStudentIds.remove(student.id);
+            }
+          });
+        },
+        title: Text(
+          student.name,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: isSelected ? AppColors.logoTeal : null,
           ),
-          SizedBox(height: 16.h),
-          Expanded(
-            child: widget.availableStudents == null || widget.availableStudents!.isEmpty
-                ? Center(child: Text('لا يوجد طلاب متاحين'))
-                : ListView.builder(
-                    itemCount: widget.availableStudents!.length,
-                    itemBuilder: (context, index) {
-                      final student = widget.availableStudents![index];
-                      final isSelected = _selectedStudentIds.contains(student.id);
-                      
-                      return Card(
-                        elevation: isSelected ? 4 : 1,
-                        margin: EdgeInsets.only(bottom: 8.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          side: BorderSide(
-                            color: isSelected ? AppColors.logoTeal : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: CheckboxListTile(
-                          value: isSelected,
-                          onChanged: (selected) {
-                            setState(() {
-                              if (selected == true) {
-                                if (!_selectedStudentIds.contains(student.id)) {
-                                  _selectedStudentIds.add(student.id);
-                                }
-                              } else {
-                                _selectedStudentIds.remove(student.id);
-                              }
-                            });
-                          },
-                          title: Text(
-                            student.name,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(
-                            student.email,
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          secondary: CircleAvatar(
-                            backgroundColor: AppColors.logoTeal,
-                            radius: 20.r,
-                            backgroundImage: student.imageUrl != null && student.imageUrl!.isNotEmpty
-                                ? NetworkImage(student.imageUrl!)
-                                : null,
-                            child: student.imageUrl == null || student.imageUrl!.isEmpty
-                                ? Text(
-                                    student.name.isNotEmpty ? student.name[0] : '?',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          activeColor: AppColors.logoTeal,
-                          checkColor: Colors.white,
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (student.email.isNotEmpty)
+              Text(
+                student.email,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey,
+                ),
+              ),
+            if (student.phoneNumber != null && student.phoneNumber!.isNotEmpty)
+              Text(
+                student.phoneNumber!,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey,
+                ),
+              ),
+          ],
+        ),
+        secondary: Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            ProfileImage(
+              color: Colors.white,
+              imageUrl: student.profileImageUrl,
+              name: student.name,
+              size: 48.r,
+            ),
+            if (isSelected)
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.logoTeal,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20.r,
+                ),
+              ),
+          ],
+        ),
+        activeColor: AppColors.logoTeal,
+        checkColor: Colors.white,
       ),
     );
   }

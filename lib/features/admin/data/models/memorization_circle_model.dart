@@ -275,15 +275,15 @@ class AttendanceRecord {
 
   factory AttendanceRecord.fromJson(Map<String, dynamic> json) {
     return AttendanceRecord(
-      date: DateTime.parse(json['date']),
-      isPresent: json['is_present'] ?? false,
-      notes: json['notes'],
+      date: DateTime.parse(json['date'] as String),
+      isPresent: json['is_present'] as bool,
+      notes: json['notes'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'date': date.toIso8601String(),
+      'date': date.toIso8601String().split('T')[0],  // نأخذ فقط التاريخ بدون الوقت
       'is_present': isPresent,
       'notes': notes,
     };
@@ -292,31 +292,27 @@ class AttendanceRecord {
 
 class EvaluationRecord {
   final DateTime date;
-  final String surahId;
-  final int score; // 0-5
+  final int rating;  // من 0 إلى 5 نجوم
   final String? notes;
 
   EvaluationRecord({
     required this.date,
-    required this.surahId,
-    required this.score,
+    required this.rating,
     this.notes,
   });
 
   factory EvaluationRecord.fromJson(Map<String, dynamic> json) {
     return EvaluationRecord(
-      date: DateTime.parse(json['date']),
-      surahId: json['surah_id'],
-      score: json['score'],
-      notes: json['notes'],
+      date: DateTime.parse(json['date'] as String),
+      rating: json['rating'] as int,
+      notes: json['notes'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'date': date.toIso8601String(),
-      'surah_id': surahId,
-      'score': score,
+      'date': date.toIso8601String().split('T')[0],
+      'rating': rating,
       'notes': notes,
     };
   }

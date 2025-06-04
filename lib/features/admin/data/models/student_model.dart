@@ -9,7 +9,7 @@ class StudentModel {
   final String? phoneNumber;
   final String? parentName;
   final String? parentPhone;
-  final String? imageUrl;
+  final String? profileImageUrl;
   final List<EvaluationModel> evaluations;
   final bool isAdmin;
   final bool isTeacher;
@@ -23,7 +23,7 @@ class StudentModel {
     this.phoneNumber,
     this.parentName,
     this.parentPhone,
-    this.imageUrl,
+    this.profileImageUrl,
     this.evaluations = const [],
     required this.isAdmin,
     required this.isTeacher,
@@ -52,7 +52,7 @@ class StudentModel {
       phoneNumber: json['phone_number'],
       parentName: json['parent_name'],
       parentPhone: json['parent_phone'],
-      imageUrl: json['image_url'],
+      profileImageUrl: json['profile_image_url'],
       evaluations: evaluations,
       isAdmin: json['is_admin'] ?? false,
       isTeacher: json['is_teacher'] ?? false,
@@ -94,7 +94,7 @@ class StudentModel {
       'phone_number': phoneNumber,
       'parent_name': parentName,
       'parent_phone': parentPhone,
-      'image_url': imageUrl,
+      'profile_image_url': profileImageUrl,
       'evaluations': evaluations.map((e) => e.toJson()).toList(),
       'is_admin': isAdmin,
       'is_teacher': isTeacher,
@@ -110,7 +110,7 @@ class StudentModel {
     String? phoneNumber,
     String? parentName,
     String? parentPhone,
-    String? imageUrl,
+    String? profileImageUrl,
     List<EvaluationModel>? evaluations,
     bool? isAdmin,
     bool? isTeacher,
@@ -124,7 +124,7 @@ class StudentModel {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       parentName: parentName ?? this.parentName,
       parentPhone: parentPhone ?? this.parentPhone,
-      imageUrl: imageUrl ?? this.imageUrl,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       evaluations: evaluations ?? this.evaluations,
       isAdmin: isAdmin ?? this.isAdmin,
       isTeacher: isTeacher ?? this.isTeacher,

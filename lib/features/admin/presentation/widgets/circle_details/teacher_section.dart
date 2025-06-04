@@ -63,7 +63,7 @@ class _TeacherSectionState extends State<TeacherSection> {
 
     if (widget.teachers.isNotEmpty) {
       for (var teacher in widget.teachers) {
-        print('TeacherSection - Teacher details: id=${teacher.id}, name=${teacher.name}, email=${teacher.email}, phone=${teacher.phoneNumber}, imageUrl=${teacher.imageUrl}');
+        print('TeacherSection - Teacher details: id=${teacher.id}, name=${teacher.name}, email=${teacher.email}, phone=${teacher.phoneNumber}, imageUrl=${teacher.profileImageUrl}');
       }
     }
 
@@ -74,7 +74,7 @@ class _TeacherSectionState extends State<TeacherSection> {
 
       if (exactMatch.isNotEmpty) {
         final matchedTeacher = exactMatch.first;
-        print('TeacherSection - Found exact teacher match: ${matchedTeacher.name} with image URL: ${matchedTeacher.imageUrl}');
+        print('TeacherSection - Found exact teacher match: ${matchedTeacher.name} with image URL: ${matchedTeacher.profileImageUrl}');
         setState(() {
           _teacher = matchedTeacher;
           _isLoading = false;
@@ -94,7 +94,7 @@ class _TeacherSectionState extends State<TeacherSection> {
       updatedAt: DateTime.now(),
       isTeacher: true,
       isAdmin: false,
-      imageUrl: widget.circle.teacherImageUrl,  // استخدام URL الصورة من الحلقة
+      profileImageUrl: widget.circle.teacherImageUrl,  // استخدام URL الصورة من الحلقة
     );
 
     setState(() {
@@ -182,12 +182,12 @@ class _TeacherSectionState extends State<TeacherSection> {
 
   Widget _buildTeacherCard(StudentModel teacher) {
     print('TeacherCard - Building card for teacher: ${teacher.name}');
-    print('TeacherCard - Profile image URL: ${teacher.imageUrl}');
+    print('TeacherCard - Profile image URL: ${teacher.profileImageUrl}');
     print('TeacherCard - Email: ${teacher.email}');
     print('TeacherCard - Phone: ${teacher.phoneNumber}');
     
     // التأكد من أن عنوان URL الصورة صالح قبل استخدامه
-    final hasValidImage = teacher.imageUrl != null && teacher.imageUrl!.isNotEmpty;
+    final hasValidImage = teacher.profileImageUrl != null && teacher.profileImageUrl!.isNotEmpty;
     print('TeacherCard - Has valid image: $hasValidImage');
 
     return Container(
@@ -203,7 +203,7 @@ class _TeacherSectionState extends State<TeacherSection> {
             children: [
               ProfileImage(
                 color: AppColors.logoTeal,
-                imageUrl: hasValidImage ? teacher.imageUrl! : '',
+                imageUrl: hasValidImage ? teacher.profileImageUrl! : '',
                 name: teacher.name,
                 showDebugLogs: true,
               ),

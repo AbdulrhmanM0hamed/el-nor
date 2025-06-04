@@ -161,12 +161,17 @@ class AdminCubit extends Cubit<AdminState> {
 
       // إضافة الحلقة باستخدام المستودع
       final createdCircle = await _adminRepository.addCircle(newCircle);
+      
+      print('Circle created successfully: ${createdCircle.id}');
+      print('Teacher ID: ${createdCircle.teacherId}, Teacher Name: ${createdCircle.teacherName}');
 
+      // First emit creation success
       emit(AdminCircleCreated(createdCircle));
-
-      // إعادة تحميل قائمة الحلقات لعكس التغييرات
-      await loadAllCircles();
+      
+      // Then refresh the circles list
+      await loadAllCircles(forceRefresh: true);
     } catch (e) {
+      print('Error creating circle: $e');
       emit(AdminError('حدث خطأ أثناء إنشاء حلقة التحفيظ: ${e.toString()}'));
     }
   }
@@ -184,6 +189,8 @@ class AdminCubit extends Cubit<AdminState> {
     try {
       emit(AdminLoading());
 
+      print('Updating circle $id with teacher: $teacherId ($teacherName)');
+
       // الحصول على الحلقة الحالية
       final circles = await _adminRepository.getAllCircles();
       final circle = circles.firstWhere((c) => c.id == id);
@@ -200,14 +207,21 @@ class AdminCubit extends Cubit<AdminState> {
         updatedAt: DateTime.now(),
       );
       
+      print('Circle before update: Teacher ID=${circle.teacherId}, Name=${circle.teacherName}');
+      print('Circle after update: Teacher ID=${updatedCircle.teacherId}, Name=${updatedCircle.teacherName}');
+      
       // حفظ التغييرات
       final savedCircle = await _adminRepository.updateCircle(updatedCircle);
+      
+      print('Circle saved successfully: Teacher ID=${savedCircle.teacherId}, Name=${savedCircle.teacherName}');
 
+      // First emit update success
       emit(AdminCircleUpdated(savedCircle));
-
-      // إعادة تحميل قائمة الحلقات لعكس التغييرات
-      await loadAllCircles();
+      
+      // Then refresh the circles list
+      await loadAllCircles(forceRefresh: true);
     } catch (e) {
+      print('Error updating circle: $e');
       emit(AdminError('حدث خطأ أثناء تحديث حلقة التحفيظ: ${e.toString()}'));
     }
   }
@@ -313,6 +327,48 @@ class AdminCubit extends Cubit<AdminState> {
     } catch (e) {
       print('خطأ في تحميل طلاب الحلقة: $e');
       emit(AdminError('حدث خطأ أثناء تحميل طلاب الحلقة: ${e.toString()}'));
+    }
+  }
+
+  // تحديث حضور وتقييم الطالب
+  Future<void> updateStudentAttendanceAndEvaluation({
+    required String circleId,
+    required String studentId,
+    AttendanceRecord? attendance,
+    EvaluationRecord? evaluation,
+  }) async {
+    try {
+      emit(AdminLoading());
+
+      await _adminRepository.updateStudentAttendanceAndEvaluation(
+        circleId: circleId,
+        studentId: studentId,
+        attendance: attendance,
+        evaluation: evaluation,
+      );
+
+      // إعادة تحميل بيانات الحلقة المحدثة
+      final circles = await _adminRepository.getAllCircles();
+      emit(AdminCirclesLoaded(circles));
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء تحديث حضور وتقييم الطالب: ${e.toString()}'));
+    }
+  }
+
+  // جلب سجلات طالب في حلقة معينة
+  Future<void> loadStudentRecords(String circleId, String studentId) async {
+    try {
+      emit(AdminLoading());
+
+      final student = await _adminRepository.getStudentRecords(circleId, studentId);
+      
+      // تحميل بيانات الحلقة المحدثة
+      final circles = await _adminRepository.getAllCircles();
+      final circle = circles.firstWhere((c) => c.id == circleId);
+      
+      emit(AdminCirclesLoaded(circles));
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء تحميل سجلات الطالب: ${e.toString()}'));
     }
   }
 }
