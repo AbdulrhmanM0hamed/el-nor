@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../data/models/student_model.dart';
 import '../../data/models/surah_assignment.dart';
-import '../../data/models/teacher_model.dart';
 
 class CircleFormDialog extends StatefulWidget {
   final String title;
@@ -14,7 +13,7 @@ class CircleFormDialog extends StatefulWidget {
   final DateTime? initialDate;
   final String? initialTeacherId;
   final String? initialTeacherName;
-  final List<TeacherModel> availableTeachers;
+  final List<StudentModel> availableTeachers;
   final List<SurahAssignment>? initialSurahAssignments;
   final List<StudentModel>? availableStudents;
   final List<String>? initialStudentIds;

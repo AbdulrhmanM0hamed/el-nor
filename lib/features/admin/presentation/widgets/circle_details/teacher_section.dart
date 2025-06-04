@@ -4,14 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../../core/utils/theme/app_colors.dart';
 import '../../../data/models/memorization_circle_model.dart';
-import '../../../data/models/teacher_model.dart';
+import '../../../data/models/student_model.dart';
 import '../../cubit/admin_cubit.dart';
 import '../../cubit/admin_state.dart';
 import '../shared/profile_image_fixed.dart';
 
 class TeacherSection extends StatefulWidget {
   final MemorizationCircleModel circle;
-  final List<TeacherModel> teachers;
+  final List<StudentModel> teachers;
   final Function(String, String)? onAssignTeacher;
   final bool isLoading;
 
@@ -28,15 +28,13 @@ class TeacherSection extends StatefulWidget {
 }
 
 class _TeacherSectionState extends State<TeacherSection> {
-  late TeacherModel _teacher;
+  late StudentModel _teacher;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _initTeacher();
-
-    // Initialize loading state from widget
     _isLoading = widget.isLoading;
   }
 
@@ -44,14 +42,12 @@ class _TeacherSectionState extends State<TeacherSection> {
   void didUpdateWidget(TeacherSection oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Update loading state if it changed from parent
     if (widget.isLoading != oldWidget.isLoading) {
       setState(() {
         _isLoading = widget.isLoading;
       });
     }
 
-    // Re-initialize teacher if circle or teachers list changed
     if (widget.circle.teacherId != oldWidget.circle.teacherId ||
         widget.teachers != oldWidget.teachers) {
       _initTeacher();
@@ -59,114 +55,51 @@ class _TeacherSectionState extends State<TeacherSection> {
   }
 
   void _initTeacher() {
-    // Check if we need to show loading state
-    bool shouldShowLoading = false;
-
-    // If we have a teacher ID but no teachers loaded yet, we should show loading
-    if (widget.circle.teacherId != null &&
-        widget.circle.teacherId!.isNotEmpty &&
-        widget.teachers.isEmpty) {
-      shouldShowLoading = true;
-      print(
-          'TeacherSection - Has teacher ID but no teachers loaded, showing loading state');
-    }
-
-    // Create a default teacher model with circle data as fallback
-    final defaultName = widget.circle.teacherName ?? 'لم يتم تعيين معلم بعد';
-    final defaultTeacher = TeacherModel(
-      id: widget.circle.teacherId ?? '',
-      name: defaultName,
-      email: '',
-      phone: '',
-      profileImageUrl: '',
-      specialization: '',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    // Debug prints to help diagnose issues
     print('TeacherSection - Circle teacherId: ${widget.circle.teacherId}');
     print('TeacherSection - Circle teacherName: ${widget.circle.teacherName}');
+   
+    print('TeacherSection - Circle teacherImageUrl: ${widget.circle.teacherImageUrl}');
     print('TeacherSection - Available teachers: ${widget.teachers.length}');
 
-    // List teacher IDs for debugging
     if (widget.teachers.isNotEmpty) {
-      print(
-          'TeacherSection - Teacher IDs in list: ${widget.teachers.map((t) => t.id).join(', ')}');
-    }
-
-    // Try to find the assigned teacher in the teachers list
-    TeacherModel foundTeacher = defaultTeacher;
-    bool teacherFound = false;
-
-    if (widget.circle.teacherId != null &&
-        widget.circle.teacherId!.isNotEmpty &&
-        widget.teachers.isNotEmpty) {
-      try {
-        // First try to find by exact ID match
-        final exactMatch = widget.teachers
-            .where((t) => t.id == widget.circle.teacherId)
-            .toList();
-
-        if (exactMatch.isNotEmpty) {
-          foundTeacher = exactMatch.first;
-          teacherFound = true;
-          print(
-              'TeacherSection - Found exact teacher match: ${foundTeacher.name}, ID: ${foundTeacher.id}');
-        } else {
-          // If no exact match, try to find by name as fallback
-          if (widget.circle.teacherName != null &&
-              widget.circle.teacherName!.isNotEmpty) {
-            final nameMatch = widget.teachers
-                .where((t) =>
-                    t.name.toLowerCase() ==
-                    widget.circle.teacherName!.toLowerCase())
-                .toList();
-
-            if (nameMatch.isNotEmpty) {
-              foundTeacher = nameMatch.first;
-              teacherFound = true;
-              print(
-                  'TeacherSection - Found teacher by name: ${foundTeacher.name}, ID: ${foundTeacher.id}');
-            } else {
-              print(
-                  'TeacherSection - No teacher found with ID ${widget.circle.teacherId} or name ${widget.circle.teacherName}');
-            }
-          }
-        }
-
-        // Check if we have a profile image
-        final hasProfileImage = foundTeacher.profileImageUrl != null &&
-            (foundTeacher.profileImageUrl?.isNotEmpty ?? false);
-
-        if (hasProfileImage) {
-          print(
-              'TeacherSection - Profile image URL: ${foundTeacher.profileImageUrl}');
-        } else {
-          print(
-              'TeacherSection - No profile image for teacher ${foundTeacher.name}');
-        }
-      } catch (e) {
-        print('TeacherSection - Error finding teacher: $e');
+      for (var teacher in widget.teachers) {
+        print('TeacherSection - Teacher details: id=${teacher.id}, name=${teacher.name}, email=${teacher.email}, phone=${teacher.phoneNumber}, imageUrl=${teacher.imageUrl}');
       }
-    } else {
-      print(
-          'TeacherSection - No teacher ID or empty teachers list, using default teacher');
     }
 
-    // If we have a teacher ID but couldn't find the teacher, keep loading state
-    if (widget.circle.teacherId != null &&
-        widget.circle.teacherId!.isNotEmpty &&
-        !teacherFound) {
-      shouldShowLoading = true;
-      print(
-          'TeacherSection - Has teacher ID but teacher not found, keeping loading state');
+    if (widget.teachers.isNotEmpty && widget.circle.teacherId != null) {
+      final exactMatch = widget.teachers
+          .where((t) => t.id == widget.circle.teacherId)
+          .toList();
+
+      if (exactMatch.isNotEmpty) {
+        final matchedTeacher = exactMatch.first;
+        print('TeacherSection - Found exact teacher match: ${matchedTeacher.name} with image URL: ${matchedTeacher.imageUrl}');
+        setState(() {
+          _teacher = matchedTeacher;
+          _isLoading = false;
+        });
+        return;
+      }
     }
 
-    // Update the teacher state
+    // إنشاء معلم افتراضي بالمعلومات المتوفرة من الحلقة
+    print('TeacherSection - Using default teacher with data from circle');
+    final defaultTeacher = StudentModel(
+      id: widget.circle.teacherId ?? '',
+      name: widget.circle.teacherName ?? 'لم يتم تعيين معلم بعد',
+      email: widget.circle.teacherEmail ?? '',
+      phoneNumber: widget.circle.teacherPhone,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isTeacher: true,
+      isAdmin: false,
+      imageUrl: widget.circle.teacherImageUrl,  // استخدام URL الصورة من الحلقة
+    );
+
     setState(() {
-      _teacher = foundTeacher;
-      _isLoading = shouldShowLoading || widget.isLoading;
+      _teacher = defaultTeacher;
+      _isLoading = widget.isLoading;
     });
   }
 
@@ -179,36 +112,14 @@ class _TeacherSectionState extends State<TeacherSection> {
             setState(() {
               _isLoading = false;
             });
-
-            // Force reload teachers to get updated data
             context.read<AdminCubit>().loadTeachers();
           }
         } else if (state is AdminTeachersLoaded) {
-          // When teachers are loaded, update our teacher data
           _initTeacher();
-
-          // Ensure we exit loading state after a maximum time
-          setState(() {
-            _isLoading = false;
-          });
         } else if (state is AdminLoading) {
-          // Only set loading state if we're not already loading
-          if (!_isLoading) {
-            setState(() {
-              _isLoading = true;
-            });
-
-            // Add a safety timeout to prevent infinite loading
-            Future.delayed(const Duration(seconds: 5), () {
-              if (mounted && _isLoading) {
-                setState(() {
-                  _isLoading = false;
-                });
-                print(
-                    'TeacherSection: Safety timeout triggered to prevent infinite loading');
-              }
-            });
-          }
+          setState(() {
+            _isLoading = true;
+          });
         } else if (state is AdminError) {
           setState(() {
             _isLoading = false;
@@ -229,7 +140,6 @@ class _TeacherSectionState extends State<TeacherSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row with title and assign button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -243,8 +153,6 @@ class _TeacherSectionState extends State<TeacherSection> {
                 ],
               ),
               Divider(height: 16.h),
-
-              // Show loading indicator, no teacher assigned, or teacher card
               if (_isLoading)
                 Center(
                   child: Padding(
@@ -272,9 +180,15 @@ class _TeacherSectionState extends State<TeacherSection> {
     );
   }
 
-  Widget _buildTeacherCard(TeacherModel teacher) {
-    // Debug print for profile image URL
-    print('TeacherCard - Profile image URL: ${teacher.profileImageUrl}');
+  Widget _buildTeacherCard(StudentModel teacher) {
+    print('TeacherCard - Building card for teacher: ${teacher.name}');
+    print('TeacherCard - Profile image URL: ${teacher.imageUrl}');
+    print('TeacherCard - Email: ${teacher.email}');
+    print('TeacherCard - Phone: ${teacher.phoneNumber}');
+    
+    // التأكد من أن عنوان URL الصورة صالح قبل استخدامه
+    final hasValidImage = teacher.imageUrl != null && teacher.imageUrl!.isNotEmpty;
+    print('TeacherCard - Has valid image: $hasValidImage');
 
     return Container(
       padding: EdgeInsets.all(16.r),
@@ -285,12 +199,11 @@ class _TeacherSectionState extends State<TeacherSection> {
       ),
       child: Column(
         children: [
-          // Teacher profile image and name
           Row(
             children: [
               ProfileImage(
                 color: AppColors.logoTeal,
-                imageUrl: teacher.profileImageUrl ?? '',
+                imageUrl: hasValidImage ? teacher.imageUrl! : '',
                 name: teacher.name,
                 showDebugLogs: true,
               ),
@@ -306,13 +219,15 @@ class _TeacherSectionState extends State<TeacherSection> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (teacher.specialization != null &&
-                        teacher.specialization!.isNotEmpty)
-                      Text(
-                        teacher.specialization!,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.grey.shade600,
+                    if (teacher.isTeacher)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4.h),
+                        child: Text(
+                          'معلم',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppColors.logoTeal,
+                          ),
                         ),
                       ),
                   ],
@@ -321,10 +236,10 @@ class _TeacherSectionState extends State<TeacherSection> {
             ],
           ),
 
-          SizedBox(height: 16.h),
+          if (teacher.email.isNotEmpty || teacher.phoneNumber != null)
+            SizedBox(height: 16.h),
 
-          // Teacher contact info
-          if (teacher.email != null && teacher.email!.isNotEmpty)
+          if (teacher.email.isNotEmpty)
             Padding(
               padding: EdgeInsets.only(bottom: 8.h),
               child: Row(
@@ -333,7 +248,7 @@ class _TeacherSectionState extends State<TeacherSection> {
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      teacher.email!,
+                      teacher.email,
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: Colors.grey.shade700,
@@ -345,13 +260,13 @@ class _TeacherSectionState extends State<TeacherSection> {
               ),
             ),
 
-          if (teacher.phone != null && teacher.phone!.isNotEmpty)
+          if (teacher.phoneNumber != null && teacher.phoneNumber!.isNotEmpty)
             Row(
               children: [
                 Icon(Icons.phone, size: 16.sp, color: Colors.grey.shade600),
                 SizedBox(width: 8.w),
                 Text(
-                  teacher.phone!,
+                  teacher.phoneNumber!,
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: Colors.grey.shade700,

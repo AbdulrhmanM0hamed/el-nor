@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../data/models/student_model.dart';
 import '../../../../core/utils/theme/app_colors.dart';
-import '../../../auth/data/models/user_model.dart';
 
 // Define role enum for clearer selection
 enum UserRole { admin, teacher, student }
 
 class UserRoleDialog extends StatefulWidget {
-  final UserModel user;
+  final StudentModel user;
   final Function(bool isAdmin, bool isTeacher) onRoleChanged;
 
   const UserRoleDialog({

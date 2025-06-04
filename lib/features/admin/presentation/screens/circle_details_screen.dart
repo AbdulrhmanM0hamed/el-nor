@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../data/models/memorization_circle_model.dart';
-import '../../data/models/teacher_model.dart';
+import '../../data/models/student_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
 import '../widgets/circle_details/circle_info_card.dart';
@@ -58,7 +58,7 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
     final currentState = _adminCubit.state;
     
     // First check if we have teacher data available
-    TeacherModel? matchingTeacher;
+    StudentModel? matchingTeacher;
     if (currentState is AdminTeachersLoaded && 
         _circle.teacherId != null && 
         _circle.teacherId!.isNotEmpty) {
@@ -113,78 +113,48 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
     });
     
     try {
-      // First, check if we have a valid teacher ID but no teacher data
-      final bool needsTeacherData = _circle.teacherId != null && 
-                                   _circle.teacherId!.isNotEmpty && 
-                                   (_circle.teacherName == null || _circle.teacherName!.isEmpty);
+      // تحميل المعلمين أولاً
+      final teachers = await _adminCubit.loadTeachers();
+      print('CircleDetailsScreen: ${teachers.length} teachers loaded initially');
       
-      if (needsTeacherData) {
-        print('CircleDetailsScreen: Circle has teacherId but no teacherName, prioritizing teacher data loading');
-      }
-      
-      // Always load teachers first to ensure they're available
-      print('CircleDetailsScreen: Loading teachers');
-      await _adminCubit.loadTeachers();
-      
-      // Short delay to allow state to update
-      await Future.delayed(const Duration(milliseconds: 300));
-      
-      // If the current state has teachers, try to find the teacher for this circle
-      final currentState = _adminCubit.state;
-      if (currentState is AdminTeachersLoaded && 
-          _circle.teacherId != null && 
-          _circle.teacherId!.isNotEmpty) {
+      // إذا وجدنا المعلم في القائمة، نقوم بتحديث اسم المعلم
+      if (_circle.teacherId != null && _circle.teacherId!.isNotEmpty) {
+        final matchingTeacher = teachers.firstWhere(
+          (t) => t.id == _circle.teacherId,
+          orElse: () => StudentModel(
+            id: _circle.teacherId!,
+            name: _circle.teacherName ?? '',
+            email: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            isTeacher: true,
+            isAdmin: false,
+          ),
+        );
         
-        final teachers = currentState.teachers;
-        print('CircleDetailsScreen: ${teachers.length} teachers loaded, looking for teacher ${_circle.teacherId}');
-        
-        // Try to find the teacher by ID
-        final matchingTeachers = teachers.where((t) => t.id == _circle.teacherId).toList();
-        if (matchingTeachers.isNotEmpty) {
-          final teacher = matchingTeachers.first;
-          print('CircleDetailsScreen: Found matching teacher: ${teacher.name}');
-          
-          // Update the circle with the teacher name if it's missing
-          if (_circle.teacherName == null || _circle.teacherName!.isEmpty) {
-            setState(() {
-              _circle = _circle.copyWith(teacherName: teacher.name);
-            });
-            print('CircleDetailsScreen: Updated circle with teacher name: ${teacher.name}');
-          }
-        } else {
-          print('CircleDetailsScreen: No matching teacher found for ID: ${_circle.teacherId}');
+        if (matchingTeacher.id == _circle.teacherId) {
+          print('CircleDetailsScreen: Found matching teacher: ${matchingTeacher.name}');
+          setState(() {
+            _circle = _circle.copyWith(teacherName: matchingTeacher.name);
+          });
         }
       }
       
-      // Then load the latest circle data to ensure it's up to date
-      print('CircleDetailsScreen: Loading all circles');
-      await _adminCubit.loadAllCircles();
+      // تحميل بيانات الحلقة المحدثة
+      final circles = await _adminCubit.loadAllCircles();
+      final updatedCircle = circles.firstWhere(
+        (c) => c.id == _circle.id,
+        orElse: () => _circle,
+      );
       
-      // Update our circle with the latest data
-      _updateCircleFromState();
+      setState(() {
+        _circle = updatedCircle;
+        _isLoading = false;
+      });
       
-      // Only load students if needed
+      // تحميل الطلاب إذا كان ضرورياً
       if (_circle.students.isEmpty && _circle.studentIds.isNotEmpty) {
-        print('CircleDetailsScreen: Loading students for circle ${_circle.id}');
-        // Load students directly for this specific circle
         await _adminCubit.loadCircleStudents(_circle.id, _circle.studentIds);
-      }
-      
-      // Final update of circle data
-      _updateCircleFromState();
-      print('CircleDetailsScreen: Circle updated - Teacher ID: ${_circle.teacherId}, Teacher Name: ${_circle.teacherName}');
-      
-      // Ensure we're not stuck in a loading state even if teacher data is missing
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        
-        // Force a refresh of the teacher section
-        if (_circle.teacherId != null && _circle.teacherId!.isNotEmpty) {
-          print('CircleDetailsScreen: Forcing refresh of teacher data');
-          _adminCubit.loadTeachers(); // Non-awaited to prevent blocking UI
-        }
       }
     } catch (e) {
       print('CircleDetailsScreen: Error loading data: $e');
@@ -299,32 +269,37 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
   Widget _buildTeacherSection() {
     return BlocBuilder<AdminCubit, AdminState>(
       builder: (context, state) {
-        // Determine if we should show loading state
+        // المعلمين المتاحين
+        List<StudentModel> teachers = [];
         bool isLoadingTeachers = false;
+
+        // فحص حالة التحميل
         if (state is AdminLoading) {
           isLoadingTeachers = true;
-        }
-        
-        // Get the list of teachers if available
-        List<TeacherModel> teachers = [];
-        if (state is AdminTeachersLoaded) {
+        } 
+        // فحص إذا كان لدينا معلمين
+        else if (state is AdminTeachersLoaded) {
           teachers = state.teachers;
-          print('CircleDetailsScreen: TeacherSection has ${teachers.length} teachers available');
+          print('CircleDetailsScreen: ${teachers.length} teachers loaded');
+          print('CircleDetailsScreen: Circle teacher ID: ${_circle.teacherId}');
+          print('CircleDetailsScreen: Available teacher IDs: ${teachers.map((t) => t.id).join(', ')}');
+          
+          // إذا لدينا معرف معلم ولكن لم نجده في القائمة
+          if (_circle.teacherId != null && 
+              _circle.teacherId!.isNotEmpty && 
+              !teachers.any((t) => t.id == _circle.teacherId)) {
+            print('CircleDetailsScreen: Teacher with ID ${_circle.teacherId} not found in loaded teachers');
+            // تحميل المعلمين مرة أخرى
+            _adminCubit.loadTeachers();
+            isLoadingTeachers = true;
+          }
         }
-        
-        // If we have a teacher ID but no teachers loaded, show loading
-        if (_circle.teacherId != null && 
-            _circle.teacherId!.isNotEmpty && 
-            teachers.isEmpty) {
-          isLoadingTeachers = true;
-          print('CircleDetailsScreen: Has teacher ID but no teachers loaded, showing loading');
-        }
-        
+
         return TeacherSection(
           circle: _circle,
           teachers: teachers,
           isLoading: isLoadingTeachers,
-          onAssignTeacher: null, // Removed ability to change teacher from details screen
+          onAssignTeacher: null, // تم إزالة القدرة على تغيير المعلم من شاشة التفاصيل
         );
       },
     );

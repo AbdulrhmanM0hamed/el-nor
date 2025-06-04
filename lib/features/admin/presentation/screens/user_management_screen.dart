@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/services/service_locator.dart';
-import '../../../auth/data/models/user_model.dart';
+import '../../data/models/student_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
 import '../widgets/user_role_dialog.dart';
@@ -132,7 +132,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildUsersList(List<UserModel> users) {
+  Widget _buildUsersList(List<StudentModel> users) {
     return ListView.builder(
       padding: EdgeInsets.all(16.r),
       itemCount: users.length,
@@ -226,7 +226,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _showEditRoleDialog(BuildContext context, UserModel user) {
+  void _showEditRoleDialog(BuildContext context, StudentModel user) {
     final adminCubit = context.read<AdminCubit>();
 
     showDialog(
@@ -252,13 +252,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             isTeacher: isTeacher,
           );
           
-          // Handle teacher record management
-          if (isTeacher && !user.isTeacher) {
-            print('Adding teacher record for ${user.name}');
-            adminCubit.addTeacher(user);
-          } else if (!isTeacher && user.isTeacher) {
-            print('Removing teacher record for ${user.name}');
-            adminCubit.removeTeacher(user.id);
+          // Handle teacher record management by updating the role only
+          if (isTeacher != user.isTeacher) {
+            print('Teacher status changed for ${user.name}');
+            // The teacher status will be handled by updateUserRole
           }
           
           // Show success message with role change details
@@ -282,7 +279,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
   
   // Helper method to get the text representation of a user's role
-  String _getUserRoleText(UserModel user) {
+  String _getUserRoleText(StudentModel user) {
     if (user.isAdmin) {
       return 'مشرف';
     } else if (user.isTeacher) {

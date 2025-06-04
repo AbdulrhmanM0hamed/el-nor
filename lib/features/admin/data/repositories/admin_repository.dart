@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/teacher_model.dart';
+import '../models/student_model.dart';
 import '../models/memorization_circle_model.dart';
 import '../models/surah_assignment.dart';
 import '../../../../features/auth/data/models/user_model.dart';
@@ -47,10 +47,10 @@ class AdminRepository {
   }
   
   // جلب جميع المستخدمين
-  Future<List<UserModel>> getAllUsers() async {
+  Future<List<StudentModel>> getAllUsers() async {
     try {
       final data = await _supabaseClient.from('students').select();
-      return data.map((user) => UserModel.fromJson(user)).toList();
+      return data.map((user) => StudentModel.fromJson(user)).toList();
     } catch (e) {
       throw Exception('فشل في جلب المستخدمين: $e');
     }
@@ -181,59 +181,24 @@ class AdminRepository {
   }
 
   // جلب جميع المعلمين
-  Future<List<TeacherModel>> getAllTeachers() async {
+  Future<List<StudentModel>> getAllTeachers() async {
     try {
+      // جلب المستخدمين الذين لديهم صلاحية معلم فقط مع كافة البيانات
       final data = await _supabaseClient
-          .from('teachers')
-          .select()
+          .from('students')
+          .select('*, profile_image_url, email, phone')
+          .eq('is_teacher', true)
           .order('name');
       
-      return data.map((json) => TeacherModel.fromJson(json)).toList();
+      print('تم العثور على ${data.length} معلم');
+      for (var teacher in data) {
+        print('معلومات المعلم: معرف=${teacher['id']}, اسم=${teacher['name']}, ايميل=${teacher['email']}, هاتف=${teacher['phone']}, صورة=${teacher['profile_image_url']}');
+      }
+      
+      return data.map((json) => StudentModel.fromJson(json)).toList();
     } catch (e) {
+      print('فشل في جلب المعلمين مع تفاصيلهم: $e');
       throw Exception('فشل في جلب المعلمين: $e');
-    }
-  }
-
-  // إضافة معلم جديد
-  Future<TeacherModel> addTeacher(TeacherModel teacher) async {
-    try {
-      final response = await _supabaseClient
-          .from('teachers')
-          .insert(teacher.toJson())
-          .select()
-          .single();
-      
-      return TeacherModel.fromJson(response);
-    } catch (e) {
-      throw Exception('فشل في إضافة المعلم: $e');
-    }
-  }
-
-  // تحديث بيانات معلم
-  Future<TeacherModel> updateTeacher(TeacherModel teacher) async {
-    try {
-      final response = await _supabaseClient
-          .from('teachers')
-          .update(teacher.toJson())
-          .eq('id', teacher.id)
-          .select()
-          .single();
-      
-      return TeacherModel.fromJson(response);
-    } catch (e) {
-      throw Exception('فشل في تحديث بيانات المعلم: $e');
-    }
-  }
-
-  // حذف معلم
-  Future<void> deleteTeacher(String teacherId) async {
-    try {
-      await _supabaseClient
-          .from('teachers')
-          .delete()
-          .eq('id', teacherId);
-    } catch (e) {
-      throw Exception('فشل في حذف المعلم: $e');
     }
   }
 
@@ -271,87 +236,66 @@ class AdminRepository {
 
   Future<List<MemorizationCircleModel>> getAllCircles() async {
     try {
-      // 1. الحصول على الحلقات مع معلومات المعلم بما في ذلك صورة الملف الشخصي
+      // جلب الحلقات مع تفاصيل المعلمين الكاملة
       final data = await _supabaseClient
           .from('memorization_circles')
-          .select('*, teachers(name, profile_image_url)')
+          .select('*, teachers:teacher_id(id, name, email, phone, profile_image_url)')
           .order('created_at', ascending: false);
       
       print('تم العثور على ${data.length} حلقة');
       
-      // 2. إنشاء قائمة نماذج الحلقات
       final List<MemorizationCircleModel> circles = [];
       
       for (final json in data) {
-        // إضافة اسم المعلم وصورة الملف الشخصي من الجدول المرتبط
+        // إضافة بيانات المعلم من الجدول المرتبط
         if (json['teachers'] != null) {
-          json['teacher_name'] = json['teachers']['name'];
-          json['teacher_image_url'] = json['teachers']['profile_image_url'];
-          print('معلومات المعلم للحلقة ${json['id']}: الاسم=${json['teacher_name']}, الصورة=${json['teacher_image_url']}');
+          final teacher = json['teachers'];
+          json['teacher_id'] = teacher['id'];
+          json['teacher_name'] = teacher['name'];
+          json['teacher_email'] = teacher['email'];
+          json['teacher_phone'] = teacher['phone'];
+          json['teacher_image_url'] = teacher['profile_image_url'];
+          print('معلومات المعلم للحلقة ${json['id']}: الاسم=${teacher['name']}, البريد=${teacher['email']}, الهاتف=${teacher['phone']}, الصورة=${teacher['profile_image_url']}');
         }
         
-        // 3. استخراج معرفات الطلاب من الحقل student_ids مباشرة
+        // استخراج معرفات الطلاب وبياناتهم كما هو
         List<String> studentIds = [];
         if (json['student_ids'] != null) {
-          // تأكد من أن جميع العناصر هي سلاسل نصية
           studentIds = (json['student_ids'] as List).map((id) => id.toString()).toList();
         }
         
-        print('معرفات الطلاب للحلقة ${json['id']}: $studentIds');
-        
-        // 4. تحميل تفاصيل الطلاب
+        // تحميل تفاصيل الطلاب
         List<CircleStudent> students = [];
         if (studentIds.isNotEmpty) {
           try {
-            // تحميل تفاصيل الطلاب من جدول students
             final studentsData = await _supabaseClient
                 .from('students')
-                .select('*')
+                .select('*, profile_image_url')
                 .filter('id', 'in', studentIds);
                 
-            print('تم تحميل ${studentsData.length} من تفاصيل الطلاب');
-            
-            // طباعة بيانات الطلاب للتأكد من وجود صور الملف الشخصي
-            for (var student in studentsData) {
-              print('بيانات الطالب ${student['id']}: الاسم=${student['name']}, الصورة=${student['profile_image_url']}');
-            }
-            
-            // تحويل البيانات إلى كائنات CircleStudent
             students = studentsData.map((studentJson) => CircleStudent(
               id: studentJson['id'],
               name: studentJson['name'] ?? '',
               profileImageUrl: studentJson['profile_image_url'],
-              attendance: [], // يمكن تحميلها لاحقًا إذا لزم الأمر
-              evaluations: [], // يمكن تحميلها لاحقًا إذا لزم الأمر
+              attendance: [],
+              evaluations: [],
             )).toList();
           } catch (e) {
             print('خطأ في تحميل تفاصيل الطلاب: $e');
           }
         }
         
-        // إنشاء نموذج الحلقة مع تفاصيل الطلاب
-        // طباعة معلومات الطلاب للتصحيح
-        for (var student in students) {
-          print('معلومات الطالب: ${student.id}');
-          print('الاسم: ${student.name}');
-          print('صورة الملف الشخصي: ${student.profileImageUrl}');
+        try {
+          final circle = MemorizationCircleModel.fromJson(json);
+          final updatedCircle = circle.copyWith(
+            studentIds: studentIds,
+            students: students,
+          );
+          circles.add(updatedCircle);
+        } catch (e) {
+          print('خطأ في تحويل بيانات الحلقة: $e');
+          print('البيانات الخام للحلقة: $json');
         }
-        
-        final circle = MemorizationCircleModel.fromJson(json);
-        // التأكد من أن الطلاب موجودين في نموذج الحلقة
-        final updatedCircle = circle.copyWith(
-          studentIds: studentIds,
-          students: students,
-        );
-        
-        // طباعة معلومات الحلقة بعد التحديث
-        print('الحلقة بعد التحديث: ${updatedCircle.name}');
-        print('عدد الطلاب في studentIds: ${updatedCircle.studentIds.length}');
-        print('عدد الطلاب في students: ${updatedCircle.students.length}');
-        
-        circles.add(updatedCircle);
-        
-        print('تم إضافة الحلقة ${json['id']} مع ${studentIds.length} طالب و ${students.length} تفاصيل طالب');
       }
       
       return circles;
@@ -422,7 +366,6 @@ class AdminRepository {
         '  created_at TIMESTAMPTZ DEFAULT NOW(),\n'
         '  PRIMARY KEY (circle_id, student_id)\n'
         ');\n\n'
-        'ALTER TABLE public.circle_students ENABLE ROW LEVEL SECURITY;\n\n'
         '-- إضافة سياسة بسيطة تسمح بالوصول الكامل لجميع المستخدمين المصادق عليهم\n'
         'CREATE POLICY "Enable all access for authenticated users" ON public.circle_students\n'
         '  FOR ALL\n'

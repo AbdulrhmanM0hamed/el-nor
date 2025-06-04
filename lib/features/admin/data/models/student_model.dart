@@ -11,6 +11,8 @@ class StudentModel {
   final String? parentPhone;
   final String? imageUrl;
   final List<EvaluationModel> evaluations;
+  final bool isAdmin;
+  final bool isTeacher;
 
   StudentModel({
     required this.id,
@@ -23,6 +25,8 @@ class StudentModel {
     this.parentPhone,
     this.imageUrl,
     this.evaluations = const [],
+    required this.isAdmin,
+    required this.isTeacher,
   });
 
   factory StudentModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +54,8 @@ class StudentModel {
       parentPhone: json['parent_phone'],
       imageUrl: json['image_url'],
       evaluations: evaluations,
+      isAdmin: json['is_admin'] ?? false,
+      isTeacher: json['is_teacher'] ?? false,
     );
   }
 
@@ -59,6 +65,8 @@ class StudentModel {
     String? phoneNumber,
     String? parentName,
     String? parentPhone,
+    bool isAdmin = false,
+    bool isTeacher = false,
   }) {
     final now = DateTime.now();
     return StudentModel(
@@ -71,6 +79,8 @@ class StudentModel {
       parentName: parentName,
       parentPhone: parentPhone,
       evaluations: [],
+      isAdmin: isAdmin,
+      isTeacher: isTeacher,
     );
   }
 
@@ -86,6 +96,8 @@ class StudentModel {
       'parent_phone': parentPhone,
       'image_url': imageUrl,
       'evaluations': evaluations.map((e) => e.toJson()).toList(),
+      'is_admin': isAdmin,
+      'is_teacher': isTeacher,
     };
   }
 
@@ -100,6 +112,8 @@ class StudentModel {
     String? parentPhone,
     String? imageUrl,
     List<EvaluationModel>? evaluations,
+    bool? isAdmin,
+    bool? isTeacher,
   }) {
     return StudentModel(
       id: id ?? this.id,
@@ -112,6 +126,8 @@ class StudentModel {
       parentPhone: parentPhone ?? this.parentPhone,
       imageUrl: imageUrl ?? this.imageUrl,
       evaluations: evaluations ?? this.evaluations,
+      isAdmin: isAdmin ?? this.isAdmin,
+      isTeacher: isTeacher ?? this.isTeacher,
     );
   }
 }

@@ -8,6 +8,8 @@ class MemorizationCircleModel {
   final String? teacherId;
   final String? teacherName; // للعرض فقط
   final String? teacherImageUrl; // لعرض صورة المعلم
+  final String? teacherEmail; // بريد المعلم الإلكتروني
+  final String? teacherPhone; // رقم هاتف المعلم
   final bool isExam;
   final DateTime startDate;
   final DateTime? endDate;
@@ -25,6 +27,8 @@ class MemorizationCircleModel {
     this.teacherId,
     this.teacherName,
     this.teacherImageUrl,
+    this.teacherEmail,
+    this.teacherPhone,
     required this.isExam,
     required this.startDate,
     this.endDate,
@@ -67,8 +71,10 @@ class MemorizationCircleModel {
       name: json['name'],
       description: json['description'],
       teacherId: json['teacher_id'],
-      teacherName: json['teacher_name'], // قد يكون من استعلام JOIN
+      teacherName: json['teacher_name'],
       teacherImageUrl: json['teacher_image_url'],
+      teacherEmail: json['teacher_email'],
+      teacherPhone: json['teacher_phone'],
       isExam: json['is_exam'] ?? false,
       startDate: DateTime.parse(json['start_date']),
       endDate: json['end_date'] != null
@@ -89,7 +95,10 @@ class MemorizationCircleModel {
       'name': name,
       'description': description,
       'teacher_id': teacherId,
+      'teacher_name': teacherName,
       'teacher_image_url': teacherImageUrl,
+      'teacher_email': teacherEmail,
+      'teacher_phone': teacherPhone,
       'is_exam': isExam,
       'start_date': startDate.toIso8601String(),
       'end_date': endDate?.toIso8601String(),
@@ -110,6 +119,8 @@ class MemorizationCircleModel {
     String? teacherId,
     String? teacherName,
     String? teacherImageUrl,
+    String? teacherEmail,
+    String? teacherPhone,
     required bool isExam,
     required DateTime startDate,
     DateTime? endDate,
@@ -124,6 +135,8 @@ class MemorizationCircleModel {
       teacherId: teacherId,
       teacherName: teacherName,
       teacherImageUrl: teacherImageUrl,
+      teacherEmail: teacherEmail,
+      teacherPhone: teacherPhone,
       isExam: isExam,
       startDate: startDate,
       endDate: endDate,
@@ -143,6 +156,8 @@ class MemorizationCircleModel {
     String? teacherId,
     String? teacherName,
     String? teacherImageUrl,
+    String? teacherEmail,
+    String? teacherPhone,
     bool? isExam,
     DateTime? startDate,
     DateTime? endDate,
@@ -160,6 +175,8 @@ class MemorizationCircleModel {
       teacherId: teacherId ?? this.teacherId,
       teacherName: teacherName ?? this.teacherName,
       teacherImageUrl: teacherImageUrl ?? this.teacherImageUrl,
+      teacherEmail: teacherEmail ?? this.teacherEmail,
+      teacherPhone: teacherPhone ?? this.teacherPhone,
       isExam: isExam ?? this.isExam,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,

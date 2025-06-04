@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
-import '../../data/models/teacher_model.dart';
+import '../../data/models/student_model.dart';
 
 class TeacherAssignmentDialog extends StatefulWidget {
-  final List<TeacherModel> teachers;
+  final List<StudentModel> teachers;
   final String? currentTeacherId;
   final Function(String teacherId, String teacherName) onAssign;
 
@@ -28,16 +28,17 @@ class _TeacherAssignmentDialogState extends State<TeacherAssignmentDialog> {
     super.initState();
     selectedTeacherId = widget.currentTeacherId;
     
-    // Si hay un maestro seleccionado, buscar su nombre
     if (selectedTeacherId != null) {
       final teacher = widget.teachers.firstWhere(
-        (teacher) => teacher.id == selectedTeacherId,
-        orElse: () => TeacherModel(
+        (teacher) => teacher.id == selectedTeacherId && teacher.isTeacher,
+        orElse: () => StudentModel(
           id: '',
           name: '',
           email: '',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          isTeacher: true,
+          isAdmin: false,
         ),
       );
       selectedTeacherName = teacher.name.isNotEmpty ? teacher.name : 'معلم';
@@ -46,6 +47,9 @@ class _TeacherAssignmentDialogState extends State<TeacherAssignmentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Filter only teachers (isTeacher = true)
+    final availableTeachers = widget.teachers.where((t) => t.isTeacher).toList();
+    
     return AlertDialog(
       title: Text(
         'تعيين معلم للحلقة',
@@ -86,7 +90,7 @@ class _TeacherAssignmentDialogState extends State<TeacherAssignmentDialog> {
                       style: TextStyle(fontSize: 14.sp),
                     ),
                   ),
-                  items: widget.teachers.map((teacher) {
+                  items: availableTeachers.map((teacher) {
                     return DropdownMenuItem<String>(
                       value: teacher.id,
                       child: Padding(
@@ -102,7 +106,7 @@ class _TeacherAssignmentDialogState extends State<TeacherAssignmentDialog> {
                     setState(() {
                       selectedTeacherId = teacherId;
                       if (teacherId != null) {
-                        final teacher = widget.teachers.firstWhere(
+                        final teacher = availableTeachers.firstWhere(
                           (teacher) => teacher.id == teacherId,
                         );
                         selectedTeacherName = teacher.name.isNotEmpty ? teacher.name : 'معلم';
