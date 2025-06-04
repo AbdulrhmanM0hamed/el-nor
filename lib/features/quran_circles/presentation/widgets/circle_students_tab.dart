@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../data/models/memorization_circle_model.dart';
+import '../../data/models/student_record.dart';
 import 'student_evaluation_card.dart';
 
 class CircleStudentsTab extends StatelessWidget {
-  final List<MemorizationStudent> students;
-  final bool isAdmin;
-  final Function(int, int)? onEvaluationChanged;
-  final Function(int, bool)? onAttendanceChanged;
+  final List<StudentRecord> students;
+  final String teacherId;
+  final String? currentUserId;
+  final Function(String, int)? onEvaluationChanged;
+  final Function(String, bool)? onAttendanceChanged;
   final VoidCallback? onAddStudent;
 
   const CircleStudentsTab({
     Key? key,
     required this.students,
-    this.isAdmin = false,
+    required this.teacherId,
+    this.currentUserId,
     this.onEvaluationChanged,
     this.onAttendanceChanged,
     this.onAddStudent,
@@ -31,7 +33,8 @@ class CircleStudentsTab extends StatelessWidget {
       itemBuilder: (context, index) {
         return StudentEvaluationCard(
           student: students[index],
-          isAdmin: isAdmin,
+          teacherId: teacherId,
+          currentUserId: currentUserId,
           onEvaluationChanged: onEvaluationChanged,
           onAttendanceChanged: onAttendanceChanged,
         );
@@ -45,41 +48,30 @@ class CircleStudentsTab extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.people,
+            Icons.people_outline,
             size: 64.sp,
-            color: Colors.grey[400],
+            color: Colors.grey,
           ),
           SizedBox(height: 16.h),
           Text(
-            'لا يوجد طلاب',
+            'لا يوجد طلاب في هذه الحلقة',
             style: TextStyle(
               fontSize: 18.sp,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.bold,
+              color: Colors.grey,
             ),
           ),
-          SizedBox(height: 8.h),
-          Text(
-            'لم يتم تسجيل طلاب في هذه الحلقة بعد',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey[600],
+          if (onAddStudent != null) ...[
+            SizedBox(height: 24.h),
+            TextButton.icon(
+              onPressed: onAddStudent,
+              icon: const Icon(Icons.person_add),
+              label: const Text('إضافة طالب'),
             ),
-          ),
-          if (isAdmin && onAddStudent != null)
-            Padding(
-              padding: EdgeInsets.only(top: 16.h),
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('إضافة طالب'),
-                onPressed: onAddStudent,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C595E), // AppColors.logoTeal
-                ),
-              ),
-            ),
+          ],
         ],
       ),
     );
   }
 }
+
+

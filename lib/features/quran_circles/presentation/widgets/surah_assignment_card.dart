@@ -5,13 +5,13 @@ import '../../data/models/memorization_circle_model.dart';
 
 class SurahAssignmentCard extends StatelessWidget {
   final SurahAssignment assignment;
-  final bool isAdmin;
+  final bool isEditable;
   final VoidCallback? onEdit;
 
   const SurahAssignmentCard({
     Key? key,
     required this.assignment,
-    this.isAdmin = false,
+    this.isEditable = false,
     this.onEdit,
   }) : super(key: key);
 
@@ -36,13 +36,12 @@ class SurahAssignmentCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              // Acción al tocar la tarjeta
+              // عرض تفاصيل السورة
             },
             child: Padding(
               padding: EdgeInsets.all(16.r),
               child: Row(
                 children: [
-                  // Icono de la Surah
                   Container(
                     width: 50.w,
                     height: 50.h,
@@ -60,7 +59,6 @@ class SurahAssignmentCard extends StatelessWidget {
                   ),
                   SizedBox(width: 16.w),
                   
-                  // Información de la Surah
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,8 +83,7 @@ class SurahAssignmentCard extends StatelessWidget {
                     ),
                   ),
                   
-                  // Botón de edición (solo para administradores)
-                  if (isAdmin && onEdit != null)
+                  if (isEditable && onEdit != null)
                     IconButton(
                       icon: Icon(
                         Icons.edit,

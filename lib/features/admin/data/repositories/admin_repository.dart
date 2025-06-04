@@ -63,21 +63,29 @@ class AdminRepository {
   // جلب جميع حلقات التحفيظ
   Future<List<MemorizationCircleModel>> getAllCircles() async {
     try {
+      print('AdminRepository: Attempting to load circles from database...');
+      
       // جلب الحلقات
       final data = await _supabaseClient
           .from('memorization_circles')
           .select()
           .order('created_at', ascending: false);
       
-      print('تم العثور على ${data.length} حلقة');
+      print('AdminRepository: Raw data from database: $data');
+      print('AdminRepository: Found ${data.length} circles in database');
       
       final List<MemorizationCircleModel> circles = [];
       
       for (final json in data) {
         try {
+          print('AdminRepository: Processing circle with id: ${json['id']}');
+          print('AdminRepository: Circle data: $json');
+          
           // جلب بيانات المعلم من جدول students إذا كان موجوداً
           if (json['teacher_id'] != null) {
             try {
+              print('AdminRepository: Fetching teacher data for teacher_id: ${json['teacher_id']}');
+              
               final teacherData = await _supabaseClient
                   .from('students')
                   .select()
@@ -91,18 +99,16 @@ class AdminRepository {
                 json['teacher_phone'] = teacherData['phone'];
                 json['teacher_image_url'] = teacherData['profile_image_url'];
                 
-                print('معلومات المعلم للحلقة ${json['id']}: الاسم=${teacherData['name']}, البريد=${teacherData['email']}, الهاتف=${teacherData['phone']}, الصورة=${teacherData['profile_image_url']}');
+                print('AdminRepository: Found teacher data: ${json['teacher_name']}');
               } else {
-                print('المعلم غير موجود في جدول students للحلقة ${json['id']}');
-                // تعيين قيم افتراضية
+                print('AdminRepository: No teacher found for id: ${json['teacher_id']}');
                 json['teacher_name'] = null;
                 json['teacher_email'] = null;
                 json['teacher_phone'] = null;
                 json['teacher_image_url'] = null;
               }
             } catch (e) {
-              print('خطأ في جلب بيانات المعلم للحلقة ${json['id']}: $e');
-              // تعيين قيم افتراضية
+              print('AdminRepository: Error fetching teacher data: $e');
               json['teacher_name'] = null;
               json['teacher_email'] = null;
               json['teacher_phone'] = null;
@@ -113,17 +119,25 @@ class AdminRepository {
           List<String> studentIds = [];
           if (json['student_ids'] != null) {
             studentIds = (json['student_ids'] as List).map((id) => id.toString()).toList();
+            print('AdminRepository: Student IDs found: $studentIds');
+          } else {
+            print('AdminRepository: No student IDs found for circle');
           }
           
           // تحميل تفاصيل الطلاب من جدول students
           List<CircleStudent> students = [];
           if (studentIds.isNotEmpty) {
             try {
+              print('AdminRepository: Fetching student details for IDs: $studentIds');
+              
               final studentsData = await _supabaseClient
                   .from('students')
                   .select()
                   .filter('id', 'in', studentIds);
                   
+              print('AdminRepository: Found ${studentsData.length} students');
+              print('AdminRepository: Student data: $studentsData');
+              
               students = studentsData.map((studentJson) => CircleStudent(
                 id: studentJson['id'],
                 name: studentJson['name'] ?? '',
@@ -131,8 +145,10 @@ class AdminRepository {
                 attendance: [],
                 evaluations: [],
               )).toList();
+              
+              print('AdminRepository: Processed students: ${students.map((s) => s.name).toList()}');
             } catch (e) {
-              print('خطأ في تحميل تفاصيل الطلاب: $e');
+              print('AdminRepository: Error fetching student details: $e');
             }
           }
           
@@ -142,16 +158,19 @@ class AdminRepository {
             students: students,
           );
           circles.add(updatedCircle);
+          
+          print('AdminRepository: Successfully added circle: ${circle.name}');
         } catch (e) {
-          print('خطأ في تحويل بيانات الحلقة: $e');
-          print('البيانات الخام للحلقة: $json');
+          print('AdminRepository: Error processing circle data: $e');
+          print('AdminRepository: Raw circle data that caused error: $json');
         }
       }
       
+      print('AdminRepository: Total circles processed: ${circles.length}');
       return circles;
     } catch (e) {
-      print('خطأ في جلب حلقات التحفيظ: $e');
-      throw Exception('فشل في جلب حلقات التحفيظ: $e');
+      print('AdminRepository: Error loading circles: $e');
+      throw Exception('Failed to load circles: $e');
     }
   }
 

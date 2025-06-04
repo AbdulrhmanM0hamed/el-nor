@@ -123,7 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 backgroundColor: Colors.red,
               ),
             );
-          } else if (state is AuthSignUpSuccess) {
+          } else if (state is AuthAuthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم إنشاء الحساب بنجاح!'),

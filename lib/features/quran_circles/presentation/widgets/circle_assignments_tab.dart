@@ -1,3 +1,4 @@
+import 'package:beat_elslam/core/utils/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../data/models/memorization_circle_model.dart';
@@ -5,13 +6,13 @@ import 'surah_assignment_card.dart';
 
 class CircleAssignmentsTab extends StatelessWidget {
   final List<SurahAssignment> assignments;
-  final bool isAdmin;
+  final bool isEditable;
   final VoidCallback? onAddSurah;
 
   const CircleAssignmentsTab({
     Key? key,
     required this.assignments,
-    this.isAdmin = false,
+    this.isEditable = false,
     this.onAddSurah,
   }) : super(key: key);
 
@@ -27,8 +28,8 @@ class CircleAssignmentsTab extends StatelessWidget {
       itemBuilder: (context, index) {
         return SurahAssignmentCard(
           assignment: assignments[index],
-          isAdmin: isAdmin,
-          onEdit: isAdmin ? () => _onEditAssignment(context, assignments[index]) : null,
+          isEditable: isEditable,
+          onEdit: isEditable ? () => _onEditAssignment(context, assignments[index]) : null,
         );
       },
     );
@@ -61,7 +62,7 @@ class CircleAssignmentsTab extends StatelessWidget {
               color: Colors.grey[600],
             ),
           ),
-          if (isAdmin && onAddSurah != null)
+          if (isEditable && onAddSurah != null)
             Padding(
               padding: EdgeInsets.only(top: 16.h),
               child: ElevatedButton.icon(
@@ -69,7 +70,7 @@ class CircleAssignmentsTab extends StatelessWidget {
                 label: const Text('إضافة سورة'),
                 onPressed: onAddSurah,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C595E), // AppColors.logoTeal
+                  backgroundColor: AppColors.logoTeal,
                 ),
               ),
             ),
@@ -79,11 +80,11 @@ class CircleAssignmentsTab extends StatelessWidget {
   }
 
   void _onEditAssignment(BuildContext context, SurahAssignment assignment) {
-    // En una aplicación real, esto mostraría un formulario para editar una surah existente
+    // في نسخة لاحقة: عرض نموذج تعديل السورة
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('سيتم إضافة ميزة تعديل السورة قريباً'),
-        backgroundColor: Color(0xFF1C595E), // AppColors.logoTeal
+        backgroundColor: AppColors.logoTeal,
       ),
     );
   }

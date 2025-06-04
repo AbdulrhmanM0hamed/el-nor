@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/theme/app_colors.dart';
+import '../../../../core/utils/user_role.dart';
 import '../../data/models/memorization_circle_model.dart';
 
 class MemorizationCircleCard extends StatelessWidget {
   final MemorizationCircle circle;
+  final UserRole userRole;
+  final String userId;
   final VoidCallback onTap;
 
   const MemorizationCircleCard({
     Key? key,
     required this.circle,
+    required this.userRole,
+    required this.userId,
     required this.onTap,
   }) : super(key: key);
 
@@ -34,11 +39,11 @@ class MemorizationCircleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Encabezado con tipo de círculo (memorización o examen)
+            // شريط الحالة مع نوع الحلقة
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               decoration: BoxDecoration(
-                color: circle.isExam ? AppColors.logoOrange : AppColors.logoTeal,
+                color: _getStatusColor(),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(12.r),
                   topRight: Radius.circular(12.r),
@@ -47,13 +52,13 @@ class MemorizationCircleCard extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    circle.isExam ? Icons.assignment : Icons.menu_book,
+                    _getStatusIcon(),
                     color: Colors.white,
                     size: 20.sp,
                   ),
                   SizedBox(width: 8.w),
                   Text(
-                    circle.isExam ? 'امتحان حفظ' : 'حلقة حفظ',
+                    _getStatusText(),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14.sp,
@@ -62,7 +67,7 @@ class MemorizationCircleCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    DateFormat('yyyy/MM/dd').format(circle.date),
+                    DateFormat('yyyy/MM/dd').format(circle.endDate ?? DateTime.now()),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12.sp,
@@ -72,13 +77,13 @@ class MemorizationCircleCard extends StatelessWidget {
               ),
             ),
             
-            // Contenido principal
+            // محتوى الحلقة
             Padding(
               padding: EdgeInsets.all(16.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nombre del círculo
+                  // اسم الحلقة
                   Text(
                     circle.name,
                     style: TextStyle(
@@ -91,7 +96,7 @@ class MemorizationCircleCard extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
                   
-                  // Nombre del maestro
+                  // معلومات المعلم
                   Row(
                     children: [
                       Icon(
@@ -101,17 +106,35 @@ class MemorizationCircleCard extends StatelessWidget {
                       ),
                       SizedBox(width: 4.w),
                       Text(
-                        circle.teacherName,
+                        'المعلم: ${circle.teacherName}',
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: Colors.grey[700],
                         ),
                       ),
+                      if (circle.teacherId == userId) ...[
+                        SizedBox(width: 8.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                          decoration: BoxDecoration(
+                            color: AppColors.logoTeal.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            'أنت المعلم',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColors.logoTeal,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   SizedBox(height: 8.h),
                   
-                  // Descripción
+                  // الوصف
                   Text(
                     circle.description,
                     style: TextStyle(
@@ -123,7 +146,7 @@ class MemorizationCircleCard extends StatelessWidget {
                   ),
                   SizedBox(height: 16.h),
                   
-                  // Información de asignaciones y estudiantes
+                  // معلومات السور والطلاب
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -143,20 +166,38 @@ class MemorizationCircleCard extends StatelessWidget {
               ),
             ),
             
-            // Mostrar avatares de estudiantes
-            if (circle.students.isNotEmpty)
+            // عرض الطلاب
+            if (circle.students.isNotEmpty && (userRole == UserRole.admin || userRole == UserRole.teacher || circle.teacherId == userId))
               Padding(
                 padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'الطلاب المشاركين',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'الطلاب المشاركين',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const Spacer(),
+                        if (userRole == UserRole.admin || circle.teacherId == userId)
+                          TextButton(
+                            onPressed: () {
+                              // عرض تفاصيل الطلاب
+                            },
+                            child: Text(
+                              'إدارة الطلاب',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: AppColors.logoTeal,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 8.h),
                     SizedBox(
@@ -196,11 +237,25 @@ class MemorizationCircleCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: Colors.grey[200],
                               shape: BoxShape.circle,
-                              image: DecorationImage(
-                                image: AssetImage(circle.students[index].imageUrl),
-                                fit: BoxFit.cover,
-                              ),
+                              image: circle.students[index].profileImageUrl != null
+                                  ? DecorationImage(
+                                      image: NetworkImage(circle.students[index].profileImageUrl!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
                             ),
+                            child: circle.students[index].profileImageUrl == null
+                                ? Center(
+                                    child: Text(
+                                      _getInitial(circle.students[index].name),
+                                      style: TextStyle(
+                                        color: AppColors.logoTeal,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.sp,
+                                      ),
+                                    ),
+                                  )
+                                : null,
                           );
                         },
                       ),
@@ -240,5 +295,30 @@ class MemorizationCircleCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Color _getStatusColor() {
+    if (circle.isExam) {
+      return AppColors.logoOrange;
+    }
+    return circle.teacherId == userId ? AppColors.secondary : AppColors.logoTeal;
+  }
+
+  IconData _getStatusIcon() {
+    if (circle.isExam) {
+      return Icons.assignment;
+    }
+    return circle.teacherId == userId ? Icons.star : Icons.menu_book;
+  }
+
+  String _getStatusText() {
+    if (circle.isExam) {
+      return 'امتحان حفظ';
+    }
+    return circle.teacherId == userId ? 'حلقتي' : 'حلقة حفظ';
+  }
+
+  String _getInitial(String name) {
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 }

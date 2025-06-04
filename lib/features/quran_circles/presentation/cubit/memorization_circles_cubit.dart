@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../data/repositories/memorization_circles_repository.dart';
 import '../../data/models/memorization_circle_model.dart';
+import '../../data/models/student_record.dart';
 
 // Estados para el Cubit
 abstract class MemorizationCirclesState extends Equatable {
@@ -43,28 +45,38 @@ class MemorizationCirclesError extends MemorizationCirclesState {
 
 // Cubit para gestionar los círculos de memorización
 class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
-  MemorizationCirclesCubit() : super(MemorizationCirclesInitial());
+  final MemorizationCirclesRepository repository;
+
+  MemorizationCirclesCubit({required this.repository}) : super(MemorizationCirclesInitial());
 
   // Cargar todos los círculos de memorización
   Future<void> loadMemorizationCircles() async {
+    print('MemorizationCirclesCubit: بدء تحميل حلقات التحفيظ');
     emit(MemorizationCirclesLoading());
     try {
-      // En una aplicación real, esto cargaría datos desde una API o base de datos
-      await Future.delayed(const Duration(seconds: 1)); // Simular carga
-      final circles = MemorizationCircle.getSampleCircles();
+      final circles = await repository.getAllCircles();
+
+      print('MemorizationCirclesCubit: تم تحميل ${circles.length} حلقة');
+      if(circles.isNotEmpty) {
+        print('MemorizationCirclesCubit: الحلقات المحملة: ${circles.map((c) => c.name).toList()}');
+      }
+      
+      if (circles.isEmpty) {
+        print('MemorizationCirclesCubit: لا توجد حلقات للعرض');
+      }
+      
       emit(MemorizationCirclesLoaded(circles));
     } catch (e) {
+      print('MemorizationCirclesCubit: حدث خطأ أثناء تحميل الحلقات: $e');
       emit(MemorizationCirclesError('حدث خطأ أثناء تحميل حلقات الحفظ'));
     }
   }
 
   // Cargar detalles de un círculo específico
-  Future<void> loadCircleDetails(int circleId) async {
+  Future<void> loadCircleDetails(String circleId) async {
     emit(MemorizationCirclesLoading());
     try {
-      // En una aplicación real, esto cargaría datos desde una API o base de datos
-      await Future.delayed(const Duration(milliseconds: 800)); // Simular carga
-      final circles = MemorizationCircle.getSampleCircles();
+      final circles = await repository.getAllCircles();
       final circle = circles.firstWhere((c) => c.id == circleId);
       emit(MemorizationCircleDetailsLoaded(circle));
     } catch (e) {
@@ -73,58 +85,44 @@ class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
   }
 
   // Actualizar la evaluación de un estudiante
-  Future<void> updateStudentEvaluation(int circleId, int studentId, int evaluation) async {
-    final currentState = state;
-    if (currentState is MemorizationCircleDetailsLoaded) {
-      final circle = currentState.circle;
-      final studentIndex = circle.students.indexWhere((s) => s.id == studentId);
+  Future<void> updateStudentEvaluation(String circleId, String studentId, int evaluation) async {
+    emit(MemorizationCirclesLoading());
+    try {
+      final evalRecord = EvaluationRecord(
+        date: DateTime.now(),
+        rating: evaluation,
+        notes: '',
+      );
       
-      if (studentIndex != -1) {
-        final updatedStudent = circle.students[studentIndex].copyWith(evaluation: evaluation);
-        final updatedStudents = List<MemorizationStudent>.from(circle.students);
-        updatedStudents[studentIndex] = updatedStudent;
-        
-        final updatedCircle = MemorizationCircle(
-          id: circle.id,
-          name: circle.name,
-          teacherName: circle.teacherName,
-          description: circle.description,
-          date: circle.date,
-          students: updatedStudents,
-          assignments: circle.assignments,
-          isExam: circle.isExam,
-        );
-        
-        emit(MemorizationCircleDetailsLoaded(updatedCircle));
-      }
+      await repository.updateStudentAttendanceAndEvaluation(
+        circleId: circleId,
+        studentId: studentId,
+        evaluation: evalRecord,
+      );
+      await loadCircleDetails(circleId);
+    } catch (e) {
+      emit(MemorizationCirclesError('حدث خطأ أثناء تحديث تقييم الطالب'));
     }
   }
 
   // Actualizar la asistencia de un estudiante
-  Future<void> updateStudentAttendance(int circleId, int studentId, bool isPresent) async {
-    final currentState = state;
-    if (currentState is MemorizationCircleDetailsLoaded) {
-      final circle = currentState.circle;
-      final studentIndex = circle.students.indexWhere((s) => s.id == studentId);
+  Future<void> updateStudentAttendance(String circleId, String studentId, bool isPresent) async {
+    emit(MemorizationCirclesLoading());
+    try {
+      final attendanceRecord = AttendanceRecord(
+        date: DateTime.now(),
+        isPresent: isPresent,
+        notes: '',
+      );
       
-      if (studentIndex != -1) {
-        final updatedStudent = circle.students[studentIndex].copyWith(isPresent: isPresent);
-        final updatedStudents = List<MemorizationStudent>.from(circle.students);
-        updatedStudents[studentIndex] = updatedStudent;
-        
-        final updatedCircle = MemorizationCircle(
-          id: circle.id,
-          name: circle.name,
-          teacherName: circle.teacherName,
-          description: circle.description,
-          date: circle.date,
-          students: updatedStudents,
-          assignments: circle.assignments,
-          isExam: circle.isExam,
-        );
-        
-        emit(MemorizationCircleDetailsLoaded(updatedCircle));
-      }
+      await repository.updateStudentAttendanceAndEvaluation(
+        circleId: circleId,
+        studentId: studentId,
+        attendance: attendanceRecord,
+      );
+      await loadCircleDetails(circleId);
+    } catch (e) {
+      emit(MemorizationCirclesError('حدث خطأ أثناء تحديث حضور الطالب'));
     }
   }
 }

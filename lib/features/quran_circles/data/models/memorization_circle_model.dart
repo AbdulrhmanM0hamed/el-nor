@@ -1,201 +1,374 @@
 // La importación de material.dart es necesaria para los tipos de datos como Color
+import 'package:equatable/equatable.dart';
+import '../models/student_record.dart';
 
 /// Modelo para representar un estudiante en un círculo de memorización
 class MemorizationStudent {
-  final int id;
+  final String id;
   final String name;
-  final String imageUrl;
+  final String? profileImageUrl;
+  final int evaluation;
   final bool isPresent;
-  final int evaluation; // Evaluación del 1 al 5
 
   const MemorizationStudent({
     required this.id,
     required this.name,
-    required this.imageUrl,
-    this.isPresent = true,
+    this.profileImageUrl,
     this.evaluation = 0,
+    this.isPresent = true,
   });
 
   // Crear una copia del estudiante con valores actualizados
   MemorizationStudent copyWith({
-    int? id,
+    String? id,
     String? name,
-    String? imageUrl,
-    bool? isPresent,
+    String? profileImageUrl,
     int? evaluation,
+    bool? isPresent,
   }) {
     return MemorizationStudent(
       id: id ?? this.id,
       name: name ?? this.name,
-      imageUrl: imageUrl ?? this.imageUrl,
-      isPresent: isPresent ?? this.isPresent,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       evaluation: evaluation ?? this.evaluation,
+      isPresent: isPresent ?? this.isPresent,
     );
   }
 }
 
 /// Modelo para representar una asignación de Surah en un círculo de memorización
-class SurahAssignment {
-  final int id;
+class SurahAssignment extends Equatable {
+  final String id;
   final String surahName;
   final int startVerse;
   final int endVerse;
-  final DateTime assignedDate;
 
   const SurahAssignment({
     required this.id,
     required this.surahName,
     required this.startVerse,
     required this.endVerse,
-    required this.assignedDate,
   });
+
+  factory SurahAssignment.fromJson(Map<String, dynamic> json) {
+    return SurahAssignment(
+      id: json['id'] as String,
+      surahName: json['surah_name'] as String,
+      startVerse: json['start_verse'] as int,
+      endVerse: json['end_verse'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'surah_name': surahName,
+      'start_verse': startVerse,
+      'end_verse': endVerse,
+    };
+  }
+
+  @override
+  List<Object?> get props => [id, surahName, startVerse, endVerse];
 }
 
 /// Modelo para representar un círculo de memorización del Quran
-class MemorizationCircle {
-  final int id;
+class MemorizationCircle extends Equatable {
+  final String id;
   final String name;
-  final String teacherName;
   final String description;
-  final DateTime date;
-  final List<MemorizationStudent> students;
+  final String teacherId;
+  final String teacherName;
+  final bool isExam;
+  final DateTime startDate;
+  final DateTime? endDate;
+  final String status;
   final List<SurahAssignment> assignments;
-  final bool isExam; // Indica si es un examen o una sesión regular de memorización
+  final List<StudentRecord> students;
+  final List<String> studentIds;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   const MemorizationCircle({
     required this.id,
     required this.name,
+    this.description = '',
+    required this.teacherId,
     required this.teacherName,
-    required this.description,
-    required this.date,
-    required this.students,
-    required this.assignments,
     this.isExam = false,
+    required this.startDate,
+    this.endDate,
+    this.status = 'active',
+    this.assignments = const [],
+    this.students = const [],
+    this.studentIds = const [],
+    required this.createdAt,
+    required this.updatedAt,
   });
+
+  factory MemorizationCircle.fromJson(Map<String, dynamic> json) {
+    return MemorizationCircle(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String? ?? '',
+      teacherId: json['teacher_id'] as String? ?? '',
+      teacherName: json['teacher_name'] as String? ?? '',
+      isExam: json['is_exam'] as bool? ?? false,
+      startDate: DateTime.parse(json['start_date'] as String),
+      endDate: json['end_date'] != null 
+        ? DateTime.parse(json['end_date'] as String)
+        : null,
+      status: json['status'] as String? ?? 'active',
+      assignments: (json['surah_assignments'] as List?)
+          ?.map((e) => SurahAssignment.fromJson(e as Map<String, dynamic>))
+          .toList() ?? [],
+      students: (json['students'] as List?)
+          ?.map((e) => StudentRecord.fromJson(e as Map<String, dynamic>))
+          .toList() ?? [],
+      studentIds: (json['student_ids'] as List?)
+          ?.map((e) => e.toString())
+          .toList() ?? [],
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'teacher_id': teacherId,
+      'is_exam': isExam,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate?.toIso8601String(),
+      'status': status,
+      'surah_assignments': assignments.map((x) => x.toJson()).toList(),
+      'students': students.map((x) => x.toJson()).toList(),
+      'student_ids': studentIds,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+    id, 
+    name, 
+    description,
+    teacherId,
+    teacherName,
+    isExam,
+    startDate,
+    endDate,
+    status,
+    assignments,
+    students,
+    studentIds,
+    createdAt,
+    updatedAt,
+  ];
+
+  MemorizationCircle copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? teacherId,
+    String? teacherName,
+    bool? isExam,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    List<SurahAssignment>? assignments,
+    List<StudentRecord>? students,
+    List<String>? studentIds,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return MemorizationCircle(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      teacherId: teacherId ?? this.teacherId,
+      teacherName: teacherName ?? this.teacherName,
+      isExam: isExam ?? this.isExam,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      status: status ?? this.status,
+      assignments: assignments ?? this.assignments,
+      students: students ?? this.students,
+      studentIds: studentIds ?? this.studentIds,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 
   // Método para generar datos de ejemplo
   static List<MemorizationCircle> getSampleCircles() {
-    return [
+    print('MemorizationCircle: إنشاء بيانات تجريبية للحلقات');
+    final circles = [
       MemorizationCircle(
-        id: 1,
+        id: '1',
         name: 'حلقة حفظ جزء عم',
-        teacherName: 'الشيخ أحمد محمد',
+        teacherName: 'محمد أحمد',
+        teacherId: '79550bdb-f10c-4089-a0b3-ee9a2969e0e9', // استخدام معرف المستخدم الحقيقي
         description: 'حلقة لحفظ سور جزء عم للمبتدئين',
-        date: DateTime.now().add(const Duration(days: 2)),
+        startDate: DateTime.now().add(const Duration(days: 2)),
+        endDate: DateTime.now().add(const Duration(days: 30)),
         isExam: false,
-        students: [
-          const MemorizationStudent(
-            id: 1,
-            name: 'محمد أحمد',
-            imageUrl: 'assets/images/student1.jpg',
-            evaluation: 4,
-          ),
-          const MemorizationStudent(
-            id: 2,
-            name: 'عبد الرحمن خالد',
-            imageUrl: 'assets/images/student2.jpg',
-            evaluation: 5,
-          ),
-          const MemorizationStudent(
-            id: 3,
-            name: 'يوسف إبراهيم',
-            imageUrl: 'assets/images/student3.jpg',
-            evaluation: 3,
-          ),
-        ],
         assignments: [
           SurahAssignment(
-            id: 1,
-            surahName: 'النبأ',
+            id: '1',
+            surahName: 'الناس',
             startVerse: 1,
-            endVerse: 30,
-            assignedDate: DateTime.now(),
+            endVerse: 6,
           ),
           SurahAssignment(
-            id: 2,
-            surahName: 'النازعات',
-            startVerse: 15,
-            endVerse: 48,
-            assignedDate: DateTime.now(),
-          ),
-          SurahAssignment(
-            id: 3,
-            surahName: 'عبس',
+            id: '2',
+            surahName: 'الفلق',
             startVerse: 1,
-            endVerse: 42,
-            assignedDate: DateTime.now(),
-          ),
-          SurahAssignment(
-            id: 4,
-            surahName: 'التكوير',
-            startVerse: 1,
-            endVerse: 29,
-            assignedDate: DateTime.now(),
+            endVerse: 5,
           ),
         ],
+        students: [
+          StudentRecord(
+            studentId: '79550bdb-f10c-4089-a0b3-ee9a2969e0e9',
+            name: 'محمد أحمد',
+            profileImageUrl: 'assets/images/student1.jpg',
+            evaluations: [
+              EvaluationRecord(
+                date: DateTime.now(),
+                rating: 4,
+              ),
+            ],
+            attendance: [
+              AttendanceRecord(
+                date: DateTime.now(),
+                isPresent: true,
+              ),
+            ],
+          ),
+        ],
+        studentIds: ['79550bdb-f10c-4089-a0b3-ee9a2969e0e9'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
       MemorizationCircle(
-        id: 2,
+        id: '2',
         name: 'امتحان حفظ سورة البقرة',
-        teacherName: 'الشيخ محمود علي',
+        teacherName: 'أحمد إبراهيم',
+        teacherId: 'teacher2',
         description: 'امتحان حفظ للجزء الأول من سورة البقرة',
-        date: DateTime.now().add(const Duration(days: 5)),
+        startDate: DateTime.now().add(const Duration(days: 5)),
+        endDate: DateTime.now().add(const Duration(days: 35)),
         isExam: true,
-        students: [
-          const MemorizationStudent(
-            id: 4,
-            name: 'أحمد محمد',
-            imageUrl: 'assets/images/student4.jpg',
-            evaluation: 0,
-          ),
-          const MemorizationStudent(
-            id: 5,
-            name: 'عمر خالد',
-            imageUrl: 'assets/images/student5.jpg',
-            evaluation: 0,
-          ),
-        ],
         assignments: [
           SurahAssignment(
-            id: 5,
+            id: '3',
             surahName: 'البقرة',
             startVerse: 1,
-            endVerse: 75,
-            assignedDate: DateTime.now().subtract(const Duration(days: 14)),
+            endVerse: 141,
           ),
         ],
+        students: [
+          StudentRecord(
+            studentId: '4',
+            name: 'أحمد محمد',
+            profileImageUrl: 'assets/images/student4.jpg',
+            evaluations: [
+              EvaluationRecord(
+                date: DateTime.now(),
+                rating: 0,
+              ),
+            ],
+            attendance: [
+              AttendanceRecord(
+                date: DateTime.now(),
+                isPresent: true,
+              ),
+            ],
+          ),
+          StudentRecord(
+            studentId: '5',
+            name: 'عمر خالد',
+            profileImageUrl: 'assets/images/student5.jpg',
+            evaluations: [
+              EvaluationRecord(
+                date: DateTime.now(),
+                rating: 0,
+              ),
+            ],
+            attendance: [
+              AttendanceRecord(
+                date: DateTime.now(),
+                isPresent: true,
+              ),
+            ],
+          ),
+        ],
+        studentIds: ['4', '5'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
       MemorizationCircle(
-        id: 3,
+        id: '3',
         name: 'حلقة حفظ سورة يس',
-        teacherName: 'الشيخ عبد الله محمد',
+        teacherName: 'إبراهيم محمود',
+        teacherId: 'teacher3',
         description: 'حلقة لحفظ سورة يس كاملة',
-        date: DateTime.now().add(const Duration(days: 1)),
+        startDate: DateTime.now().add(const Duration(days: 1)),
+        endDate: DateTime.now().add(const Duration(days: 60)),
         isExam: false,
-        students: [
-          const MemorizationStudent(
-            id: 6,
-            name: 'خالد محمود',
-            imageUrl: 'assets/images/student6.jpg',
-            evaluation: 4,
-          ),
-          const MemorizationStudent(
-            id: 7,
-            name: 'عبد الله أحمد',
-            imageUrl: 'assets/images/student7.jpg',
-            evaluation: 3,
-          ),
-        ],
         assignments: [
           SurahAssignment(
-            id: 6,
+            id: '4',
             surahName: 'يس',
             startVerse: 1,
             endVerse: 83,
-            assignedDate: DateTime.now(),
           ),
         ],
+        students: [
+          StudentRecord(
+            studentId: '6',
+            name: 'خالد محمود',
+            profileImageUrl: 'assets/images/student6.jpg',
+            evaluations: [
+              EvaluationRecord(
+                date: DateTime.now(),
+                rating: 4,
+              ),
+            ],
+            attendance: [
+              AttendanceRecord(
+                date: DateTime.now(),
+                isPresent: true,
+              ),
+            ],
+          ),
+          StudentRecord(
+            studentId: '7',
+            name: 'عبد الله أحمد',
+            profileImageUrl: 'assets/images/student7.jpg',
+            evaluations: [
+              EvaluationRecord(
+                date: DateTime.now(),
+                rating: 3,
+              ),
+            ],
+            attendance: [
+              AttendanceRecord(
+                date: DateTime.now(),
+                isPresent: true,
+              ),
+            ],
+          ),
+        ],
+        studentIds: ['6', '7'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
     ];
+    print('MemorizationCircle: تم إنشاء ${circles.length} حلقة تجريبية');
+    return circles;
   }
 }

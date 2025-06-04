@@ -7,6 +7,7 @@ import '../../features/admin/presentation/cubit/admin_cubit.dart';
 import '../../features/home/quran/presentation/cubit/quran_cubit.dart';
 import '../../features/quran_circles/presentation/cubit/memorization_circles_cubit.dart';
 import '../config/supabase_config.dart';
+import '../../features/quran_circles/data/repositories/memorization_circles_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -29,9 +30,14 @@ Future<void> init() async {
     () => AdminRepository(sl<SupabaseClient>()),
   );
 
+  // Registrar MemorizationCirclesRepository
+  sl.registerLazySingleton<MemorizationCirclesRepository>(
+    () => MemorizationCirclesRepository(sl<SupabaseClient>()),
+  );
+
   // Cubits
   sl.registerLazySingleton<AuthCubit>(
-    () => AuthCubit(sl<AuthRepository>()),
+    () => AuthCubit(authRepository: sl<AuthRepository>()),
   );
   
   // Cubits adicionales para la aplicación
@@ -39,8 +45,9 @@ Future<void> init() async {
     () => QuranCubit(),
   );
   
+  // Registrar MemorizationCirclesCubit
   sl.registerFactory<MemorizationCirclesCubit>(
-    () => MemorizationCirclesCubit(),
+    () => MemorizationCirclesCubit(repository: sl<MemorizationCirclesRepository>()),
   );
   
   // Registrar AdminCubit para la gestión de usuarios y círculos

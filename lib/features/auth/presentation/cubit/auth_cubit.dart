@@ -1,12 +1,34 @@
 import 'dart:io';
+import 'package:beat_elslam/features/auth/presentation/cubit/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
-import 'auth_state.dart';
+import '../../data/models/user_model.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;
 
-  AuthCubit(this._authRepository) : super(const AuthInitial());
+  AuthCubit({
+    required AuthRepository authRepository,
+  })  : _authRepository = authRepository,
+        super(AuthInitial());
+
+  UserModel? get currentUser => state is AuthAuthenticated 
+      ? (state as AuthAuthenticated).user 
+      : null;
+
+  Future<void> checkAuthState() async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        emit(AuthAuthenticated(user));
+      } else {
+        emit(AuthUnauthenticated());
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
 
   Future<void> checkCurrentUser() async {
     print('AuthCubit: بدء التحقق من المستخدم الحالي');

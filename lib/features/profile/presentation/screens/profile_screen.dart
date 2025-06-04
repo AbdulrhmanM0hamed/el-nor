@@ -6,7 +6,7 @@ import '../../../admin/presentation/screens/circle_management_screen.dart';
 import '../../../admin/presentation/screens/user_management_screen.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
-import '../../../auth/presentation/cubit/auth_state.dart';
+import '../../../auth/presentation/cubit/auth_state.dart' show AuthState, AuthAuthenticated, AuthUnauthenticated;
 import '../../../auth/presentation/screens/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -256,13 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           Divider(height: 24.h),
-          _buildInfoRow(Icons.phone, 'رقم الهاتف', _user?.phone ?? 'غير متوفر'),
-          SizedBox(height: 12.h),
-          _buildInfoRow(Icons.cake, 'العمر', _user?.age != null ? '${_user!.age} سنة' : 'غير متوفر'),
-          SizedBox(height: 12.h),
-          _buildInfoRow(Icons.calendar_today, 'تاريخ الانضمام', _user?.createdAt != null 
-              ? '${_user!.createdAt.day}/${_user!.createdAt.month}/${_user!.createdAt.year}'
-              : 'غير متوفر'),
+          _buildInfoRow(Icons.phone, 'رقم الهاتف', _user?.phoneNumber ?? 'غير متوفر'),
           SizedBox(height: 12.h),
           _buildInfoRow(
             _user?.isAdmin == true ? Icons.admin_panel_settings : 
@@ -439,23 +433,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             Divider(height: 16.h),
-            _buildActionButton(
-              'تقييم الطلاب',
-              Icons.rate_review,
-              () {
-                // فتح شاشة تقييم الطلاب
-              },
-              color: Colors.amber,
-            ),
-            SizedBox(height: 12.h),
-            _buildActionButton(
-              'تسجيل الحضور والغياب',
-              Icons.fact_check,
-              () {
-                // فتح شاشة تسجيل الحضور والغياب
-              },
-              color: AppColors.logoTeal,
-            ),
             SizedBox(height: 24.h),
           ],
           
