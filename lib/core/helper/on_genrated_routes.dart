@@ -86,7 +86,7 @@ Route<dynamic> onGenratedRoutes(RouteSettings settings) {
   }
   
   // Rutas de funcionalidades principales
-  if (routeName == '/azkar') {
+  if (routeName == '/athkar') {
     _logger.i('Navigating to AzkarScreen');
     return MaterialPageRoute(builder: (context) => const AzkarScreen());
   }

@@ -155,22 +155,25 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
   }
 
   void _showDeleteConfirmationDialog(MemorizationCircleModel circle) {
+    // Get cubit reference before showing dialog
+    final adminCubit = context.read<AdminCubit>();
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('تأكيد الحذف'),
         content: Text('هل أنت متأكد من حذف حلقة "${circle.name}"؟'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
             },
             child: const Text('إلغاء'),
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<AdminCubit>().deleteCircle(circle.id);
-              Navigator.of(context).pop();
+              adminCubit.deleteCircle(circle.id);
+              Navigator.of(dialogContext).pop();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -190,16 +193,10 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     print('عدد الطلاب في studentIds: ${circle.studentIds.length}');
     print('عدد الطلاب في students: ${circle.students.length}');
     
-    // التقاط AdminCubit قبل الانتقال
-    final adminCubit = context.read<AdminCubit>();
-    
-    // الانتقال إلى صفحة تفاصيل الحلقة
+    // الانتقال إلى صفحة تفاصيل الحلقة مع الـ wrapper
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (routeContext) => BlocProvider.value(
-          value: adminCubit,
-          child: CircleDetailsScreen(circle: circle),
-        ),
+        builder: (context) => CircleDetailsScreenWrapper(circle: circle),
       ),
     );
   }

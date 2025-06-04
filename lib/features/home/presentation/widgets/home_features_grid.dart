@@ -24,7 +24,7 @@ class HomeFeaturesGrid extends StatelessWidget {
           FeatureItem(
             icon: AssetsManager.qiblahImage,
             title: 'القبلة',
-            routeName: '/qupla',
+            routeName: '/qibla',
             color: const Color(0xFFC89B7B), // Brown shade
           ),
           FeatureItem(

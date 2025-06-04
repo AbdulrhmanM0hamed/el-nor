@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/utils/theme/app_colors.dart';
+import '../../../../core/services/service_locator.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/student_model.dart';
 import '../cubit/admin_cubit.dart';
@@ -11,7 +12,26 @@ import '../cubit/admin_state.dart';
 import '../widgets/circle_details/circle_info_card.dart';
 import '../widgets/circle_details/students_section.dart';
 import '../widgets/circle_details/teacher_section.dart';
+import '../widgets/circle_details/surah_assignments_section.dart';
 import '../widgets/shared/loading_error_handler.dart';
+
+// Wrapper لتوفير AdminCubit
+class CircleDetailsScreenWrapper extends StatelessWidget {
+  final MemorizationCircleModel circle;
+
+  const CircleDetailsScreenWrapper({
+    Key? key,
+    required this.circle,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<AdminCubit>(
+      create: (context) => sl<AdminCubit>(),
+      child: CircleDetailsScreen(circle: circle),
+    );
+  }
+}
 
 class CircleDetailsScreen extends StatefulWidget {
   final MemorizationCircleModel circle;
@@ -255,6 +275,8 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
                   CircleInfoCard(circle: _circle),
                   SizedBox(height: 16.h),
                   _buildTeacherSection(),
+                  SizedBox(height: 16.h),
+                  SurahAssignmentsSection(circle: _circle),
                   SizedBox(height: 16.h),
                   StudentsSection(circle: _circle, isLoading: _isLoading || _isRefreshing),
                 ],

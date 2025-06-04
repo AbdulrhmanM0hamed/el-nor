@@ -64,7 +64,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 backgroundColor: Colors.red,
               ),
             );
-          } else if (state is AdminUserRoleUpdated) {
+          } else if (state is AdminUsersLoaded) {
+            // Show success message when users are loaded after role update
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم تحديث دور المستخدم بنجاح'),
@@ -117,7 +118,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             );
           }
           
-          // Si no hay un estado específico, cargar los usuarios
           if (state is AdminInitial) {
             context.read<AdminCubit>().loadAllUsers();
           }
@@ -228,45 +228,250 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _showEditRoleDialog(BuildContext context, StudentModel user) {
     final adminCubit = context.read<AdminCubit>();
+    bool isUpdating = false;
+    bool isAdmin = user.isAdmin;
+    bool isTeacher = user.isTeacher;
 
     showDialog(
       context: context,
-      builder: (dialogContext) => UserRoleDialog(
-        user: user,
-        onRoleChanged: (isAdmin, isTeacher) async {
-          // Store original role status for logging
-          final wasAdmin = user.isAdmin;
-          final wasTeacher = user.isTeacher;
-          
-          final roleChangeText = _getRoleChangeText(wasAdmin, wasTeacher, isAdmin, isTeacher);
-          
-          print('Role change requested for ${user.name}');
-          print('Role change: $roleChangeText');
-          print('Original role: Admin=${wasAdmin}, Teacher=${wasTeacher}');
-          print('New role: Admin=${isAdmin}, Teacher=${isTeacher}');
-          
-          // Update user role in database
-          adminCubit.updateUserRole(
-            userId: user.id,
-            isAdmin: isAdmin,
-            isTeacher: isTeacher,
-          );
-          
-          // Handle teacher record management by updating the role only
-          if (isTeacher != user.isTeacher) {
-            print('Teacher status changed for ${user.name}');
-            // The teacher status will be handled by updateUserRole
-          }
-          
-          // Show success message with role change details
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('تم تغيير دور ${user.name} $roleChangeText'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
+      barrierDismissible: true,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Container(
+            width: 320.w,
+            padding: EdgeInsets.all(16.r),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'اختر الدور:',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20.h),
+                if (isUpdating)
+                  const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.logoTeal,
+                    ),
+                  )
+                else
+                  Column(
+                    children: [
+                      // مشرف
+                      _buildRoleOption(
+                        title: 'مشرف',
+                        subtitle: 'صلاحيات كاملة للنظام وإدارة المنصة',
+                        icon: Icons.admin_panel_settings,
+                        iconColor: Colors.red,
+                        isSelected: isAdmin,
+                        onTap: () {
+                          if (!isUpdating) {
+                            setState(() {
+                              isAdmin = true;
+                              isTeacher = false;
+                            });
+                          }
+                        },
+                      ),
+                      SizedBox(height: 12.h),
+                      // معلم
+                      _buildRoleOption(
+                        title: 'معلم',
+                        subtitle: 'يمكنه إدارة الحلقات وتقييم الطلاب',
+                        icon: Icons.school,
+                        iconColor: Colors.blue,
+                        isSelected: isTeacher && !isAdmin,
+                        onTap: () {
+                          if (!isUpdating) {
+                            setState(() {
+                              isAdmin = false;
+                              isTeacher = true;
+                            });
+                          }
+                        },
+                      ),
+                      SizedBox(height: 12.h),
+                      // طالب
+                      _buildRoleOption(
+                        title: 'طالب',
+                        subtitle: 'مستخدم عادي بدون صلاحيات خاصة',
+                        icon: Icons.person,
+                        iconColor: Colors.green,
+                        isSelected: !isAdmin && !isTeacher,
+                        onTap: () {
+                          if (!isUpdating) {
+                            setState(() {
+                              isAdmin = false;
+                              isTeacher = false;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                SizedBox(height: 24.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: isUpdating ? null : () {
+                        Navigator.of(dialogContext).pop();
+                      },
+                      child: Text(
+                        'إلغاء',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16.sp,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: isUpdating ? null : () async {
+                        // Only update if there's an actual change
+                        if (user.isAdmin != isAdmin || user.isTeacher != isTeacher) {
+                          setState(() {
+                            isUpdating = true;
+                          });
+
+                          try {
+                            await adminCubit.updateUserRole(
+                              userId: user.id,
+                              isAdmin: isAdmin,
+                              isTeacher: isTeacher,
+                            );
+
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('تم تحديث دور المستخدم بنجاح'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setState(() {
+                              isUpdating = false;
+                            });
+                            
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('حدث خطأ أثناء تحديث الدور: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        } else {
+                          Navigator.of(dialogContext).pop();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.logoTeal,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      child: Text(
+                        'حفظ',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        padding: EdgeInsets.all(12.r),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? AppColors.logoTeal : Colors.grey.shade300,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(12.r),
+          color: isSelected ? AppColors.logoTeal.withOpacity(0.1) : Colors.white,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: 24.r,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Radio(
+              value: true,
+              groupValue: isSelected,
+              onChanged: (_) => onTap(),
+              activeColor: AppColors.logoTeal,
+            ),
+          ],
+        ),
       ),
     );
   }

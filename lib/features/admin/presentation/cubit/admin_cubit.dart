@@ -65,16 +65,11 @@ class AdminCubit extends Cubit<AdminState> {
         isTeacher: isTeacher,
       );
       
-      // إرسال حالة تحديث دور المستخدم
-      emit(AdminUserRoleUpdated(
-        userId: userId,
-        isAdmin: isAdmin,
-        isTeacher: isTeacher,
-      ));
-
-      // إعادة تحميل قائمة المستخدمين والمعلمين
-      await loadAllUsers();
-      await loadTeachers();
+      // Get updated users list
+      final updatedUsers = await _adminRepository.getAllUsers();
+      
+      // Emit success with updated users list
+      emit(AdminUsersLoaded(updatedUsers));
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء تحديث دور المستخدم: ${e.toString()}'));
     }
@@ -190,7 +185,7 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminLoading());
 
       // الحصول على الحلقة الحالية
-      final circles = await _adminRepository.getAllMemorizationCircles();
+      final circles = await _adminRepository.getAllCircles();
       final circle = circles.firstWhere((c) => c.id == id);
       
       // تحديث الحلقة بالبيانات الجديدة
@@ -275,7 +270,7 @@ class AdminCubit extends Cubit<AdminState> {
 
         // إعادة تحميل قائمة الحلقات لعكس التغييرات
         // Use a more targeted approach instead of reloading everything
-        final circles = await _adminRepository.getAllMemorizationCircles();
+        final circles = await _adminRepository.getAllCircles();
         emit(AdminCirclesLoaded(circles));
       } catch (e) {
         print('خطأ في تحديث معلم الحلقة: $e');
@@ -301,18 +296,14 @@ class AdminCubit extends Cubit<AdminState> {
         return;
       }
       
-      // تحميل بيانات الطلاب من المستودع
-      final students = await _adminRepository.getStudentsByIds(studentIds);
-      print('تم تحميل ${students.length} طالب من أصل ${studentIds.length}');
-      
       // تحميل جميع الحلقات
       final circles = await _adminRepository.getAllCircles();
       
       // تحديث الحلقة المحددة بالطلاب المحملين
       final updatedCircles = circles.map((circle) {
         if (circle.id == circleId) {
-          // تحديث الحلقة بالطلاب الجدد
-          return circle.copyWith(students: students);
+          // تحديث قائمة معرفات الطلاب فقط
+          return circle.copyWith(studentIds: studentIds);
         }
         return circle;
       }).toList();
