@@ -217,98 +217,259 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       itemCount: users.length,
       itemBuilder: (context, index) {
         final user = users[index];
-        return Card(
+        return Container(
           margin: EdgeInsets.only(bottom: 16.r),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: ListTile(
-            contentPadding: EdgeInsets.all(16.r),
-            leading: CircleAvatar(
-              radius: 30.r,
-              backgroundColor: AppColors.logoTeal,
-              backgroundImage: user.profileImageUrl != null
-                  ? NetworkImage(user.profileImageUrl!)
-                  : null,
-              child: user.profileImageUrl == null
-                  ? Text(
-                      _getInitial(user.name),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.sp,
-                      ),
-                    )
-                  : null,
-            ),
-            title: Text(
-              user.name ?? '',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16.sp,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16.r),
+            child: Stack(
               children: [
-                SizedBox(height: 4.h),
-                Text(user.email),
-                SizedBox(height: 4.h),
-                Text(
-                  'الدور: ${_getUserRoleText(user)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12.sp,
-                    color: Colors.grey[700],
+                // Role indicator strip
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 4.w,
+                    color: _getRoleColor(user),
                   ),
                 ),
-                SizedBox(height: 6.h),
-                Wrap(
-                  spacing: 8.w,
-                  children: [
-                    if (user.isAdmin)
-                      Chip(
-                        label: const Text('مشرف'),
-                        backgroundColor: Colors.red[100],
-                        labelStyle: TextStyle(
-                          color: Colors.red[800],
-                          fontSize: 12.sp,
-                        ),
+                // Main content
+                Padding(
+                  padding: EdgeInsets.all(16.r),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          // User image
+                          Container(
+                            width: 65.r,
+                            height: 65.r,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: _getRoleColor(user).withOpacity(0.3),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              backgroundColor: AppColors.logoTeal.withOpacity(0.1),
+                              backgroundImage: user.profileImageUrl != null
+                                  ? NetworkImage(user.profileImageUrl!)
+                                  : null,
+                              child: user.profileImageUrl == null
+                                  ? Text(
+                                      _getInitial(user.name),
+                                      style: TextStyle(
+                                        color: AppColors.logoTeal,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 24.sp,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          SizedBox(width: 16.w),
+                          // User info
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        user.name ?? '',
+                                        style: TextStyle(
+                                          fontSize: 18.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                    // Edit button
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () => _showEditRoleDialog(context, user),
+                                        borderRadius: BorderRadius.circular(8.r),
+                                        child: Container(
+                                          padding: EdgeInsets.all(8.r),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.logoTeal.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(8.r),
+                                          ),
+                                          child: Icon(
+                                            Icons.edit_outlined,
+                                            color: AppColors.logoTeal,
+                                            size: 20.r,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 4.h),
+                                Text(
+                                  user.email,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    if (user.isTeacher)
-                      Chip(
-                        label: const Text('معلم'),
-                        backgroundColor: Colors.blue[100],
-                        labelStyle: TextStyle(
-                          color: Colors.blue[800],
-                          fontSize: 12.sp,
-                        ),
+                      SizedBox(height: 12.h),
+                      // Role chips
+                      Row(
+                        children: [
+                          _buildRoleChip(
+                            text: _getUserRoleText(user),
+                            color: _getRoleColor(user),
+                            icon: _getRoleIcon(user),
+                          ),
+                          if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
+                            SizedBox(width: 8.w),
+                            _buildInfoChip(
+                              text: user.phoneNumber!,
+                              icon: Icons.phone_outlined,
+                              color: Colors.blue,
+                            ),
+                          ],
+                        ],
                       ),
-                    if (!user.isAdmin && !user.isTeacher)
-                      Chip(
-                        label: const Text('طالب'),
-                        backgroundColor: Colors.green[100],
-                        labelStyle: TextStyle(
-                          color: Colors.green[800],
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              color: AppColors.logoTeal,
-              onPressed: () {
-                _showEditRoleDialog(context, user);
-              },
             ),
           ),
         );
       },
     );
+  }
+
+  Widget _buildRoleChip({
+    required String text,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.w,
+        vertical: 6.h,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16.r,
+            color: color,
+          ),
+          SizedBox(width: 6.w),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip({
+    required String text,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.w,
+        vertical: 6.h,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16.r,
+            color: color,
+          ),
+          SizedBox(width: 6.w),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getRoleColor(StudentModel user) {
+    if (user.isAdmin) {
+      return Colors.red;
+    } else if (user.isTeacher) {
+      return Colors.blue;
+    } else {
+      return Colors.green;
+    }
+  }
+
+  IconData _getRoleIcon(StudentModel user) {
+    if (user.isAdmin) {
+      return Icons.admin_panel_settings_outlined;
+    } else if (user.isTeacher) {
+      return Icons.school_outlined;
+    } else {
+      return Icons.person_outline;
+    }
   }
 
   void _showEditRoleDialog(BuildContext context, StudentModel user) {
