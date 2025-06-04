@@ -5,8 +5,8 @@ import '../../../../core/utils/theme/app_colors.dart';
 import '../../../admin/presentation/screens/circle_management_screen.dart';
 import '../../../admin/presentation/screens/user_management_screen.dart';
 import '../../../auth/data/models/user_model.dart';
-import '../../../auth/presentation/cubit/auth_cubit.dart';
-import '../../../auth/presentation/cubit/auth_state.dart' show AuthState, AuthAuthenticated, AuthUnauthenticated;
+import '../../../auth/presentation/cubit/global_auth_cubit.dart';
+import '../../../auth/presentation/cubit/auth_state.dart' show AuthAuthenticated, AuthError, AuthLoading, AuthState, AuthUnauthenticated;
 import '../../../auth/presentation/screens/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -18,95 +18,118 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? _user;
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    print('ProfileScreen: تهيئة الشاشة');
     _loadUserData();
   }
 
   Future<void> _loadUserData() async {
-    // No necesitamos hacer nada aquí, ya que el BlocProvider
-    // se encargará de proporcionar el AuthCubit y el BlocConsumer
-    // reaccionará a los cambios de estado
-    
-    // Simplemente establecemos el estado de carga
-    setState(() {
-      _isLoading = true;
-    });
-    
-    // El estado se actualizará en el listener del BlocConsumer
-    // cuando se reciba el estado AuthAuthenticated
+    print('ProfileScreen: بدء تحميل بيانات المستخدم');
+    if (!mounted) return;
+
+    try {
+      // التحقق من وجود مستخدم حالي في الـ GlobalAuthCubit
+      final currentUser = GlobalAuthCubit.instance.currentUser;
+      if (currentUser != null) {
+        print('ProfileScreen: تم العثور على بيانات المستخدم');
+        setState(() {
+          _user = currentUser;
+        });
+      } else {
+        print('ProfileScreen: لا يوجد مستخدم حالي، جاري التحقق من حالة المصادقة');
+        await GlobalAuthCubit.instance.checkAuthState();
+      }
+    } catch (e) {
+      print('ProfileScreen: خطأ في تحميل بيانات المستخدم: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Usamos directamente BlocConsumer ya que el AuthCubit es proporcionado por MainLayoutScreen
-    return BlocConsumer<AuthCubit, AuthState>(
+    print('ProfileScreen: بناء الواجهة');
+    return BlocConsumer<GlobalAuthCubit, AuthState>(
+      bloc: GlobalAuthCubit.instance,
       listener: (context, state) {
+        print('ProfileScreen: تغيير في حالة المصادقة - ${state.runtimeType}');
         if (state is AuthAuthenticated) {
+          print('ProfileScreen: تم استلام بيانات المستخدم المصادق عليه');
           setState(() {
             _user = state.user;
-            _isLoading = false;
           });
         } else if (state is AuthUnauthenticated) {
-          Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+          print('ProfileScreen: المستخدم غير مصرح له، التوجيه إلى شاشة تسجيل الدخول');
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          body: _isLoading
-              ? _buildLoadingState()
-              : _user != null
-                  ? _buildProfileContent()
-                  : _buildErrorState(),
-        );
-      },
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: AppColors.logoTeal,
-      ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64.sp,
-            color: Colors.red,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'حدث خطأ في تحميل البيانات',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 24.h),
-          ElevatedButton(
-            onPressed: _loadUserData,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.logoTeal,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.r),
+        print('ProfileScreen: حالة المصادقة الحالية - ${state.runtimeType}');
+        
+        // إذا كان لدينا بيانات المستخدم، نعرضها حتى لو كانت الحالة loading
+        if (_user != null) {
+          return Scaffold(
+            body: _buildProfileContent(),
+          );
+        }
+        
+        // إذا كانت الحالة loading ولا يوجد بيانات مستخدم، نعرض مؤشر التحميل
+        if (state is AuthLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(
+                color: AppColors.logoTeal,
               ),
             ),
-            child: const Text('إعادة المحاولة'),
+          );
+        }
+        
+        if (state is AuthError) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64.sp,
+                    color: Colors.red,
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    state.message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: Colors.red,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  ElevatedButton(
+                    onPressed: _loadUserData,
+                    child: const Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // في حالة عدم وجود بيانات مستخدم ولا حالة loading، نحاول تحميل البيانات
+        _loadUserData();
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(
+              color: AppColors.logoTeal,
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -298,8 +321,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ],
     );
   }
-
-
 
   Widget _buildStatistics() {
     return Container(
@@ -520,9 +541,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showLogoutConfirmationDialog(BuildContext context) {
-    // Capturamos el AuthCubit antes de mostrar el diálogo
-    final authCubit = context.read<AuthCubit>();
-    
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -530,16 +548,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: const Text('هل أنت متأكد أنك تريد تسجيل الخروج؟'),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-            },
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(dialogContext);
-              // Usamos el authCubit capturado en lugar de intentar acceder a él desde el contexto del diálogo
-              authCubit.signOut();
+              try {
+                await GlobalAuthCubit.instance.signOut();
+              } catch (e) {
+                print('ProfileScreen: خطأ في تسجيل الخروج: $e');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('خطأ في تسجيل الخروج: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,

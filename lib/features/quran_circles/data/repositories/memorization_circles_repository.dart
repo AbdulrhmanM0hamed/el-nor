@@ -10,13 +10,93 @@ class MemorizationCirclesRepository {
   // Get all circles
   Future<List<MemorizationCircle>> getAllCircles() async {
     try {
+      print('MemorizationCirclesRepository: بدء تحميل الحلقات');
+      
+      // جلب الحلقات مع بيانات المعلمين والطلاب
       final data = await _supabaseClient
           .from('memorization_circles')
-          .select()
+          .select('''
+            *,
+            teacher:teacher_id (
+              id,
+              name,
+              email,
+              profile_image_url
+            )
+          ''')
           .order('created_at', ascending: false);
 
-      return data.map((json) => _parseCircleFromJson(json)).toList();
+      print('MemorizationCirclesRepository: تم جلب البيانات الأولية: $data');
+
+      List<MemorizationCircle> circles = [];
+
+      // معالجة كل حلقة على حدة
+      for (var json in data) {
+        try {
+          // إضافة بيانات المعلم من العلاقة
+          if (json['teacher'] != null) {
+            json['teacher_name'] = json['teacher']['name'];
+          }
+
+          // جلب بيانات الطلاب إذا كان هناك student_ids
+          if (json['student_ids'] != null && (json['student_ids'] as List).isNotEmpty) {
+            print('MemorizationCirclesRepository: جلب بيانات الطلاب للحلقة ${json['id']}');
+            print('MemorizationCirclesRepository: معرفات الطلاب: ${json['student_ids']}');
+
+            final studentsData = await _supabaseClient
+                .from('students')
+                .select('id, name, profile_image_url')
+                .filter('id', 'in', json['student_ids']);
+
+            print('MemorizationCirclesRepository: تم جلب بيانات الطلاب: $studentsData');
+
+            // تحويل بيانات الطلاب إلى الشكل المطلوب مع الحفاظ على بيانات التقييم والحضور
+            final List<Map<String, dynamic>> studentsFormatted = [];
+            
+            for (var student in studentsData) {
+              // البحث عن بيانات الطالب في الـ students column
+              var existingStudentData = json['students'] != null 
+                ? (json['students'] as List).firstWhere(
+                    (s) => s['id'] == student['id'],
+                    orElse: () => null)
+                : null;
+
+              studentsFormatted.add({
+                'id': student['id'],
+                'name': student['name'],
+                'profile_image_url': student['profile_image_url'],
+                'evaluations': existingStudentData?['evaluations'] ?? [],
+                'attendance': existingStudentData?['attendance'] ?? []
+              });
+            }
+
+            json['students'] = studentsFormatted;
+            print('MemorizationCirclesRepository: تم إضافة ${studentsFormatted.length} طالب للحلقة ${json['id']}');
+            print('MemorizationCirclesRepository: بيانات الطلاب المحدثة: ${json['students']}');
+          } else {
+            json['students'] = [];
+            print('MemorizationCirclesRepository: لا يوجد طلاب للحلقة ${json['id']}');
+          }
+
+          final circle = _parseCircleFromJson(json);
+          circles.add(circle);
+          print('MemorizationCirclesRepository: تم إضافة الحلقة ${circle.id} بنجاح');
+          print('MemorizationCirclesRepository: عدد الطلاب في الحلقة: ${circle.students.length}');
+          if (circle.students.isNotEmpty) {
+            print('MemorizationCirclesRepository: نموذج من بيانات الطلاب:');
+            print('عدد التقييمات للطالب الأول: ${circle.students[0].evaluations.length}');
+            print('عدد سجلات الحضور للطالب الأول: ${circle.students[0].attendance.length}');
+          }
+
+        } catch (e) {
+          print('MemorizationCirclesRepository: خطأ في معالجة الحلقة: $e');
+        }
+      }
+
+      print('MemorizationCirclesRepository: تم معالجة ${circles.length} حلقة بنجاح');
+      return circles;
     } catch (e) {
+      print('MemorizationCirclesRepository: خطأ في جلب الحلقات: $e');
       throw Exception('Failed to load circles: $e');
     }
   }
@@ -29,63 +109,102 @@ class MemorizationCirclesRepository {
     EvaluationRecord? evaluation,
   }) async {
     try {
-      // Get current circle data
-      final circleData = await _supabaseClient
+      print('MemorizationCirclesRepository: بدء تحديث سجلات الطالب');
+      print('Circle ID: $circleId');
+      print('Student ID: $studentId');
+      print('Attendance: ${attendance?.toJson()}');
+      print('Evaluation: ${evaluation?.toJson()}');
+
+      // 1. جلب بيانات الحلقة الحالية
+      final circleResponse = await _supabaseClient
           .from('memorization_circles')
-          .select()
+          .select('students')
           .eq('id', circleId)
           .single();
-
-      // Get current students array
-      final List<dynamic> currentStudents = circleData['students'] ?? [];
       
-      // Find and update the student
-      final studentIndex = currentStudents.indexWhere((s) => s['id'] == studentId);
+      print('MemorizationCirclesRepository: البيانات الحالية: $circleResponse');
+
+      // 2. تحويل البيانات إلى List
+      List<Map<String, dynamic>> students = 
+          (circleResponse['students'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+      // 3. البحث عن الطالب
+      int studentIndex = students.indexWhere((s) => s['id'] == studentId);
+      
       if (studentIndex == -1) {
-        throw Exception('Student not found in circle');
+        // إذا لم يكن الطالب موجوداً، نضيفه
+        print('MemorizationCirclesRepository: إضافة طالب جديد');
+        final studentData = await _supabaseClient
+            .from('students')
+            .select('id, name, profile_image_url')
+            .eq('id', studentId)
+            .single();
+            
+        students.add({
+          'id': studentData['id'],
+          'name': studentData['name'],
+          'profile_image_url': studentData['profile_image_url'],
+          'evaluations': [],
+          'attendance': []
+        });
+        studentIndex = students.length - 1;
       }
 
-      // Update student data
-      final studentData = Map<String, dynamic>.from(currentStudents[studentIndex]);
-      
+      // 4. تحديث بيانات الطالب
       if (attendance != null) {
-        final attendanceList = List<Map<String, dynamic>>.from(studentData['attendance'] ?? []);
+        List<Map<String, dynamic>> attendanceList = 
+            (students[studentIndex]['attendance'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+            
         attendanceList.add({
-          'date': attendance.date.toIso8601String().split('T')[0],
+          'date': attendance.date.toIso8601String(),
           'is_present': attendance.isPresent,
-          'notes': attendance.notes ?? '',
+          'notes': attendance.notes
         });
-        studentData['attendance'] = attendanceList;
+        
+        students[studentIndex]['attendance'] = attendanceList;
+        print('MemorizationCirclesRepository: تم تحديث الحضور');
       }
 
       if (evaluation != null) {
-        final evaluationsList = List<Map<String, dynamic>>.from(studentData['evaluations'] ?? []);
+        List<Map<String, dynamic>> evaluationsList = 
+            (students[studentIndex]['evaluations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+            
         evaluationsList.add({
-          'date': evaluation.date.toIso8601String().split('T')[0],
+          'date': evaluation.date.toIso8601String(),
           'rating': evaluation.rating,
-          'notes': evaluation.notes ?? '',
+          'notes': evaluation.notes
         });
-        studentData['evaluations'] = evaluationsList;
+        
+        students[studentIndex]['evaluations'] = evaluationsList;
+        print('MemorizationCirclesRepository: تم تحديث التقييم');
       }
 
-      currentStudents[studentIndex] = studentData;
-
-      // Update the circle with new students data
-      await _supabaseClient
+      // 5. تحديث البيانات في قاعدة البيانات
+      print('MemorizationCirclesRepository: تحديث البيانات في قاعدة البيانات');
+      print('Updated students data: $students');
+      
+      final response = await _supabaseClient
           .from('memorization_circles')
           .update({
-            'students': currentStudents,
-            'updated_at': DateTime.now().toIso8601String(),
+            'students': students,
+            'updated_at': DateTime.now().toIso8601String()
           })
           .eq('id', circleId);
+          
+      print('MemorizationCirclesRepository: تم التحديث بنجاح');
+      print('Response: $response');
 
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('MemorizationCirclesRepository: خطأ في تحديث سجلات الطالب');
+      print('Error: $e');
+      print('Stack trace: $stackTrace');
       throw Exception('Failed to update student records: $e');
     }
   }
 
   // Helper method to parse circle data from JSON
   MemorizationCircle _parseCircleFromJson(Map<String, dynamic> json) {
+    print('MemorizationCirclesRepository: تحليل بيانات الحلقة: $json');
     final List<StudentRecord> students = [];
     
     if (json['students'] != null) {

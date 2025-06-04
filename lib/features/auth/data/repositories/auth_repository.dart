@@ -22,6 +22,8 @@ abstract class AuthRepository {
   Future<void> signOut();
 
   Future<void> resetPassword(String email);
+
+  Future<void> clearUserData();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -124,6 +126,8 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
+      print('AuthRepository: بدء عملية تسجيل الدخول');
+      
       final response = await _supabaseClient.auth.signInWithPassword(
         email: email,
         password: password,
@@ -134,49 +138,22 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       try {
-        // Obtener datos del usuario desde la tabla de estudiantes
+        // جلب بيانات المستخدم من جدول الطلاب
         final userData = await _supabaseClient
             .from('students')
             .select()
             .eq('id', response.user!.id)
             .single();
 
+        print('AuthRepository: تم تسجيل الدخول وجلب البيانات بنجاح');
         return UserModel.fromJson(userData);
       } catch (dbError) {
-        // إذا كان هناك خطأ في الوصول إلى البيانات، نحاول إنشاء سجل جديد
-        if (dbError.toString().contains('infinite recursion') || 
-            dbError.toString().contains('not found')) {
-          // إنشاء بيانات المستخدم الافتراضية
-          final defaultUserData = {
-            'id': response.user!.id,
-            'email': email,
-            'name': email.split('@')[0],
-            'phone': '',
-            'age': 0,
-            'profile_image_url': null,
-            'created_at': DateTime.now().toIso8601String(),
-            'is_admin': false,
-          };
-          
-          // محاولة إدراج البيانات
-          try {
-            await _supabaseClient.from('students').insert(defaultUserData);
-            return UserModel.fromJson(defaultUserData);
-          } catch (insertError) {
-            throw Exception('خطأ في إنشاء بيانات المستخدم: ${insertError.toString()}');
-          }
-        } else {
-          throw Exception('خطأ في الوصول إلى بيانات المستخدم: ${dbError.toString()}');
-        }
+        print('AuthRepository: خطأ في جلب بيانات المستخدم: $dbError');
+        throw Exception('خطأ في الوصول إلى بيانات المستخدم');
       }
     } catch (e) {
-      if (e.toString().contains('Invalid login credentials')) {
-        throw Exception('بيانات الدخول غير صحيحة، تأكد من البريد الإلكتروني وكلمة المرور');
-      } else if (e.toString().contains('network')) {
-        throw Exception('خطأ في الاتصال بالإنترنت، تأكد من اتصالك بالشبكة وحاول مرة أخرى');
-      } else {
-        throw Exception('خطأ في تسجيل الدخول: ${e.toString()}');
-      }
+      print('AuthRepository: خطأ في تسجيل الدخول: $e');
+      throw Exception('خطأ في تسجيل الدخول: ${e.toString()}');
     }
   }
 
@@ -240,7 +217,27 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    await _supabaseClient.auth.signOut();
+    try {
+      print('AuthRepository: بدء عملية تسجيل الخروج');
+      await _supabaseClient.auth.signOut();
+      print('AuthRepository: تم تسجيل الخروج بنجاح');
+    } catch (e) {
+      print('AuthRepository: خطأ في تسجيل الخروج: $e');
+      throw Exception('Failed to sign out: $e');
+    }
+  }
+
+  @override
+  Future<void> clearUserData() async {
+    try {
+      print('AuthRepository: بدء عملية مسح بيانات المستخدم');
+      // مسح أي بيانات مخزنة محلياً إذا كان هناك
+      // يمكنك إضافة المزيد من عمليات المسح هنا إذا كنت تخزن بيانات إضافية
+      print('AuthRepository: تم مسح بيانات المستخدم بنجاح');
+    } catch (e) {
+      print('AuthRepository: خطأ في مسح بيانات المستخدم: $e');
+      throw Exception('Failed to clear user data: $e');
+    }
   }
 
   @override

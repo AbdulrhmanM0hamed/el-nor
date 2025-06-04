@@ -168,17 +168,24 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
                     return _buildEmptyState();
                   }
                   
-                  return ListView.builder(
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
-                    itemCount: circles.length,
-                    itemBuilder: (context, index) {
-                      return MemorizationCircleCard(
-                        circle: circles[index],
-                        userRole: _userRole,
-                        userId: _userId,
-                        onTap: () => _navigateToCircleDetails(context, circles[index]),
-                      );
+                  return RefreshIndicator(
+                    color: AppColors.logoTeal,
+                    onRefresh: () async {
+                      print('MemorizationCirclesScreen: تحديث القائمة');
+                      await context.read<MemorizationCirclesCubit>().loadMemorizationCircles();
                     },
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
+                      itemCount: circles.length,
+                      itemBuilder: (context, index) {
+                        return MemorizationCircleCard(
+                          circle: circles[index],
+                          userRole: _userRole,
+                          userId: _userId,
+                          onTap: () => _navigateToCircleDetails(context, circles[index]),
+                        );
+                      },
+                    ),
                   );
                 } else if (state is MemorizationCirclesError) {
                   print('MemorizationCirclesScreen: عرض حالة الخطأ - ${state.message}');

@@ -59,7 +59,10 @@ class StudentEvaluationCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     image: student.profileImageUrl != null
                         ? DecorationImage(
-                            image: NetworkImage(student.profileImageUrl!),
+                            image: NetworkImage(
+                              '${student.profileImageUrl!}?timestamp=${DateTime.now().millisecondsSinceEpoch}',
+                              headers: const {'cache-control': 'no-cache'},
+                            ),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -161,7 +164,7 @@ class StudentEvaluationCard extends StatelessWidget {
                             index < _currentEvaluation
                                 ? Icons.star
                                 : Icons.star_border,
-                            color: AppColors.logoYellow,
+                            color: const Color.fromARGB(255, 231, 198, 8),
                             size: 32.sp,
                           ),
                         ),

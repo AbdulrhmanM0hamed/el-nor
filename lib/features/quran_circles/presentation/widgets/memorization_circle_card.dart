@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'dart:developer' as developer;
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/utils/user_role.dart';
 import '../../data/models/memorization_circle_model.dart';
@@ -11,13 +12,21 @@ class MemorizationCircleCard extends StatelessWidget {
   final String userId;
   final VoidCallback onTap;
 
-  const MemorizationCircleCard({
+  MemorizationCircleCard({
     Key? key,
     required this.circle,
     required this.userRole,
     required this.userId,
     required this.onTap,
-  }) : super(key: key);
+  }) : super(key: key) {
+    // Add debug logs in constructor
+    developer.log('MemorizationCircleCard Data:', name: 'CircleCard');
+    developer.log('Circle Name: ${circle.name}', name: 'CircleCard');
+    developer.log('Teacher ID: ${circle.teacherId}', name: 'CircleCard');
+    developer.log('Teacher Name: ${circle.teacherName}', name: 'CircleCard');
+    developer.log('User Role: $userRole', name: 'CircleCard');
+    developer.log('User ID: $userId', name: 'CircleCard');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,11 +114,25 @@ class MemorizationCircleCard extends StatelessWidget {
                         color: AppColors.logoOrange,
                       ),
                       SizedBox(width: 4.w),
-                      Text(
-                        'المعلم: ${circle.teacherName}',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.grey[700],
+                      Expanded(
+                        child: Builder(
+                          builder: (context) {
+                            final hasTeacherName = circle.teacherName != null && circle.teacherName!.isNotEmpty;
+                            developer.log('Has Teacher Name: $hasTeacherName', name: 'CircleCard');
+                            developer.log('Teacher Name Value: ${circle.teacherName}', name: 'CircleCard');
+                            
+                            return Text(
+                              hasTeacherName
+                                  ? 'المعلم: ${circle.teacherName}'
+                                  : 'المعلم',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: Colors.grey[700],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          }
                         ),
                       ),
                       if (circle.teacherId == userId) ...[

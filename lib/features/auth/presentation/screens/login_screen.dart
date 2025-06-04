@@ -3,12 +3,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/utils/theme/app_colors.dart';
-import '../cubit/auth_cubit.dart';
+import '../cubit/global_auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import 'register_screen.dart';
 import 'reset_password_screen.dart';
+
+class LoginScreenWrapper extends StatelessWidget {
+  const LoginScreenWrapper({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: GlobalAuthCubit.instance,
+      child: const LoginScreen(),
+    );
+  }
+}
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
@@ -43,20 +55,17 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       print('LoginScreen: التحقق من النموذج ناجح');
       try {
-        print('LoginScreen: محاولة الحصول على AuthCubit من السياق');
-        final authCubit = context.read<AuthCubit>();
-        print('LoginScreen: تم الحصول على AuthCubit بنجاح');
-        print('LoginScreen: استدعاء دالة signIn مع البريد الإلكتروني: ${_emailController.text.trim()}');
-        authCubit.signIn(
+        print('LoginScreen: محاولة تسجيل الدخول');
+        GlobalAuthCubit.instance.signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
         print('LoginScreen: تم استدعاء دالة signIn بنجاح');
       } catch (e) {
-        print('LoginScreen: خطأ في استدعاء AuthCubit: ${e.toString()}');
+        print('LoginScreen: خطأ في تسجيل الدخول: ${e.toString()}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في استدعاء AuthCubit: ${e.toString()}'),
+            content: Text('خطأ في تسجيل الدخول: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -67,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<AuthCubit, AuthState>(
+      body: BlocConsumer<GlobalAuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
