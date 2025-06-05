@@ -91,7 +91,6 @@ class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
       final evalRecord = EvaluationRecord(
         date: DateTime.now(),
         rating: evaluation,
-        notes: '',
       );
       
       await repository.updateStudentAttendanceAndEvaluation(
@@ -112,7 +111,6 @@ class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
       final attendanceRecord = AttendanceRecord(
         date: DateTime.now(),
         isPresent: isPresent,
-        notes: '',
       );
       
       await repository.updateStudentAttendanceAndEvaluation(

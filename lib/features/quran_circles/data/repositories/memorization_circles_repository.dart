@@ -1,3 +1,4 @@
+import 'package:beat_elslam/features/quran_circles/data/models/surah_assignment.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/memorization_circle_model.dart';
 import '../models/student_record.dart';
@@ -158,7 +159,6 @@ class MemorizationCirclesRepository {
         attendanceList.add({
           'date': attendance.date.toIso8601String(),
           'is_present': attendance.isPresent,
-          'notes': attendance.notes
         });
         
         students[studentIndex]['attendance'] = attendanceList;
@@ -172,7 +172,6 @@ class MemorizationCirclesRepository {
         evaluationsList.add({
           'date': evaluation.date.toIso8601String(),
           'rating': evaluation.rating,
-          'notes': evaluation.notes
         });
         
         students[studentIndex]['evaluations'] = evaluationsList;
@@ -217,7 +216,6 @@ class MemorizationCirclesRepository {
               ?.map((e) => EvaluationRecord(
                     date: DateTime.parse(e['date']),
                     rating: e['rating'],
-                    notes: e['notes'],
                   ))
               ?.toList() ??
               [],
@@ -225,7 +223,6 @@ class MemorizationCirclesRepository {
               ?.map((a) => AttendanceRecord(
                     date: DateTime.parse(a['date']),
                     isPresent: a['is_present'],
-                    notes: a['notes'],
                   ))
               ?.toList() ??
               [],
@@ -243,14 +240,10 @@ class MemorizationCirclesRepository {
       endDate: json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
       isExam: json['is_exam'] ?? false,
       status: json['status'] ?? 'active',
-      assignments: (json['surah_assignments'] as List?)
-          ?.map((a) => SurahAssignment(
-                id: a['id'],
-                surahName: a['surah_name'],
-                startVerse: a['start_verse'],
-                endVerse: a['end_verse'],
-              ))
-          ?.toList() ??
+      assignments: ((json['surah_assignments'] as List?)
+          ?.cast<Map<String, dynamic>>()
+          ?.map((a) => SurahAssignment.fromJson(a))
+          ?.toList()) ??
           [],
       students: students,
       studentIds: (json['student_ids'] as List?)?.map((id) => id.toString()).toList() ?? [],

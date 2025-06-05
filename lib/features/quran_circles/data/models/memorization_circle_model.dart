@@ -1,6 +1,7 @@
 // La importación de material.dart es necesaria para los tipos de datos como Color
 import 'package:equatable/equatable.dart';
 import '../models/student_record.dart';
+import '../models/surah_assignment.dart';
 
 /// Modelo para representar un estudiante en un círculo de memorización
 class MemorizationStudent {
@@ -34,42 +35,6 @@ class MemorizationStudent {
       isPresent: isPresent ?? this.isPresent,
     );
   }
-}
-
-/// Modelo para representar una asignación de Surah en un círculo de memorización
-class SurahAssignment extends Equatable {
-  final String id;
-  final String surahName;
-  final int startVerse;
-  final int endVerse;
-
-  const SurahAssignment({
-    required this.id,
-    required this.surahName,
-    required this.startVerse,
-    required this.endVerse,
-  });
-
-  factory SurahAssignment.fromJson(Map<String, dynamic> json) {
-    return SurahAssignment(
-      id: json['id'] as String,
-      surahName: json['surah_name'] as String,
-      startVerse: json['start_verse'] as int,
-      endVerse: json['end_verse'] as int,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'surah_name': surahName,
-      'start_verse': startVerse,
-      'end_verse': endVerse,
-    };
-  }
-
-  @override
-  List<Object?> get props => [id, surahName, startVerse, endVerse];
 }
 
 /// Modelo para representar un círculo de memorización del Quran

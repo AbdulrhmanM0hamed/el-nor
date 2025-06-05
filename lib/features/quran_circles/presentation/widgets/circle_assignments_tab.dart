@@ -1,4 +1,5 @@
 import 'package:beat_elslam/core/utils/theme/app_colors.dart';
+import 'package:beat_elslam/features/quran_circles/data/models/surah_assignment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../data/models/memorization_circle_model.dart';

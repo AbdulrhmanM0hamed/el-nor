@@ -149,11 +149,17 @@ class AuthRepositoryImpl implements AuthRepository {
         return UserModel.fromJson(userData);
       } catch (dbError) {
         print('AuthRepository: خطأ في جلب بيانات المستخدم: $dbError');
-        throw Exception('خطأ في الوصول إلى بيانات المستخدم');
+        throw Exception('حدث خطأ في جلب بيانات المستخدم، الرجاء المحاولة مرة أخرى');
       }
     } catch (e) {
       print('AuthRepository: خطأ في تسجيل الدخول: $e');
-      throw Exception('خطأ في تسجيل الدخول: ${e.toString()}');
+      if (e.toString().contains('Invalid login credentials')) {
+        throw Exception('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      } else if (e.toString().contains('network')) {
+        throw Exception('خطأ في الاتصال بالإنترنت، الرجاء التحقق من اتصالك بالشبكة');
+      } else {
+        throw Exception('حدث خطأ غير متوقع، الرجاء المحاولة مرة أخرى');
+      }
     }
   }
 
