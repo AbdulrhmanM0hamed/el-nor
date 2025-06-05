@@ -1,10 +1,11 @@
+import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_assignments_tab.dart';
+import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_students_tab.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/utils/user_role.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/student_record.dart';
-import '../widgets/circle_students_tab.dart';
-import '../widgets/circle_assignments_tab.dart';
+
 import '../cubit/memorization_circles_cubit.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';

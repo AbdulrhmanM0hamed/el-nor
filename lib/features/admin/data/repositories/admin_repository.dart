@@ -1,8 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/student_model.dart';
 import '../models/memorization_circle_model.dart';
-import '../models/surah_assignment.dart';
-import '../../../../features/auth/data/models/user_model.dart';
+
 
 class AdminRepository {
   final SupabaseClient _supabaseClient;
@@ -48,7 +47,6 @@ class AdminRepository {
           .eq('is_teacher', true)
           .order('name');
       
-      print('تم العثور على ${data.length} معلم');
       for (var teacher in data) {
         print('معلومات المعلم: معرف=${teacher['id']}, اسم=${teacher['name']}, ايميل=${teacher['email']}, هاتف=${teacher['phone']}, صورة=${teacher['profile_image_url']}');
       }
