@@ -72,12 +72,7 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             onGenerateRoute: onGenratedRoutes,
-            home: BlocBuilder<GlobalAuthCubit, AuthState>(
-              builder: (context, state) {
-                print('Main: Current auth state - ${state.runtimeType}');
-                return const AuthCheckScreen();
-              },
-            ),
+            initialRoute: AuthCheckScreen.routeName,
           );
         },
       ),

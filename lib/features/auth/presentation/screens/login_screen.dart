@@ -1,37 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../cubit/global_auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import '../widgets/auth_background.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../widgets/loading_overlay.dart';
 import 'register_screen.dart';
 import 'reset_password_screen.dart';
 
-class LoginScreenWrapper extends StatelessWidget {
-  const LoginScreenWrapper({Key? key}) : super(key: key);
+class LoginScreen extends StatelessWidget {
+  static const String routeName = '/login';
+  
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: GlobalAuthCubit.instance,
-      child: const LoginScreen(),
+      child: const _LoginScreenContent(),
     );
   }
 }
 
-class LoginScreen extends StatefulWidget {
-  static const String routeName = '/login';
-
-  const LoginScreen({Key? key}) : super(key: key);
+class _LoginScreenContent extends StatefulWidget {
+  const _LoginScreenContent({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<_LoginScreenContent> createState() => _LoginScreenContentState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenContentState extends State<_LoginScreenContent> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -51,233 +52,206 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() {
-    print('LoginScreen: الضغط على زر تسجيل الدخول');
     if (_formKey.currentState!.validate()) {
-      print('LoginScreen: التحقق من النموذج ناجح');
-      try {
-        print('LoginScreen: محاولة تسجيل الدخول');
-        GlobalAuthCubit.instance.signIn(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
-        print('LoginScreen: تم استدعاء دالة signIn بنجاح');
-      } catch (e) {
-        print('LoginScreen: خطأ في تسجيل الدخول: ${e.toString()}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطأ في تسجيل الدخول: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      context.read<GlobalAuthCubit>().signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocConsumer<GlobalAuthCubit, AuthState>(
-        listener: (context, state) {
-          if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          } else if (state is AuthAuthenticated) {
-            // استخدام pushNamedAndRemoveUntil بدلاً من pushReplacementNamed
-            // لضمان إزالة جميع الشاشات السابقة من المكدس
-            Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
-          }
-        },
-        builder: (context, state) {
-          return Stack(
-            children: [
-              // Fondo superior
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: SvgPicture.asset(
-                  'assets/images/back1.svg',
-                  width: MediaQuery.of(context).size.width,
-                  fit: BoxFit.fitWidth,
-                ),
-              ),
-              
-              // Fondo inferior
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: SvgPicture.asset(
-                  'assets/images/back2.svg',
-                  width: MediaQuery.of(context).size.width,
-                  fit: BoxFit.fitWidth,
-                ),
-              ),
-              
-              // Contenido principal
-              SafeArea(
+    return BlocConsumer<GlobalAuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else if (state is AuthAuthenticated) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          body: LoadingOverlay(
+            isLoading: state is AuthLoading,
+            child: AuthBackground(
+              child: SafeArea(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 60.h),
-                      Center(
-                        child: Text(
-                          'النور',
-                          style: TextStyle(
-                            fontSize: 48.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.logoTeal,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      Center(
-                        child: Text(
-                          'تسجيل الدخول',
-                          style: TextStyle(
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.logoOrange,
-                          ),
-                        ),
-                      ),
+                      _buildHeader(),
                       SizedBox(height: 40.h),
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomTextField(
-                              label: 'البريد الإلكتروني',
-                              hint: 'أدخل بريدك الإلكتروني',
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              prefixIcon: const Icon(
-                                Icons.email_outlined,
-                                color: AppColors.logoTeal,
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال البريد الإلكتروني';
-                                }
-                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                    .hasMatch(value)) {
-                                  return 'الرجاء إدخال بريد إلكتروني صحيح';
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: 20.h),
-                            CustomTextField(
-                              label: 'كلمة المرور',
-                              hint: 'أدخل كلمة المرور',
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              prefixIcon:const Icon(
-                                Icons.lock_outline,
-                                color: AppColors.logoTeal,
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                  color: Colors.grey,
-                                ),
-                                onPressed: _togglePasswordVisibility,
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال كلمة المرور';
-                                }
-                                if (value.length < 6) {
-                                  return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: 16.h),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: TextButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    ResetPasswordScreen.routeName,
-                                  );
-                                },
-                                child: Text(
-                                  'نسيت كلمة المرور؟',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: AppColors.logoTeal,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 32.h),
-                            CustomButton(
-                              text: 'تسجيل الدخول',
-                              onPressed: _login,
-                              isLoading: state is AuthLoading,
-                              icon: Icons.login,
-                            ),
-                            SizedBox(height: 20.h),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'ليس لديك حساب؟',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      RegisterScreen.routeName,
-                                    );
-                                  },
-                                  child: Text(
-                                    'إنشاء حساب جديد',
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      color: AppColors.logoOrange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildLoginForm(),
                     ],
                   ),
                 ),
               ),
-              
-              // Indicador de carga
-              if (state is AuthLoading)
-                Container(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-            ],
-          );
-        },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        Center(
+          child: Text(
+            'النور',
+            style: TextStyle(
+              fontSize: 48.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.logoTeal,
+            ),
+          ),
+        ),
+        SizedBox(height: 16.h),
+        Center(
+          child: Text(
+            'تسجيل الدخول',
+            style: TextStyle(
+              fontSize: 24.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.logoOrange,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoginForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomTextField(
+            label: 'البريد الإلكتروني',
+            hint: 'أدخل بريدك الإلكتروني',
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: const Icon(
+              Icons.email_outlined,
+              color: AppColors.logoTeal,
+            ),
+            validator: _validateEmail,
+          ),
+          SizedBox(height: 20.h),
+          CustomTextField(
+            label: 'كلمة المرور',
+            hint: 'أدخل كلمة المرور',
+            controller: _passwordController,
+            obscureText: _obscurePassword,
+            prefixIcon: const Icon(
+              Icons.lock_outline,
+              color: AppColors.logoTeal,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: Colors.grey,
+              ),
+              onPressed: _togglePasswordVisibility,
+            ),
+            validator: _validatePassword,
+          ),
+          SizedBox(height: 16.h),
+          _buildForgotPasswordButton(),
+          SizedBox(height: 32.h),
+          CustomButton(
+            text: 'تسجيل الدخول',
+            onPressed: _login,
+            icon: Icons.login,
+          ),
+          SizedBox(height: 20.h),
+          _buildRegisterLink(),
+        ],
       ),
     );
+  }
+
+  Widget _buildForgotPasswordButton() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton(
+        onPressed: () {
+          Navigator.pushNamed(
+            context,
+            ResetPasswordScreen.routeName,
+          );
+        },
+        child: Text(
+          'نسيت كلمة المرور؟',
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: AppColors.logoTeal,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegisterLink() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'ليس لديك حساب؟',
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: Colors.black54,
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              RegisterScreen.routeName,
+            );
+          },
+          child: Text(
+            'إنشاء حساب جديد',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: AppColors.logoOrange,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'الرجاء إدخال البريد الإلكتروني';
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+      return 'الرجاء إدخال بريد إلكتروني صحيح';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'الرجاء إدخال كلمة المرور';
+    }
+    if (value.length < 6) {
+      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+    }
+    return null;
   }
 }
