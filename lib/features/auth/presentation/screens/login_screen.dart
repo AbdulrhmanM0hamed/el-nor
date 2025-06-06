@@ -73,6 +73,8 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
           );
         } else if (state is AuthAuthenticated) {
           Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+        } else if (state is AuthGuest) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
         }
       },
       builder: (context, state) {
@@ -177,6 +179,28 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
           ),
           SizedBox(height: 20.h),
           _buildRegisterLink(),
+          SizedBox(height: 20.h),
+          // Guest login button
+          Center(
+            child: TextButton.icon(
+              onPressed: () {
+                context.read<GlobalAuthCubit>().enterAsGuest();
+              },
+              icon: const Icon(
+                Icons.person_outline,
+                color: AppColors.logoTeal,
+              ),
+              label: Text(
+                'الدخول كزائر',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: AppColors.logoTeal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 20.h),
         ],
       ),
     );

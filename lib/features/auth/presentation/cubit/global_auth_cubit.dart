@@ -29,6 +29,8 @@ class GlobalAuthCubit extends Cubit<AuthState> {
       ? (state as AuthAuthenticated).user 
       : null;
 
+  bool get isGuest => state is AuthGuest;
+
   Future<void> checkAuthState() async {
     print('GlobalAuthCubit: بدء التحقق من حالة المصادقة');
     emit(const AuthLoading());
@@ -72,6 +74,11 @@ class GlobalAuthCubit extends Cubit<AuthState> {
     emit(const AuthLoading());
     
     try {
+      if (state is AuthGuest) {
+        emit(const AuthUnauthenticated());
+        return;
+      }
+
       await _authRepository.clearUserData();
       print('GlobalAuthCubit: تم مسح بيانات المستخدم');
       
@@ -83,5 +90,9 @@ class GlobalAuthCubit extends Cubit<AuthState> {
       print('GlobalAuthCubit: حدث خطأ أثناء تسجيل الخروج: $e');
       emit(AuthError(e.toString()));
     }
+  }
+
+  void enterAsGuest() {
+    emit(const AuthGuest());
   }
 } 

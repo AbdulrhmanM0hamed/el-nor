@@ -57,10 +57,7 @@ class ProfileActionsWidget extends StatelessWidget {
             SizedBox(height: 24.h),
           ],
 
-          if (user.isTeacher && !user.isAdmin) ...[
-            _buildSectionTitle('إدارة الحلقات'),
-            SizedBox(height: 24.h),
-          ],
+      
 
           _buildSectionTitle('إعدادات الحساب'),
           _buildActionButton(

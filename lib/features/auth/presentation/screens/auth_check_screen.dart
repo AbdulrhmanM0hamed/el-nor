@@ -36,6 +36,9 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
         if (state is AuthAuthenticated) {
           print('AuthCheckScreen: المستخدم مصادق عليه، جاري الانتقال إلى الشاشة الرئيسية');
           Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+        } else if (state is AuthGuest) {
+          print('AuthCheckScreen: المستخدم زائر، جاري الانتقال إلى الشاشة الرئيسية');
+          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
         } else if (state is AuthUnauthenticated) {
           print('AuthCheckScreen: المستخدم غير مصادق عليه، جاري الانتقال إلى شاشة تسجيل الدخول');
           Navigator.of(context).pushNamedAndRemoveUntil(LoginScreen.routeName, (route) => false);

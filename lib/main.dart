@@ -1,5 +1,4 @@
 import 'package:beat_elslam/core/utils/theme/app_theme.dart';
-import 'package:beat_elslam/features/auth/presentation/cubit/auth_state.dart';
 import 'package:beat_elslam/features/auth/presentation/screens/auth_check_screen.dart';
 import 'package:beat_elslam/core/services/service_locator.dart' as di;
 import 'package:flutter/material.dart';
