@@ -74,10 +74,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: AppColors.logoTeal,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).primaryColor,
         centerTitle: true,
       ),
       body: Column(
@@ -89,17 +89,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               onChanged: _filterUsers,
               decoration: InputDecoration(
                 hintText: 'البحث عن مستخدم...',
-                prefixIcon: const Icon(Icons.search, color: AppColors.logoTeal),
+                prefixIcon: Icon(Icons.search, color: Theme.of(context).primaryColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
-                  borderSide: const BorderSide(color: AppColors.logoTeal),
+                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
-                  borderSide: const BorderSide(color: AppColors.logoTeal, width: 2),
+                  borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).cardColor,
               ),
             ),
           ),
@@ -110,7 +110,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.message),
-                      backgroundColor: Colors.red,
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ),
                   );
                 } else if (state is AdminUsersLoaded) {
@@ -119,8 +119,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     _filteredUsers = state.users;
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم تحديث دور المستخدم بنجاح'),
+                    SnackBar(
+                      content: const Text('تم تحديث دور المستخدم بنجاح'),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -128,9 +128,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               },
               builder: (context, state) {
                 if (state is AdminLoading) {
-                  return const Center(
+                  return Center(
                     child: CircularProgressIndicator(
-                      color: AppColors.logoTeal,
+                      color: Theme.of(context).primaryColor,
                     ),
                   );
                 } else if (state is AdminUsersLoaded) {
@@ -143,14 +143,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         Icon(
                           Icons.error_outline,
                           size: 64.sp,
-                          color: Colors.red,
+                          color: Theme.of(context).colorScheme.error,
                         ),
                         SizedBox(height: 16.h),
                         Text(
                           state.message,
                           style: TextStyle(
                             fontSize: 16.sp,
-                            color: Colors.red,
+                            color: Theme.of(context).colorScheme.error,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -160,7 +160,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             context.read<AdminCubit>().loadAllUsers();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.logoTeal,
+                            backgroundColor: Theme.of(context).primaryColor,
                             foregroundColor: Colors.white,
                           ),
                           child: const Text('إعادة المحاولة'),
@@ -174,9 +174,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   context.read<AdminCubit>().loadAllUsers();
                 }
                 
-                return const Center(
+                return Center(
                   child: CircularProgressIndicator(
-                    color: AppColors.logoTeal,
+                    color: Theme.of(context).primaryColor,
                   ),
                 );
               },
@@ -196,14 +196,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             Icon(
               Icons.search_off,
               size: 64.sp,
-              color: Colors.grey,
+              color: Theme.of(context).disabledColor,
             ),
             SizedBox(height: 16.h),
             Text(
               'لا يوجد مستخدمين مطابقين للبحث',
               style: TextStyle(
                 fontSize: 16.sp,
-                color: Colors.grey[700],
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
               textAlign: TextAlign.center,
             ),
@@ -220,11 +220,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         return Container(
           margin: EdgeInsets.only(bottom: 16.r),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16.r),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Theme.of(context).shadowColor.withOpacity(0.1),
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 4),
@@ -235,7 +235,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             borderRadius: BorderRadius.circular(16.r),
             child: Stack(
               children: [
-                // Role indicator strip
                 Positioned(
                   left: 0,
                   top: 0,
@@ -245,7 +244,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     color: _getRoleColor(user),
                   ),
                 ),
-                // Main content
                 Padding(
                   padding: EdgeInsets.all(16.r),
                   child: Column(
@@ -253,7 +251,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     children: [
                       Row(
                         children: [
-                          // User image
                           Container(
                             width: 65.r,
                             height: 65.r,
@@ -265,7 +262,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Theme.of(context).shadowColor.withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 3,
                                   offset: const Offset(0, 2),
@@ -273,7 +270,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               ],
                             ),
                             child: CircleAvatar(
-                              backgroundColor: AppColors.logoTeal.withOpacity(0.1),
+                              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                               backgroundImage: user.profileImageUrl != null
                                   ? NetworkImage(user.profileImageUrl!)
                                   : null,
@@ -281,7 +278,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   ? Text(
                                       _getInitial(user.name),
                                       style: TextStyle(
-                                        color: AppColors.logoTeal,
+                                        color: Theme.of(context).primaryColor,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 24.sp,
                                       ),
@@ -290,7 +287,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             ),
                           ),
                           SizedBox(width: 16.w),
-                          // User info
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,11 +299,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                         style: TextStyle(
                                           fontSize: 18.sp,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                          color: Theme.of(context).textTheme.titleLarge?.color,
                                         ),
                                       ),
                                     ),
-                                    // Edit button
                                     Material(
                                       color: Colors.transparent,
                                       child: InkWell(
@@ -316,12 +311,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                         child: Container(
                                           padding: EdgeInsets.all(8.r),
                                           decoration: BoxDecoration(
-                                            color: AppColors.logoTeal.withOpacity(0.1),
+                                            color: Theme.of(context).primaryColor.withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(8.r),
                                           ),
                                           child: Icon(
                                             Icons.edit_outlined,
-                                            color: AppColors.logoTeal,
+                                            color: Theme.of(context).primaryColor,
                                             size: 20.r,
                                           ),
                                         ),
@@ -334,7 +329,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   user.email,
                                   style: TextStyle(
                                     fontSize: 14.sp,
-                                    color: Colors.grey[600],
+                                    color: Theme.of(context).textTheme.bodyMedium?.color,
                                   ),
                                 ),
                               ],
@@ -343,7 +338,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         ],
                       ),
                       SizedBox(height: 12.h),
-                      // Role chips
                       Row(
                         children: [
                           _buildRoleChip(
@@ -486,6 +480,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
+          backgroundColor: Theme.of(context).dialogBackgroundColor,
           child: Container(
             width: 320.w,
             padding: EdgeInsets.all(16.r),
@@ -498,22 +493,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 20.h),
                 if (isUpdating)
-                  const Center(
+                  Center(
                     child: CircularProgressIndicator(
-                      color: AppColors.logoTeal,
+                      color: Theme.of(context).primaryColor,
                     ),
                   )
                 else
                   Column(
                     children: [
-                      // مشرف
                       _buildRoleOption(
+                        context,
                         title: 'مشرف',
                         subtitle: 'صلاحيات كاملة للنظام وإدارة المنصة',
                         icon: Icons.admin_panel_settings,
@@ -529,8 +524,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         },
                       ),
                       SizedBox(height: 12.h),
-                      // معلم
                       _buildRoleOption(
+                        context,
                         title: 'معلم',
                         subtitle: 'يمكنه إدارة الحلقات وتقييم الطلاب',
                         icon: Icons.school,
@@ -546,8 +541,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         },
                       ),
                       SizedBox(height: 12.h),
-                      // طالب
                       _buildRoleOption(
+                        context,
                         title: 'طالب',
                         subtitle: 'مستخدم عادي بدون صلاحيات خاصة',
                         icon: Icons.person,
@@ -575,14 +570,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       child: Text(
                         'إلغاء',
                         style: TextStyle(
-                          color: Colors.grey,
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
                           fontSize: 16.sp,
                         ),
                       ),
                     ),
                     ElevatedButton(
                       onPressed: isUpdating ? null : () async {
-                        // Only update if there's an actual change
                         if (user.isAdmin != isAdmin || user.isTeacher != isTeacher) {
                           setState(() {
                             isUpdating = true;
@@ -616,7 +610,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('حدث خطأ أثناء تحديث الدور: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: Theme.of(context).colorScheme.error,
                                 ),
                               );
                             }
@@ -626,7 +620,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.logoTeal,
+                        backgroundColor: Theme.of(context).primaryColor,
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
                         shape: RoundedRectangleBorder(
@@ -651,7 +645,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildRoleOption({
+  Widget _buildRoleOption(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -666,11 +661,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         padding: EdgeInsets.all(12.r),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? AppColors.logoTeal : Colors.grey.shade300,
+            color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(12.r),
-          color: isSelected ? AppColors.logoTeal.withOpacity(0.1) : Colors.white,
+          color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Theme.of(context).cardColor,
         ),
         child: Row(
           children: [
@@ -696,7 +691,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.titleMedium?.color,
                     ),
                   ),
                   SizedBox(height: 4.h),
@@ -704,7 +699,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: Colors.grey[600],
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                 ],
@@ -714,7 +709,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               value: true,
               groupValue: isSelected,
               onChanged: (_) => onTap(),
-              activeColor: AppColors.logoTeal,
+              activeColor: Theme.of(context).primaryColor,
             ),
           ],
         ),
