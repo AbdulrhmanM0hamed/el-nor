@@ -2,6 +2,7 @@ import 'package:beat_elslam/features/auth/presentation/screens/auth_check_screen
 import 'package:beat_elslam/features/auth/presentation/screens/login_screen.dart';
 import 'package:beat_elslam/features/auth/presentation/screens/register_screen.dart';
 import 'package:beat_elslam/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:beat_elslam/features/auth/presentation/cubit/reset_password/reset_password_cubit.dart';
 import 'package:beat_elslam/features/home/asma_allah/presentation/screens/asma_allah_screen.dart';
 import 'package:beat_elslam/features/home/view/home_View.dart';
 import 'package:beat_elslam/features/main_layout/main_layout_screen.dart';
@@ -27,6 +28,9 @@ import '../../features/home/hadith/presentation/cubit/hadith_cubit.dart';
 import '../../features/home/tafsir/presentation/screens/tafsir_surah_list_screen.dart';
 import '../../features/home/tafsir/data/repositories/tafsir_repository.dart';
 import '../../features/home/tafsir/presentation/cubit/tafsir_cubit.dart';
+import '../../features/auth/presentation/screens/forget_password_screen.dart';
+import '../../features/auth/presentation/screens/verification_code_screen.dart';
+import '../../features/auth/presentation/screens/new_password_screen.dart';
 
 final _logger = Logger();
 
@@ -81,6 +85,38 @@ Route<dynamic> onGenratedRoutes(RouteSettings settings) {
       builder: (context) => BlocProvider<AuthCubit>(
         create: (context) => di.sl<AuthCubit>(),
         child: const ResetPasswordScreen(),
+      ),
+    );
+  }
+  
+  if (routeName == ForgetPasswordScreen.routeName) {
+    _logger.i('Navigating to ForgetPasswordScreen');
+    return MaterialPageRoute(
+      builder: (context) => BlocProvider<ResetPasswordCubit>(
+        create: (context) => ResetPasswordCubit(authRepository: di.sl(), email: ''),
+        child: const ForgetPasswordScreen(),
+      ),
+    );
+  }
+
+  if (routeName == VerificationCodeScreen.routeName) {
+    _logger.i('Navigating to VerificationCodeScreen');
+    final email = settings.arguments as String;
+    return MaterialPageRoute(
+      builder: (context) => BlocProvider<ResetPasswordCubit>(
+        create: (context) => ResetPasswordCubit(authRepository: di.sl(), email: email),
+        child: VerificationCodeScreen(email: email),
+      ),
+    );
+  }
+
+  if (routeName == NewPasswordScreen.routeName) {
+    _logger.i('Navigating to NewPasswordScreen');
+    final email = settings.arguments as String;
+    return MaterialPageRoute(
+      builder: (context) => BlocProvider<ResetPasswordCubit>(
+        create: (context) => ResetPasswordCubit(authRepository: di.sl(), email: email),
+        child: NewPasswordScreen(email: email),
       ),
     );
   }

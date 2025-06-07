@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/cubit/reset_password/reset_password_cubit.dart';
 import '../../features/admin/presentation/cubit/admin_cubit.dart';
 import '../../features/home/quran/presentation/cubit/quran_cubit.dart';
 import '../../features/quran_circles/presentation/cubit/memorization_circles_cubit.dart';
@@ -38,6 +39,11 @@ Future<void> init() async {
   // Cubits
   sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(authRepository: sl<AuthRepository>()),
+  );
+  
+  // Register ResetPasswordCubit
+  sl.registerFactory<ResetPasswordCubit>(
+    () => ResetPasswordCubit(authRepository: sl<AuthRepository>()),
   );
   
   // Cubits adicionales para la aplicación

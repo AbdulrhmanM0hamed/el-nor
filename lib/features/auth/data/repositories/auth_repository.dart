@@ -24,6 +24,14 @@ abstract class AuthRepository {
   Future<void> resetPassword(String email);
 
   Future<void> clearUserData();
+
+  Future<void> sendResetCode(String email);
+
+  Future<void> verifyResetCode(String email, String code);
+
+  Future<void> resetPasswordWithCode(String email, String newPassword);
+
+  Future<bool> isEmailRegistered(String email);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -248,6 +256,108 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> resetPassword(String email) async {
-    await _supabaseClient.auth.resetPasswordForEmail(email);
+    try {
+      await _supabaseClient.auth.resetPasswordForEmail(
+        email,
+        redirectTo: null,
+      );
+    } catch (e) {
+      if (e is AuthException) {
+        String message = e.message;
+        if (e.message.contains("Email not found")) {
+          message = "البريد الإلكتروني غير مسجل";
+        } else if (e.message.contains("Too many requests")) {
+          message = "محاولات كثيرة، يرجى المحاولة بعد قليل";
+        }
+        throw Exception(message);
+      }
+      throw Exception('حدث خطأ في إعادة تعيين كلمة المرور');
+    }
+  }
+
+  @override
+  Future<void> sendResetCode(String email) async {
+    try {
+      await _supabaseClient.auth.signInWithOtp(
+        email: email,
+        data: {'template': 'reset-password-ar'},
+      );
+    } catch (e) {
+      if (e is AuthException) {
+        String message = e.message;
+        if (e.message.contains("For security purposes")) {
+          final RegExp regex = RegExp(r'after (\d+) seconds');
+          final match = regex.firstMatch(e.message);
+          final seconds = match?.group(1) ?? "14";
+          message = "لأسباب أمنية، يرجى الانتظار $seconds ثانية قبل إعادة طلب الكود";
+        } else if (e.message.contains("Email not found")) {
+          message = "البريد الإلكتروني غير مسجل";
+        } else if (e.message.contains("Too many requests")) {
+          message = "محاولات كثيرة، يرجى المحاولة بعد قليل";
+        }
+        throw Exception(message);
+      }
+      throw Exception('حدث خطأ في إرسال كود التحقق');
+    }
+  }
+
+  @override
+  Future<void> verifyResetCode(String email, String code) async {
+    try {
+      await _supabaseClient.auth.verifyOTP(
+        email: email,
+        token: code,
+        type: OtpType.magiclink,
+      );
+    } catch (e) {
+      if (e is AuthException) {
+        String message = e.message;
+        if (e.message.contains("Invalid otp")) {
+          message = "كود التحقق غير صحيح";
+        } else if (e.message.contains("Token has expired")) {
+          message = "كود التحقق غير صحيح";
+        } else if (e.message.contains("Too many attempts")) {
+          message = "محاولات كثيرة، يرجى طلب كود جديد";
+        }
+        throw Exception(message);
+      }
+      throw Exception('كود التحقق غير صحيح');
+    }
+  }
+
+  @override
+  Future<void> resetPasswordWithCode(String email, String newPassword) async {
+    try {
+      await _supabaseClient.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } catch (e) {
+      if (e is AuthException) {
+        String message = e.message;
+        if (e.message.contains("New password should be different")) {
+          message = "كلمة المرور الجديدة يجب أن تكون مختلفة عن كلمة المرور القديمة";
+        } else if (e.message.contains("Password should be at least 6 characters")) {
+          message = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+        } else if (e.message.contains("Token has expired")) {
+          message = "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول";
+        }
+        throw Exception(message);
+      }
+      throw Exception('حدث خطأ في تحديث كلمة المرور');
+    }
+  }
+
+  @override
+  Future<bool> isEmailRegistered(String email) async {
+    try {
+      final response = await _supabaseClient
+          .from('students')
+          .select('id')
+          .eq('email', email)
+          .single();
+      return response != null;
+    } catch (e) {
+      return false;
+    }
   }
 }

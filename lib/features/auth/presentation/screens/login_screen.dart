@@ -10,6 +10,7 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/loading_overlay.dart';
 import 'register_screen.dart';
 import 'reset_password_screen.dart';
+import 'forget_password_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   static const String routeName = '/login';
@@ -180,7 +181,9 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
             onPressed: _login,
             icon: Icons.login,
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: 16.h),
+
+          SizedBox(height: 16.h),
           _buildRegisterLink(),
           SizedBox(height: 20.h),
           // Guest login button
@@ -214,17 +217,14 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
       alignment: Alignment.centerLeft,
       child: TextButton(
         onPressed: () {
-          Navigator.pushNamed(
-            context,
-            ResetPasswordScreen.routeName,
-          );
+          Navigator.pushNamed(context, ForgetPasswordScreen.routeName);
         },
         child: Text(
           'نسيت كلمة المرور؟',
           style: TextStyle(
             fontSize: 14.sp,
-            color: AppColors.logoTeal,
-            fontWeight: FontWeight.w600,
+            color: Theme.of(context).primaryColor,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
