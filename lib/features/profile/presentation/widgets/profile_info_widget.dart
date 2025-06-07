@@ -17,11 +17,11 @@ class ProfileInfoWidget extends StatelessWidget {
       margin: EdgeInsets.all(16.w),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -35,13 +35,17 @@ class ProfileInfoWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
-              color: AppColors.logoTeal,
+              color: Theme.of(context).primaryColor,
             ),
           ),
-          Divider(height: 24.h),
-          _buildInfoRow(Icons.phone, 'رقم الهاتف', user.phoneNumber ?? 'غير متوفر'),
+          Divider(
+            height: 24.h,
+            color: Theme.of(context).dividerColor,
+          ),
+          _buildInfoRow(context, Icons.phone, 'رقم الهاتف', user.phoneNumber ?? 'غير متوفر'),
           SizedBox(height: 12.h),
           _buildInfoRow(
+            context,
             user.isAdmin ? Icons.admin_panel_settings : 
             user.isTeacher ? Icons.school : Icons.person,
             'الدور',
@@ -53,13 +57,13 @@ class ProfileInfoWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {Color? valueColor}) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value, {Color? valueColor}) {
     return Row(
       children: [
         Icon(
           icon,
           size: 20.sp,
-          color: AppColors.logoOrange,
+          color: Theme.of(context).primaryColor,
         ),
         SizedBox(width: 12.w),
         Text(
@@ -67,6 +71,7 @@ class ProfileInfoWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.w500,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
         const Spacer(),
@@ -74,7 +79,7 @@ class ProfileInfoWidget extends StatelessWidget {
           value,
           style: TextStyle(
             fontSize: 16.sp,
-            color: valueColor ?? Colors.black87,
+            color: valueColor ?? Theme.of(context).textTheme.bodyMedium?.color,
             fontWeight: valueColor != null ? FontWeight.bold : FontWeight.normal,
           ),
         ),

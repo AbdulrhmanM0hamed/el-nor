@@ -18,7 +18,7 @@ class ProfileHeaderWidget extends StatelessWidget {
       height: 220.h,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.logoTeal, AppColors.logoTeal.withOpacity(0.7)],
+          colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.7)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -35,7 +35,7 @@ class ProfileHeaderWidget extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 50.r,
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).cardColor,
                 backgroundImage: user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
                     ? NetworkImage(user.profileImageUrl!)
                     : null,
@@ -43,7 +43,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                     ? Icon(
                         Icons.person,
                         size: 50.sp,
-                        color: AppColors.logoTeal,
+                        color: Theme.of(context).primaryColor,
                       )
                     : null,
               ),

@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class AppColors {
   // Main logo colors
   static const Color logoOrange = Color(0xFFE59022);
-  static const Color logoTeal = Color(0xFF1C595E);
+  static const Color logoTeal = Color.fromARGB(255, 49, 144, 153);
   static const Color logoYellow = Color(0xFFF5EB46);
   
   // Original app colors
-  static const Color primary = Color(0xFF1C595E); // Updated to match logoTeal
+  static const Color primary = Color.fromARGB(255, 49, 144, 153); // Updated to match logoTeal
   static const Color secondary = Color.fromARGB(255, 59, 110, 151);
   static const Color accent = Color(0xFFE59022); // Updated to match logoOrange
 

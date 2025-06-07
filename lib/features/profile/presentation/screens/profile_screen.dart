@@ -32,7 +32,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     ProfileHeaderWidget(user: state.user),
                     ProfileInfoWidget(user: state.user),
-                    const ProfileStatsWidget(),
+                 //   const ProfileStatsWidget(),
                     ProfileActionsWidget(user: state.user),
                   ],
                 ),

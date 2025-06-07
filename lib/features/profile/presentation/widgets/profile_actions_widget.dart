@@ -23,8 +23,9 @@ class ProfileActionsWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (user.isAdmin) ...[
-            _buildSectionTitle('إدارة النظام'),
+            _buildSectionTitle(context, 'إدارة النظام'),
             _buildActionButton(
+              context,
               'إدارة المستخدمين',
               Icons.people,
               () => Navigator.push(
@@ -37,6 +38,7 @@ class ProfileActionsWidget extends StatelessWidget {
             ),
             SizedBox(height: 12.h),
             _buildActionButton(
+              context,
               'إدارة حلقات التحفيظ',
               Icons.group_add,
               () => Navigator.push(
@@ -48,31 +50,27 @@ class ProfileActionsWidget extends StatelessWidget {
               color: Colors.amber,
             ),
             SizedBox(height: 12.h),
-            _buildActionButton(
-              'تعيين معلمين للحلقات',
-              Icons.assignment_ind,
-              () {},
-              color: AppColors.logoOrange,
-            ),
+           
             SizedBox(height: 24.h),
           ],
 
-      
-
-          _buildSectionTitle('إعدادات الحساب'),
+          _buildSectionTitle(context, 'إعدادات الحساب'),
           _buildActionButton(
+            context,
             'تعديل الملف الشخصي',
             Icons.edit,
             () {},
           ),
           SizedBox(height: 12.h),
           _buildActionButton(
+            context,
             'تغيير كلمة المرور',
             Icons.lock,
             () {},
           ),
           SizedBox(height: 12.h),
           _buildActionButton(
+            context,
             'تسجيل الخروج',
             Icons.logout,
             () => _showLogoutConfirmationDialog(context),
@@ -83,7 +81,7 @@ class ProfileActionsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -92,25 +90,28 @@ class ProfileActionsWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            color: AppColors.logoTeal,
+            color: Theme.of(context).primaryColor,
           ),
         ),
-        Divider(height: 16.h),
+        Divider(
+          height: 16.h,
+          color: Theme.of(context).dividerColor,
+        ),
       ],
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, VoidCallback onTap, {Color? color}) {
+  Widget _buildActionButton(BuildContext context, String label, IconData icon, VoidCallback onTap, {Color? color}) {
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Theme.of(context).shadowColor.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -121,7 +122,7 @@ class ProfileActionsWidget extends StatelessWidget {
             Icon(
               icon,
               size: 24.sp,
-              color: color ?? AppColors.logoTeal,
+              color: color ?? Theme.of(context).primaryColor,
             ),
             SizedBox(width: 16.w),
             Text(
@@ -129,14 +130,14 @@ class ProfileActionsWidget extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w500,
-                color: color ?? Colors.black87,
+                color: color ?? Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
             const Spacer(),
             Icon(
               Icons.arrow_forward_ios,
               size: 16.sp,
-              color: Colors.grey,
+              color: Theme.of(context).textTheme.bodySmall?.color,
             ),
           ],
         ),
@@ -169,4 +170,4 @@ class ProfileActionsWidget extends StatelessWidget {
       ),
     );
   }
-} 
+}
