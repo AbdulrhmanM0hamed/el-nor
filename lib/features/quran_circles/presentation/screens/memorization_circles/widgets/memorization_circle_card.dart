@@ -21,12 +21,7 @@ class MemorizationCircleCard extends StatelessWidget {
     required this.onTap,
   }) : super(key: key) {
     // Add debug logs in constructor
-    developer.log('MemorizationCircleCard Data:', name: 'CircleCard');
-    developer.log('Circle Name: ${circle.name}', name: 'CircleCard');
-    developer.log('Teacher ID: ${circle.teacherId}', name: 'CircleCard');
-    developer.log('Teacher Name: ${circle.teacherName}', name: 'CircleCard');
-    developer.log('User Role: $userRole', name: 'CircleCard');
-    developer.log('User ID: $userId', name: 'CircleCard');
+
   }
 
   @override
@@ -36,7 +31,7 @@ class MemorizationCircleCard extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: Colors.white,
+        
           borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
@@ -99,7 +94,7 @@ class MemorizationCircleCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.logoTeal,
+                   
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -128,7 +123,7 @@ class MemorizationCircleCard extends StatelessWidget {
                                   : 'المعلم',
                               style: TextStyle(
                                 fontSize: 14.sp,
-                                color: Colors.grey[700],
+                                color: Colors.grey[500],
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -163,7 +158,7 @@ class MemorizationCircleCard extends StatelessWidget {
                     circle.description,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: Colors.grey[600],
+                      color: Colors.grey[500],
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -191,7 +186,7 @@ class MemorizationCircleCard extends StatelessWidget {
             ),
             
             // عرض الطلاب
-            if (circle.students.isNotEmpty && (userRole == UserRole.admin || userRole == UserRole.teacher || circle.teacherId == userId))
+            if (circle.students.isNotEmpty && _canManageStudents)
               Padding(
                 padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 16.h),
                 child: Column(
@@ -204,23 +199,11 @@ class MemorizationCircleCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey[700],
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         const Spacer(),
-                        if (userRole == UserRole.admin || circle.teacherId == userId)
-                          TextButton(
-                            onPressed: () {
-                              // عرض تفاصيل الطلاب
-                            },
-                            child: Text(
-                              'إدارة الطلاب',
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: AppColors.logoTeal,
-                              ),
-                            ),
-                          ),
+                     
                       ],
                     ),
                     SizedBox(height: 8.h),
@@ -306,7 +289,7 @@ class MemorizationCircleCard extends StatelessWidget {
           '$label: ',
           style: TextStyle(
             fontSize: 12.sp,
-            color: Colors.grey[700],
+            color: Colors.grey[500],
           ),
         ),
         Text(
@@ -314,7 +297,7 @@ class MemorizationCircleCard extends StatelessWidget {
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.bold,
-            color: AppColors.logoTeal,
+         
           ),
         ),
       ],
@@ -345,4 +328,9 @@ class MemorizationCircleCard extends StatelessWidget {
   String _getInitial(String name) {
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
+
+  bool get _canManageStudents => 
+    userRole == UserRole.admin || 
+    userRole == UserRole.teacher || 
+    circle.teacherId == userId;
 }

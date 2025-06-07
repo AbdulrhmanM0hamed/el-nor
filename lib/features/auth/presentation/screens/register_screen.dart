@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:beat_elslam/features/home/masbaha/presentation/screens/masbaha_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -37,7 +38,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
   final _ageController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   File? _profileImage;
@@ -89,13 +90,13 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
       }
 
       context.read<AuthCubit>().signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        age: age,
-        profileImage: _profileImage,
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim(),
+            age: age,
+            profileImage: _profileImage,
+          );
     }
   }
 
@@ -122,19 +123,18 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
       },
       builder: (context, state) {
         return Scaffold(
+          appBar:  CustomAppBar(title: 'إنشاء حساب جديد'),
           body: LoadingOverlay(
             isLoading: state is AuthLoading,
             child: AuthBackground(
               child: SafeArea(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildBackButton(),
                       SizedBox(height: 20.h),
-                      _buildHeader(),
-                      SizedBox(height: 30.h),
                       _buildProfileImage(),
                       SizedBox(height: 24.h),
                       _buildRegistrationForm(),
@@ -146,30 +146,6 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildBackButton() {
-    return IconButton(
-      onPressed: () => Navigator.pop(context),
-      icon: Icon(
-        Icons.arrow_back_ios,
-        color: AppColors.logoTeal,
-        size: 24.sp,
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Center(
-      child: Text(
-        'إنشاء حساب جديد',
-        style: TextStyle(
-          fontSize: 28.sp,
-          fontWeight: FontWeight.bold,
-          color: AppColors.logoTeal,
-        ),
-      ),
     );
   }
 
@@ -287,7 +263,9 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
         prefixIcon: const Icon(Icons.lock_outline, color: AppColors.logoTeal),
         suffixIcon: IconButton(
           icon: Icon(
-            obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            obscureText
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
             color: Colors.grey,
           ),
           onPressed: toggleVisibility,
@@ -305,7 +283,6 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
           'لديك حساب بالفعل؟',
           style: TextStyle(
             fontSize: 14.sp,
-            color: Colors.black54,
           ),
         ),
         TextButton(
@@ -377,3 +354,5 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
     return null;
   }
 }
+
+

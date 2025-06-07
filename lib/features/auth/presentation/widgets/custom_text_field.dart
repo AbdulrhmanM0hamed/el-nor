@@ -70,7 +70,7 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Colors.grey[100],
+     
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,
               vertical: 16.h,
@@ -89,7 +89,7 @@ class CustomTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(
-                color: AppColors.logoTeal,
+                color: AppColors.logoOrange,
                 width: 1.5.w,
               ),
             ),
@@ -110,7 +110,7 @@ class CustomTextField extends StatelessWidget {
           ),
           style: TextStyle(
             fontSize: 16.sp,
-            color: Colors.black87,
+       
           ),
         ),
       ],

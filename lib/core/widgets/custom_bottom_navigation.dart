@@ -16,34 +16,24 @@ class CustomBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 70.h,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
       child: Stack(
         children: [
           // منحنى في الخلفية
           CustomPaint(
             size: Size(MediaQuery.of(context).size.width, 70.h),
-            painter: NavBarPainter(),
+            painter: NavBarPainter(context),
           ),
-          
+
           // أزرار التنقل
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               // الرئيسية - الصفحة الأولى (index 0)
               _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
-              
+
               // حلقات الحفظ - الصفحة الثانية (index 1)
               _buildCenterButton(),
-              
+
               // الملف الشخصي - الصفحة الثالثة (index 2)
               _buildNavItem(2, Icons.person_rounded, 'الملف'),
             ],
@@ -57,7 +47,7 @@ class CustomBottomNavigation extends StatelessWidget {
   Widget _buildNavItem(int index, IconData icon, String label) {
     // التحقق مما إذا كان هذا الزر هو المحدد حاليًا
     final bool isSelected = currentIndex == index;
-    
+
     return GestureDetector(
       onTap: () => onTap(index),
       child: Container(
@@ -68,7 +58,7 @@ class CustomBottomNavigation extends StatelessWidget {
             Icon(
               icon,
               size: isSelected ? 28.sp : 24.sp,
-              color: isSelected ? AppColors.logoTeal : Colors.grey,
+              color: isSelected ? AppColors.logoOrange : Colors.grey,
             ),
             SizedBox(height: 4.h),
             Text(
@@ -76,7 +66,7 @@ class CustomBottomNavigation extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? AppColors.logoTeal : Colors.grey,
+                color: isSelected ? AppColors.logoOrange : Colors.grey,
               ),
             ),
           ],
@@ -89,7 +79,7 @@ class CustomBottomNavigation extends StatelessWidget {
   Widget _buildCenterButton() {
     // التحقق مما إذا كان زر الحلقات هو المحدد حاليًا (index 1)
     final bool isSelected = currentIndex == 1;
-    
+
     return GestureDetector(
       onTap: () => onTap(1), // دائمًا يذهب إلى الصفحة الثانية (index 1)
       child: Container(
@@ -98,9 +88,9 @@ class CustomBottomNavigation extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 20.h),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isSelected 
-              ? [AppColors.logoTeal, AppColors.logoTeal] 
-              : [AppColors.logoOrange, AppColors.logoTeal],
+            colors: isSelected
+                ? [AppColors.logoTeal, AppColors.logoTeal]
+                : [AppColors.logoOrange, AppColors.logoTeal],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -138,19 +128,25 @@ class CustomBottomNavigation extends StatelessWidget {
 
 // رسم المنحنى في الخلفية
 class NavBarPainter extends CustomPainter {
+  final BuildContext context;
+
+  NavBarPainter(this.context);
+
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      ..color = Colors.white
+      ..color = Theme.of(context).brightness == Brightness.dark
+          ? Colors.black
+          : Colors.white
       ..style = PaintingStyle.fill;
 
     Path path = Path()
       ..moveTo(0, 0)
       ..lineTo(size.width * 0.35, 0)
       ..quadraticBezierTo(
-        size.width * 0.5, 
-        0, 
-        size.width * 0.65, 
+        size.width * 0.5,
+        0,
+        size.width * 0.65,
         0,
       )
       ..lineTo(size.width, 0)
@@ -159,17 +155,16 @@ class NavBarPainter extends CustomPainter {
       ..close();
 
     canvas.drawPath(path, paint);
-    
+
     // إضافة خط زخرفي في الأعلى
     Paint linePaint = Paint()
-      ..color = AppColors.logoYellow
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
-      
+
     Path linePath = Path()
       ..moveTo(0, 0)
       ..lineTo(size.width, 0);
-      
+
     canvas.drawPath(linePath, linePaint);
   }
 

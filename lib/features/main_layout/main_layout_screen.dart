@@ -1,3 +1,4 @@
+import 'package:beat_elslam/features/home/masbaha/presentation/screens/masbaha_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/widgets/custom_bottom_navigation.dart';
@@ -57,7 +58,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         ),
       ],
       child: Scaffold(
-        appBar: _currentIndex == 0 ? _buildHomeAppBar() : _buildAppBar(),
+        
         body: IndexedStack(
           index: _currentIndex,
           children: _screens,
@@ -76,45 +77,11 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   
   // شريط تطبيق للشاشة الرئيسية
   AppBar _buildHomeAppBar() {
-    return AppBar(
-      title: Text(
-        _screenTitles[_currentIndex],
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: true,
-      backgroundColor: AppColors.logoTeal.withOpacity(0.9),
-      foregroundColor: Colors.white,
-      elevation: 0,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {
-            // إضافة وظيفة الإشعارات لاحقًا
-          },
-        ),
-      ],
-    );
+    return CustomAppBar(title: _screenTitles[_currentIndex]);
   }
   
   // شريط تطبيق للشاشات الأخرى
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: Text(
-        _screenTitles[_currentIndex],
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: true,
-      backgroundColor: AppColors.logoTeal,
-      foregroundColor: Colors.white,
-      elevation: 0,
-    );
-  }
+
 }
 
 // Se ha eliminado la clase ProfileScreen temporal y ahora se usa la implementación completa

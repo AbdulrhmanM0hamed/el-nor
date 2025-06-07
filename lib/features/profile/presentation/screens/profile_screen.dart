@@ -26,14 +26,16 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, state) {
         if (state is AuthAuthenticated) {
           return Scaffold(
-            body: SingleChildScrollView(
-              child: Column(
-                children: [
-                  ProfileHeaderWidget(user: state.user),
-                  ProfileInfoWidget(user: state.user),
-                  const ProfileStatsWidget(),
-                  ProfileActionsWidget(user: state.user),
-                ],
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ProfileHeaderWidget(user: state.user),
+                    ProfileInfoWidget(user: state.user),
+                    const ProfileStatsWidget(),
+                    ProfileActionsWidget(user: state.user),
+                  ],
+                ),
               ),
             ),
           );

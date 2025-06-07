@@ -125,34 +125,11 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
             ),
           ],
         ),
-        floatingActionButton: _buildFloatingActionButton(),
       ),
     );
   }
 
-  Widget? _buildFloatingActionButton() {
-    if (!_canManageCircle) return null;
 
-    final currentTab = _tabController.index;
-    
-    if (currentTab == 0) {
-      return FloatingActionButton(
-        backgroundColor: AppColors.logoTeal,
-        child: const Icon(Icons.add),
-        onPressed: _showAddSurahDialog,
-        tooltip: 'إضافة سورة',
-      );
-    } else if (currentTab == 1) {
-      return FloatingActionButton(
-        backgroundColor: AppColors.logoTeal,
-        child: const Icon(Icons.person_add),
-        onPressed: _showAddStudentDialog,
-        tooltip: 'إضافة طالب',
-      );
-    }
-    
-    return null;
-  }
 
   void _onEvaluationChanged(String studentId, int evaluation) {
     final updatedStudents = List<StudentRecord>.from(_circle.students);

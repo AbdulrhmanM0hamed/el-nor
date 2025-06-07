@@ -13,7 +13,8 @@ class MemorizationCirclesScreen extends StatefulWidget {
   const MemorizationCirclesScreen({Key? key}) : super(key: key);
 
   @override
-  State<MemorizationCirclesScreen> createState() => _MemorizationCirclesScreenState();
+  State<MemorizationCirclesScreen> createState() =>
+      _MemorizationCirclesScreenState();
 }
 
 class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
@@ -21,7 +22,8 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
   late String _userId = '';
   bool _isTeacherCirclesOnly = false; // فلتر لعرض حلقات المعلم فقط
   bool _isAllCircles = true; // Filtro para mostrar todos los círculos
-  bool _isMemorizationOnly = false; // Filtro para mostrar solo círculos de memorización
+  bool _isMemorizationOnly =
+      false; // Filtro para mostrar solo círculos de memorización
   bool _isExamOnly = false; // Filtro para mostrar solo exámenes
 
   @override
@@ -36,7 +38,7 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
     print('MemorizationCirclesScreen: تهيئة بيانات المستخدم');
     print('MemorizationCirclesScreen: المستخدم الحالي - ${currentUser?.name}');
     print('MemorizationCirclesScreen: معرف المستخدم - ${currentUser?.id}');
-    
+
     if (currentUser != null) {
       setState(() {
         _userId = currentUser.id;
@@ -82,132 +84,133 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _getScreenTitle(),
-          style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.logoTeal,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        actions: [
-          if (_userRole == UserRole.teacher)
-            IconButton(
-              icon: Icon(
-                _isTeacherCirclesOnly ? Icons.person : Icons.people,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                setState(() {
-                  _isTeacherCirclesOnly = !_isTeacherCirclesOnly;
-                });
-                _loadCircles();
-              },
-              tooltip: _isTeacherCirclesOnly ? 'عرض كل الحلقات' : 'حلقاتي فقط',
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (_userRole != UserRole.student) ...[
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+        appBar: AppBar(
+          title: Text(
+            _getScreenTitle(),
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
               color: Colors.white,
-              child: Row(
-                children: [
-                  _buildFilterChip('الكل', _isAllCircles, () {
-                    setState(() {
-                      _isAllCircles = true;
-                      _isMemorizationOnly = false;
-                      _isExamOnly = false;
-                    });
-                  }),
-                  SizedBox(width: 8.w),
-                  _buildFilterChip('حلقات الحفظ', _isMemorizationOnly, () {
-                    setState(() {
-                      _isAllCircles = false;
-                      _isMemorizationOnly = true;
-                      _isExamOnly = false;
-                    });
-                  }),
-                  SizedBox(width: 8.w),
-                  _buildFilterChip('امتحانات', _isExamOnly, () {
-                    setState(() {
-                      _isAllCircles = false;
-                      _isMemorizationOnly = false;
-                      _isExamOnly = true;
-                    });
-                  }),
-                ],
+            ),
+          ),
+          backgroundColor: Theme.of(context).primaryColor,
+          centerTitle: true,
+          actions: [
+            if (_userRole == UserRole.teacher)
+              IconButton(
+                icon: Icon(
+                  _isTeacherCirclesOnly ? Icons.person : Icons.people,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isTeacherCirclesOnly = !_isTeacherCirclesOnly;
+                  });
+                  _loadCircles();
+                },
+                tooltip:
+                    _isTeacherCirclesOnly ? 'عرض كل الحلقات' : 'حلقاتي فقط',
+              ),
+          ],
+        ),
+        body: Column(
+          children: [
+            if (_userRole != UserRole.student) ...[
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                color: Theme.of(context).cardColor,
+                child: Row(
+                  children: [
+                    _buildFilterChip('الكل', _isAllCircles, () {
+                      setState(() {
+                        _isAllCircles = true;
+                        _isMemorizationOnly = false;
+                        _isExamOnly = false;
+                      });
+                    }),
+                    SizedBox(width: 8.w),
+                    _buildFilterChip('حلقات الحفظ', _isMemorizationOnly, () {
+                      setState(() {
+                        _isAllCircles = false;
+                        _isMemorizationOnly = true;
+                        _isExamOnly = false;
+                      });
+                    }),
+                    SizedBox(width: 8.w),
+                    _buildFilterChip('امتحانات', _isExamOnly, () {
+                      setState(() {
+                        _isAllCircles = false;
+                        _isMemorizationOnly = false;
+                        _isExamOnly = true;
+                      });
+                    }),
+                  ],
+                ),
+              ),
+            ],
+            Expanded(
+              child: BlocBuilder<MemorizationCirclesCubit,
+                  MemorizationCirclesState>(
+                builder: (context, state) {
+                  print(
+                      'MemorizationCirclesScreen: حالة BlocBuilder الحالية - ${state.runtimeType}');
+
+                  if (state is MemorizationCirclesLoading) {
+                    print('MemorizationCirclesScreen: عرض حالة التحميل');
+                    return _buildLoadingState();
+                  } else if (state is MemorizationCirclesLoaded) {
+                    print(
+                        'MemorizationCirclesScreen: تم تحميل الحلقات - ${state.circles.length} حلقة');
+                    var circles = _filterCircles(state.circles);
+                    print(
+                        'MemorizationCirclesScreen: بعد التصفية - ${circles.length} حلقة');
+
+                    // فلترة إضافية حسب الدور
+                    circles = _filterCirclesByRole(circles);
+                    print(
+                        'MemorizationCirclesScreen: بعد فلترة الدور - ${circles.length} حلقة');
+
+                    if (circles.isEmpty) {
+                      print(
+                          'MemorizationCirclesScreen: لا توجد حلقات للعرض - عرض الحالة الفارغة');
+                      return _buildEmptyState();
+                    }
+
+                    return RefreshIndicator(
+                      color: AppColors.logoTeal,
+                      onRefresh: () async {
+                        print('MemorizationCirclesScreen: تحديث القائمة');
+                        await context
+                            .read<MemorizationCirclesCubit>()
+                            .loadMemorizationCircles();
+                      },
+                      child: ListView.builder(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        itemCount: circles.length,
+                        itemBuilder: (context, index) {
+                          return MemorizationCircleCard(
+                            circle: circles[index],
+                            userRole: _userRole,
+                            userId: _userId,
+                            onTap: () => _navigateToCircleDetails(
+                                context, circles[index]),
+                          );
+                        },
+                      ),
+                    );
+                  } else if (state is MemorizationCirclesError) {
+                    print(
+                        'MemorizationCirclesScreen: عرض حالة الخطأ - ${state.message}');
+                    return _buildErrorState(state.message);
+                  }
+                  print(
+                      'MemorizationCirclesScreen: عرض الحالة الفارغة الافتراضية');
+                  return _buildEmptyState();
+                },
               ),
             ),
           ],
-          
-          Expanded(
-            child: BlocBuilder<MemorizationCirclesCubit, MemorizationCirclesState>(
-              builder: (context, state) {
-                print('MemorizationCirclesScreen: حالة BlocBuilder الحالية - ${state.runtimeType}');
-                
-                if (state is MemorizationCirclesLoading) {
-                  print('MemorizationCirclesScreen: عرض حالة التحميل');
-                  return _buildLoadingState();
-                } else if (state is MemorizationCirclesLoaded) {
-                  print('MemorizationCirclesScreen: تم تحميل الحلقات - ${state.circles.length} حلقة');
-                  var circles = _filterCircles(state.circles);
-                  print('MemorizationCirclesScreen: بعد التصفية - ${circles.length} حلقة');
-                  
-                  // فلترة إضافية حسب الدور
-                  circles = _filterCirclesByRole(circles);
-                  print('MemorizationCirclesScreen: بعد فلترة الدور - ${circles.length} حلقة');
-                  
-                  if (circles.isEmpty) {
-                    print('MemorizationCirclesScreen: لا توجد حلقات للعرض - عرض الحالة الفارغة');
-                    return _buildEmptyState();
-                  }
-                  
-                  return RefreshIndicator(
-                    color: AppColors.logoTeal,
-                    onRefresh: () async {
-                      print('MemorizationCirclesScreen: تحديث القائمة');
-                      await context.read<MemorizationCirclesCubit>().loadMemorizationCircles();
-                    },
-                    child: ListView.builder(
-                      padding: EdgeInsets.symmetric(vertical: 16.h),
-                      itemCount: circles.length,
-                      itemBuilder: (context, index) {
-                        return MemorizationCircleCard(
-                          circle: circles[index],
-                          userRole: _userRole,
-                          userId: _userId,
-                          onTap: () => _navigateToCircleDetails(context, circles[index]),
-                        );
-                      },
-                    ),
-                  );
-                } else if (state is MemorizationCirclesError) {
-                  print('MemorizationCirclesScreen: عرض حالة الخطأ - ${state.message}');
-                  return _buildErrorState(state.message);
-                }
-                print('MemorizationCirclesScreen: عرض الحالة الفارغة الافتراضية');
-                return _buildEmptyState();
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: _userRole == UserRole.admin
-          ? FloatingActionButton(
-              backgroundColor: AppColors.logoTeal,
-              child: const Icon(Icons.add),
-              onPressed: () {
-                _showAddCircleDialog();
-              },
-            )
-          : null,
-    );
+        ));
   }
 
   String _getScreenTitle() {
@@ -223,16 +226,18 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
     }
   }
 
-  List<MemorizationCircle> _filterCirclesByRole(List<MemorizationCircle> circles) {
+  List<MemorizationCircle> _filterCirclesByRole(
+      List<MemorizationCircle> circles) {
     print('MemorizationCirclesScreen: فلترة الحلقات حسب الدور - $_userRole');
-    print('MemorizationCirclesScreen: معرف المستخدم الحالي - ${_userId.isEmpty ? "فارغ" : _userId}');
-    
+    print(
+        'MemorizationCirclesScreen: معرف المستخدم الحالي - ${_userId.isEmpty ? "فارغ" : _userId}');
+
     // إذا كان معرف المستخدم فارغاً، أعد كل الحلقات
     if (_userId.isEmpty) {
       print('MemorizationCirclesScreen: معرف المستخدم فارغ - عرض كل الحلقات');
       return circles;
     }
-    
+
     switch (_userRole) {
       case UserRole.admin:
         print('MemorizationCirclesScreen: المستخدم مشرف - عرض كل الحلقات');
@@ -240,25 +245,30 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
       case UserRole.teacher:
         if (_isTeacherCirclesOnly) {
           print('MemorizationCirclesScreen: المستخدم معلم - عرض حلقاته فقط');
-          final filteredCircles = circles.where((circle) => circle.teacherId == _userId).toList();
-          print('MemorizationCirclesScreen: عدد حلقات المعلم - ${filteredCircles.length}');
+          final filteredCircles =
+              circles.where((circle) => circle.teacherId == _userId).toList();
+          print(
+              'MemorizationCirclesScreen: عدد حلقات المعلم - ${filteredCircles.length}');
           return filteredCircles;
         }
         print('MemorizationCirclesScreen: المستخدم معلم - عرض كل الحلقات');
         return circles;
       case UserRole.student:
-        print('MemorizationCirclesScreen: المستخدم طالب - عرض الحلقات المسجل فيها');
-        final studentCircles = circles.where((circle) => 
-          circle.studentIds.contains(_userId) ||
-          circle.teacherId == _userId
-        ).toList();
+        print(
+            'MemorizationCirclesScreen: المستخدم طالب - عرض الحلقات المسجل فيها');
+        final studentCircles = circles
+            .where((circle) =>
+                circle.studentIds.contains(_userId) ||
+                circle.teacherId == _userId)
+            .toList();
         print('MemorizationCirclesScreen: تفاصيل الحلقات المتاحة للطالب:');
         for (var circle in circles) {
           print('- حلقة: ${circle.name}');
           print('  معرف المعلم: ${circle.teacherId}');
           print('  معرفات الطلاب: ${circle.studentIds}');
         }
-        print('MemorizationCirclesScreen: عدد الحلقات المتاحة للطالب - ${studentCircles.length}');
+        print(
+            'MemorizationCirclesScreen: عدد الحلقات المتاحة للطالب - ${studentCircles.length}');
         return studentCircles;
       default:
         return circles;
@@ -294,14 +304,14 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
           Icon(
             Icons.menu_book,
             size: 64.sp,
-            color: Colors.grey[400],
+            color: Theme.of(context).disabledColor,
           ),
           SizedBox(height: 16.h),
           Text(
             'لا توجد حلقات حفظ حالياً',
             style: TextStyle(
               fontSize: 18.sp,
-              color: Colors.grey[700],
+              color: Theme.of(context).textTheme.titleLarge?.color,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -310,14 +320,14 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
             'سيتم إضافة حلقات جديدة قريباً',
             style: TextStyle(
               fontSize: 14.sp,
-              color: Colors.grey[600],
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
         ],
       ),
     );
   }
-  
+
   // Filtrar círculos según los filtros seleccionados
   List<MemorizationCircle> _filterCircles(List<MemorizationCircle> circles) {
     if (_isAllCircles) {
@@ -335,13 +345,13 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(color: AppColors.logoTeal),
+          CircularProgressIndicator(color: Theme.of(context).primaryColor),
           SizedBox(height: 16.h),
           Text(
             'جاري تحميل حلقات الحفظ...',
             style: TextStyle(
               fontSize: 16.sp,
-              color: Colors.grey[700],
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
         ],
@@ -382,51 +392,6 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
     );
   }
 
-  void _showFilterOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(16.r),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'تصفية حلقات الحفظ',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.logoTeal,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              _buildFilterOption('جميع الحلقات', Icons.all_inclusive),
-              _buildFilterOption('حلقات الحفظ فقط', Icons.menu_book),
-              _buildFilterOption('امتحانات الحفظ فقط', Icons.assignment),
-              _buildFilterOption('الحلقات القادمة', Icons.event),
-              _buildFilterOption('الحلقات السابقة', Icons.history),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFilterOption(String label, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.logoTeal),
-      title: Text(label),
-      onTap: () {
-        Navigator.pop(context);
-        // Aplicar filtro
-      },
-    );
-  }
-
   void _showAddCircleDialog() {
     // En una aplicación real, esto mostraría un formulario para agregar un nuevo círculo
     ScaffoldMessenger.of(context).showSnackBar(
@@ -438,8 +403,8 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
   }
 
   // Helper method to navigate to circle details
-  void _navigateToCircleDetails(BuildContext context, MemorizationCircle circle) {
-    // Get both cubits before navigation
+  void _navigateToCircleDetails(
+      BuildContext context, MemorizationCircle circle) {
     final authCubit = context.read<AuthCubit>();
     final memorizationCirclesCubit = context.read<MemorizationCirclesCubit>();
     
@@ -458,8 +423,6 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
           ),
         ),
       ),
-    ).then((_) {
-      _loadCircles();
-    });
+    );
   }
 }

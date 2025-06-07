@@ -13,7 +13,7 @@ import 'reset_password_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   static const String routeName = '/login';
-  
+
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
@@ -54,9 +54,9 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
   void _login() {
     if (_formKey.currentState!.validate()) {
       context.read<GlobalAuthCubit>().signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
     }
   }
 
@@ -72,9 +72,11 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
             ),
           );
         } else if (state is AuthAuthenticated) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/main', (route) => false);
         } else if (state is AuthGuest) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
         }
       },
       builder: (context, state) {
@@ -84,7 +86,8 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
             child: AuthBackground(
               child: SafeArea(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -236,7 +239,6 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
           'ليس لديك حساب؟',
           style: TextStyle(
             fontSize: 14.sp,
-            color: Colors.black54,
           ),
         ),
         TextButton(

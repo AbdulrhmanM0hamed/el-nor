@@ -25,7 +25,7 @@ class HomeView extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
+        appBar: context.watch<GlobalAuthCubit>().state is AuthGuest ? AppBar(
           title: Text(
             'النور',
             style: TextStyle(
@@ -43,38 +43,40 @@ class HomeView extends StatelessWidget {
               context.read<GlobalAuthCubit>().signOut();
             },
           ),
-        ),
-        body: Stack(
-          children: [
-            // Top SVG background
-            Positioned(
-              top: 0,
-              right: 30.w,
-              child: Opacity(
-                opacity: 0.3,
-                child: SvgPicture.asset(
-                  'assets/images/back1.svg',
-                  width: MediaQuery.of(context).size.width * 0.8,
+        ) : null,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Top SVG background
+              Positioned(
+                top: 0,
+                right: 30.w,
+                child: Opacity(
+                  opacity: 0.3,
+                  child: SvgPicture.asset(
+                    'assets/images/back1.svg',
+                    width: MediaQuery.of(context).size.width * 0.8,
+                  ),
                 ),
               ),
-            ),
-            
-            // Bottom SVG background
-            Positioned(
-              bottom: 0,
-              left: 30.w,
-              child: Opacity(
-                opacity: 0.3,
-                child: SvgPicture.asset(
-                  'assets/images/back2.svg',
-                  width: MediaQuery.of(context).size.width * 0.8,
+              
+              // Bottom SVG background
+              Positioned(
+                bottom: 0,
+                left: 30.w,
+                child: Opacity(
+                  opacity: 0.3,
+                  child: SvgPicture.asset(
+                    'assets/images/back2.svg',
+                    width: MediaQuery.of(context).size.width * 0.8,
+                  ),
                 ),
               ),
-            ),
-            
-            // Main content
-            const HomeViewBody(),
-          ],
+              
+              // Main content
+              const HomeViewBody(),
+            ],
+          ),
         ),
       ),
     );
