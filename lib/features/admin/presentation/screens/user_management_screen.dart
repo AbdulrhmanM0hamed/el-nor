@@ -1,3 +1,4 @@
+import 'package:beat_elslam/features/admin/presentation/widgets/user_management/user_list_item.dart';
 import 'package:beat_elslam/features/admin/presentation/widgets/user_management/user_role_dialog.dart';
 import 'package:beat_elslam/features/admin/presentation/widgets/user_management/user_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import '../../../../core/services/service_locator.dart';
 import '../../data/models/student_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
-import '../widgets/user_management/widgets/user_list_item.dart';
 
 
 class UserManagementScreen extends StatefulWidget {

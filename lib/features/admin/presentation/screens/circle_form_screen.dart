@@ -1,17 +1,84 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
-import '../../../../core/services/service_locator.dart';
-import '../../data/models/student_model.dart';
+import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/surah_assignment.dart';
+import '../../data/models/student_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
 import '../widgets/shared/profile_image.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/services/service_locator.dart';
 
-class CircleFormDialog extends StatefulWidget {
+// Wrapper to provide AdminCubit
+class CircleFormScreenWrapper extends StatelessWidget {
+  static const String routeName = '/circle-form';
+  final MemorizationCircleModel? circle;
+
+  const CircleFormScreenWrapper({Key? key, this.circle}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => sl<AdminCubit>()..loadTeachers()..loadStudents(),
+      child: BlocBuilder<AdminCubit, AdminState>(
+        builder: (context, state) {
+          // تحميل المعلمين والطلاب
+          final List<StudentModel> teachers = state is AdminTeachersLoaded ? state.teachers : [];
+          final List<StudentModel> students = context.read<AdminCubit>().state is AdminStudentsLoaded
+              ? (context.read<AdminCubit>().state as AdminStudentsLoaded).students
+              : [];
+
+          return CircleFormScreen(
+            title: circle != null ? 'تعديل حلقة ${circle!.name}' : 'إضافة حلقة جديدة',
+            initialName: circle?.name,
+            initialDescription: circle?.description,
+            initialDate: circle?.startDate,
+            initialTeacherId: circle?.teacherId,
+            initialTeacherName: circle?.teacherName,
+            availableTeachers: teachers,
+            initialSurahAssignments: circle?.surahAssignments,
+            availableStudents: students,
+            initialStudentIds: circle?.studentIds,
+            initialIsExam: circle?.isExam,
+            onSave: (name, description, startDate, teacherId, teacherName, surahAssignments, studentIds, isExam) {
+              final adminCubit = context.read<AdminCubit>();
+              if (circle != null) {
+                // تحديث حلقة موجودة
+                adminCubit.updateCircle(
+                  id: circle!.id,
+                  name: name,
+                  description: description,
+                  startDate: startDate,
+                  teacherId: teacherId,
+                  teacherName: teacherName,
+                  surahs: surahAssignments,
+                  studentIds: studentIds,
+                );
+              } else {
+                // إنشاء حلقة جديدة
+                adminCubit.createCircle(
+                  name: name,
+                  description: description,
+                  startDate: startDate,
+                  teacherId: teacherId,
+                  teacherName: teacherName,
+                  surahs: surahAssignments,
+                  studentIds: studentIds,
+                );
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CircleFormScreen extends StatefulWidget {
+  static const String routeName = '/circle-form';
+  
   final String title;
   final String? initialName;
   final String? initialDescription;
@@ -23,9 +90,18 @@ class CircleFormDialog extends StatefulWidget {
   final List<StudentModel>? availableStudents;
   final List<String>? initialStudentIds;
   final bool? initialIsExam;
-  final Function(String name, String description, DateTime startDate, String? teacherId, String? teacherName, List<SurahAssignment> surahAssignments, List<String> studentIds, bool isExam) onSave;
+  final Function(
+    String name,
+    String description,
+    DateTime startDate,
+    String? teacherId,
+    String? teacherName,
+    List<SurahAssignment> surahAssignments,
+    List<String> studentIds,
+    bool isExam,
+  ) onSave;
 
-  const CircleFormDialog({
+  const CircleFormScreen({
     Key? key,
     required this.title,
     this.initialName,
@@ -42,19 +118,19 @@ class CircleFormDialog extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<CircleFormDialog> createState() => _CircleFormDialogState();
+  State<CircleFormScreen> createState() => _CircleFormScreenState();
 }
 
-class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerProviderStateMixin {
+class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late DateTime _selectedDate;
   String? _selectedTeacherId;
   String? _selectedTeacherName;
-  bool _isExam = false;
   final List<SurahAssignment> _selectedSurahs = [];
   final List<String> _selectedStudentIds = [];
+  bool _isExam = false;
   
   // Controladores para el diálogo de asignación de suras
   final TextEditingController _surahNameController = TextEditingController();
@@ -91,6 +167,7 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
     if (widget.initialTeacherId != null && widget.initialTeacherId!.isNotEmpty) {
       _selectedTeacherId = widget.initialTeacherId;
       _selectedTeacherName = widget.initialTeacherName;
+      print('CircleFormScreen: Initialized selected teacher: $_selectedTeacherName (ID: $_selectedTeacherId)');
     }
   }
 
@@ -110,134 +187,100 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<AdminCubit>(),
-      child: Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Encabezado del diálogo
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 16.h),
-                decoration: BoxDecoration(
-                  color: AppColors.logoTeal,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16.r),
-                    topRight: Radius.circular(16.r),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    widget.title,
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              
-              // Pestañas de navegación
-              TabBar(
-                controller: _tabController,
-                labelColor: AppColors.logoTeal,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: AppColors.logoTeal,
-                tabs:const [
-                  Tab(text: 'معلومات أساسية', icon: Icon(Icons.info_outline)),
-                  Tab(text: 'المعلم', icon: Icon(Icons.person)),
-                  Tab(text: 'السور', icon: Icon(Icons.menu_book)),
-                  Tab(text: 'الطلاب', icon: Icon(Icons.people)),
-                ],
-              ),
-              
-              // Contenido de las pestañas
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  physics:const NeverScrollableScrollPhysics(),
-                  children: [
-                    _buildBasicInfoTab(),
-                    _buildTeacherTab(),
-                    _buildSurahsTab(),
-                    _buildStudentsTab(),
-                  ],
-                ),
-              ),
-              
-              // Botones de acción
-              Padding(
-                padding: EdgeInsets.all(16.r),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(
-                        'إلغاء',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14.sp,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    ElevatedButton(
-                      onPressed: _saveCircle,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.logoTeal,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                      ),
-                      child: Text(
-                        'حفظ',
-                        style: TextStyle(fontSize: 14.sp),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.title,
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: AppColors.logoTeal,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _saveCircle,
+            ),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: const [
+              Tab(text: 'معلومات أساسية', icon: Icon(Icons.info_outline)),
+              Tab(text: 'المعلم', icon: Icon(Icons.person)),
+              Tab(text: 'السور', icon: Icon(Icons.menu_book)),
+              Tab(text: 'الطلاب', icon: Icon(Icons.people)),
             ],
           ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildBasicInfoTab(),
+            _buildTeacherTab(),
+            _buildSurahsTab(),
+            _buildStudentsTab(),
+          ],
         ),
       ),
     );
   }
 
-  // Método para guardar el círculo
+  // دالة حفظ الحلقة
   void _saveCircle() {
-    // Primero seleccionar la pestaña de información básica para asegurar que el formulario esté en el árbol
-    _tabController.animateTo(0); // Cambiar a la primera pestaña donde está el formulario
-    
-    // Dar tiempo para que se actualice la UI
-    Future.delayed(const Duration(milliseconds: 100), () {
-      // Verificar si el estado del formulario existe antes de validar
-      if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-        widget.onSave(
-          _nameController.text,
-          _descriptionController.text,
-          _selectedDate,
-          _selectedTeacherId,
-          _selectedTeacherName,
-          _selectedSurahs,
-          _selectedStudentIds,
-          _isExam,
-        );
-        
-        // Close the dialog and refresh circles
-        Navigator.of(context).pop(true); // Return true to indicate successful save
-      } else {
-        // Si el formulario no es válido o no existe, mostrar un mensaje
-        ScaffoldMessenger.of(context).showSnackBar(
-      const    SnackBar(content: Text('يرجى التأكد من صحة البيانات المدخلة')),
-        );
-      }
-    });
+    bool isValid = true;
+    String errorMessage = '';
+
+    // التحقق من صحة النموذج الأساسي
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
+      isValid = false;
+      errorMessage = 'يرجى التأكد من إدخال المعلومات الأساسية بشكل صحيح';
+    }
+    // التحقق من اختيار معلم
+    else if (_selectedTeacherId == null || _selectedTeacherId!.isEmpty) {
+      isValid = false;
+      errorMessage = 'يرجى اختيار معلم للحلقة';
+      _tabController.animateTo(1); // الانتقال إلى تبويب المعلم
+    }
+    // التحقق من إضافة سور (إلا إذا كانت حلقة امتحان)
+    else if (!_isExam && _selectedSurahs.isEmpty) {
+      isValid = false;
+      errorMessage = 'يرجى إضافة سورة واحدة على الأقل';
+      _tabController.animateTo(2); // الانتقال إلى تبويب السور
+    }
+    // التحقق من اختيار طلاب
+    else if (_selectedStudentIds.isEmpty) {
+      isValid = false;
+      errorMessage = 'يرجى اختيار طالب واحد على الأقل';
+      _tabController.animateTo(3); // الانتقال إلى تبويب الطلاب
+    }
+
+    if (isValid) {
+      widget.onSave(
+        _nameController.text,
+        _descriptionController.text,
+        _selectedDate,
+        _selectedTeacherId,
+        _selectedTeacherName,
+        _selectedSurahs,
+        _selectedStudentIds,
+        _isExam,
+      );
+      
+      Navigator.of(context).pop(true); // إرجاع true للإشارة إلى نجاح الحفظ
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Pestaña de información básica
@@ -293,7 +336,7 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                   builder: (context, child) {
                     return Theme(
                       data: Theme.of(context).copyWith(
-                        colorScheme: const ColorScheme.light(
+                        colorScheme: ColorScheme.light(
                           primary: AppColors.logoTeal,
                           onPrimary: Colors.white,
                           onSurface: Colors.black,
@@ -317,7 +360,7 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: AppColors.logoTeal),
+                    Icon(Icons.calendar_today, color: AppColors.logoTeal),
                     SizedBox(width: 8.w),
                     Text(
                       'تاريخ البدء: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
@@ -328,36 +371,29 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
               ),
             ),
             SizedBox(height: 16.h),
-            Container(
-              padding: EdgeInsets.all(16.r),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.r),
+            // إضافة خيار الامتحان
+            SwitchListTile(
+              title: Text(
+                'حلقة امتحان',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.quiz, color: AppColors.logoTeal),
-                      SizedBox(width: 8.w),
-                      Text(
-                        'حلقة اختبار',
-                        style: TextStyle(fontSize: 16.sp),
-                      ),
-                    ],
-                  ),
-                  Switch(
-                    value: _isExam,
-                    onChanged: (value) {
-                      setState(() {
-                        _isExam = value;
-                      });
-                    },
-                    activeColor: AppColors.logoTeal,
-                  ),
-                ],
+              subtitle: Text(
+                'حدد إذا كانت هذه الحلقة مخصصة للامتحانات',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey,
+                ),
               ),
+              value: _isExam,
+              onChanged: (value) {
+                setState(() {
+                  _isExam = value;
+                });
+              },
+              activeColor: AppColors.logoTeal,
             ),
           ],
         ),
@@ -365,45 +401,61 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
     );
   }
 
-  // Pestaña de selección de maestro
+  // تبويب المعلم
   Widget _buildTeacherTab() {
-    return BlocProvider(
-      create: (context) => sl<AdminCubit>()..loadTeachers(),
-      child: Padding(
-        padding: EdgeInsets.all(16.r),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'اختر المعلم',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.logoTeal,
-              ),
+    return Padding(
+      padding: EdgeInsets.all(16.r),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'اختر المعلم',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.logoTeal,
             ),
-            SizedBox(height: 16.h),
-            Expanded(
-              child: widget.availableTeachers.isEmpty
-                  ? const Center(child: Text('لا يوجد معلمين متاحين'))
-                  : BlocBuilder<AdminCubit, AdminState>(
-                      builder: (context, state) {
-                        if (state is AdminTeachersLoaded) {
-                          return ListView.builder(
-                            itemCount: state.teachers.length,
-                            itemBuilder: (context, index) {
-                              final teacher = state.teachers[index];
-                              final isSelected = _selectedTeacherId == teacher.id;
-                              return _buildTeacherCard(teacher, isSelected);
-                            },
-                          );
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      },
+          ),
+          SizedBox(height: 16.h),
+          Expanded(
+            child: widget.availableTeachers.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.person_off,
+                          size: 48.r,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'لا يوجد معلمين متاحين',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          'يرجى إضافة معلمين من صفحة إدارة المستخدمين',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
-            ),
-          ],
-        ),
+                  )
+                : ListView.builder(
+                    itemCount: widget.availableTeachers.length,
+                    itemBuilder: (context, index) {
+                      final teacher = widget.availableTeachers[index];
+                      final isSelected = _selectedTeacherId == teacher.id;
+                      return _buildTeacherCard(teacher, isSelected);
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -548,46 +600,61 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
     );
   }
 
-  // Pestaña de selección de estudiantes
+  // تبويب اختيار الطلاب
   Widget _buildStudentsTab() {
-    return BlocProvider(
-      create: (context) => sl<AdminCubit>()..loadStudents(),
-      child: Padding(
-        padding: EdgeInsets.all(16.r),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'اختر الطلاب',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.logoTeal,
-              ),
+    return Padding(
+      padding: EdgeInsets.all(16.r),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'اختر الطلاب',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.logoTeal,
             ),
-            SizedBox(height: 8.h),
-            Expanded(
-              child: widget.availableStudents?.isEmpty ?? true
-                  ? Center(child: Text('لا يوجد طلاب متاحين'))
-                  : BlocBuilder<AdminCubit, AdminState>(
-                      builder: (context, state) {
-                        if (state is AdminStudentsLoaded) {
-                          final students = state.students.where((s) => !s.isTeacher && !s.isAdmin).toList();
-                          return ListView.builder(
-                            itemCount: students.length,
-                            itemBuilder: (context, index) {
-                              final student = students[index];
-                              final isSelected = _selectedStudentIds.contains(student.id);
-                              return _buildStudentCard(student, isSelected);
-                            },
-                          );
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      },
+          ),
+          SizedBox(height: 8.h),
+          Expanded(
+            child: widget.availableStudents?.isEmpty ?? true
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.person_off,
+                          size: 48.r,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'لا يوجد طلاب متاحين',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          'يرجى إضافة طلاب من صفحة إدارة المستخدمين',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
-            ),
-          ],
-        ),
+                  )
+                : ListView.builder(
+                    itemCount: widget.availableStudents?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final student = widget.availableStudents![index];
+                      final isSelected = _selectedStudentIds.contains(student.id);
+                      return _buildStudentCard(student, isSelected);
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -793,4 +860,4 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
       ),
     );
   }
-}
+} 

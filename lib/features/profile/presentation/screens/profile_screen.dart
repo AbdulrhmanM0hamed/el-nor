@@ -5,7 +5,6 @@ import '../../../auth/presentation/cubit/auth_state.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../widgets/profile_header_widget.dart';
 import '../widgets/profile_info_widget.dart';
-import '../widgets/profile_stats_widget.dart';
 import '../widgets/profile_actions_widget.dart';
 
 class ProfileScreen extends StatelessWidget {

@@ -4,7 +4,6 @@ import 'package:beat_elslam/features/quran_circles/data/models/memorization_circ
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'dart:developer' as developer;
 
 
 class MemorizationCircleCard extends StatelessWidget {
@@ -31,13 +30,13 @@ class MemorizationCircleCard extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-        
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -72,7 +71,7 @@ class MemorizationCircleCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    DateFormat('yyyy/MM/dd').format(circle.endDate ?? DateTime.now()),
+                    DateFormat('yyyy/MM/dd').format(circle.startDate ?? DateTime.now()),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12.sp,
@@ -94,7 +93,6 @@ class MemorizationCircleCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                   
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -107,15 +105,14 @@ class MemorizationCircleCard extends StatelessWidget {
                       Icon(
                         Icons.person,
                         size: 16.sp,
-                        color: AppColors.logoOrange,
+                        color: AppColors.logoTeal,
                       ),
                       SizedBox(width: 4.w),
                       Expanded(
                         child: Builder(
                           builder: (context) {
                             final hasTeacherName = circle.teacherName != null && circle.teacherName!.isNotEmpty;
-                            developer.log('Has Teacher Name: $hasTeacherName', name: 'CircleCard');
-                            developer.log('Teacher Name Value: ${circle.teacherName}', name: 'CircleCard');
+                           
                             
                             return Text(
                               hasTeacherName
@@ -136,7 +133,7 @@ class MemorizationCircleCard extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                           decoration: BoxDecoration(
-                            color: AppColors.logoTeal.withOpacity(0.1),
+                            color: AppColors.logoTeal.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Text(
@@ -173,11 +170,13 @@ class MemorizationCircleCard extends StatelessWidget {
                         Icons.book,
                         'السور المقررة',
                         '${circle.assignments.length}',
+                        AppColors.logoTeal,
                       ),
                       _buildInfoItem(
                         Icons.people,
                         'الطلاب',
                         '${circle.students.length}',
+                        AppColors.logoTeal,
                       ),
                     ],
                   ),
@@ -221,7 +220,7 @@ class MemorizationCircleCard extends StatelessWidget {
                               height: 40.h,
                               margin: EdgeInsets.only(right: 8.w),
                               decoration: BoxDecoration(
-                                color: AppColors.logoTeal.withOpacity(0.2),
+                                color: AppColors.logoTeal.withOpacity(0.15),
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
@@ -242,7 +241,7 @@ class MemorizationCircleCard extends StatelessWidget {
                             height: 40.h,
                             margin: EdgeInsets.only(right: 8.w),
                             decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                              color: Colors.grey[100],
                               shape: BoxShape.circle,
                               image: circle.students[index].profileImageUrl != null
                                   ? DecorationImage(
@@ -276,31 +275,40 @@ class MemorizationCircleCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 16.sp,
-          color: AppColors.logoOrange,
-        ),
-        SizedBox(width: 4.w),
-        Text(
-          '$label: ',
-          style: TextStyle(
-            fontSize: 12.sp,
-            color: Colors.grey[500],
+  Widget _buildInfoItem(IconData icon, String label, String value, [Color? color]) {
+    final iconColor = color ?? AppColors.logoTeal;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: iconColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16.sp,
+            color: iconColor,
           ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.bold,
-         
+          SizedBox(width: 4.w),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: iconColor.withOpacity(0.8),
+            ),
           ),
-        ),
-      ],
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.bold,
+              color: iconColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

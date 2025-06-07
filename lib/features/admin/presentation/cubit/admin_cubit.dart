@@ -143,6 +143,7 @@ class AdminCubit extends Cubit<AdminState> {
     String? teacherName,
     List<SurahAssignment>? surahs,
     List<String>? studentIds,
+    bool isExam = false,
   }) async {
     try {
       emit(AdminLoading());
@@ -153,7 +154,7 @@ class AdminCubit extends Cubit<AdminState> {
         description: description,
         teacherId: teacherId,
         teacherName: teacherName,
-        isExam: false,
+        isExam: isExam,
         startDate: startDate,
         surahs: surahs,
         studentIds: studentIds,
@@ -185,6 +186,7 @@ class AdminCubit extends Cubit<AdminState> {
     String? teacherName,
     List<SurahAssignment>? surahs,
     List<String>? studentIds,
+    bool isExam = false,
   }) async {
     try {
       emit(AdminLoading());
@@ -204,6 +206,7 @@ class AdminCubit extends Cubit<AdminState> {
         teacherName: teacherName,
         surahAssignments: surahs,
         studentIds: studentIds,
+        isExam: isExam,
         updatedAt: DateTime.now(),
       );
       

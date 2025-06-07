@@ -6,7 +6,6 @@ import '../../../../core/utils/theme/app_colors.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/cubit/global_auth_cubit.dart';
 import '../../../admin/presentation/screens/circle_management_screen.dart';
-import '../../../admin/presentation/screens/user_management_screen.dart';
 
 class ProfileActionsWidget extends StatelessWidget {
   final UserModel user;

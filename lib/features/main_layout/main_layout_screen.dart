@@ -2,7 +2,6 @@ import 'package:beat_elslam/features/home/masbaha/presentation/screens/masbaha_s
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/widgets/custom_bottom_navigation.dart';
-import '../../core/utils/theme/app_colors.dart';
 import '../../core/services/service_locator.dart' as di;
 import '../home/view/home_View.dart';
 import '../quran_circles/presentation/screens/memorization_circles_screen.dart';

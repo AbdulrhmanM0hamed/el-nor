@@ -35,9 +35,7 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
   Future<void> _initializeUserData() async {
     final authCubit = context.read<AuthCubit>();
     final currentUser = authCubit.currentUser;
-    print('MemorizationCirclesScreen: تهيئة بيانات المستخدم');
-    print('MemorizationCirclesScreen: المستخدم الحالي - ${currentUser?.name}');
-    print('MemorizationCirclesScreen: معرف المستخدم - ${currentUser?.id}');
+   
 
     if (currentUser != null) {
       setState(() {
@@ -50,19 +48,14 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
           _userRole = UserRole.student;
         }
       });
-      print('MemorizationCirclesScreen: تم تحديث البيانات');
-      print('MemorizationCirclesScreen: الدور - $_userRole');
-      print('MemorizationCirclesScreen: معرف المستخدم - $_userId');
-    } else {
-      print('MemorizationCirclesScreen: لم يتم العثور على بيانات المستخدم');
-    }
+     
+    } 
 
     await Future.delayed(Duration.zero); // انتظار حتى يتم تحديث الحالة
     _loadCircles();
   }
 
   void _loadCircles() {
-    print('MemorizationCirclesScreen: بدء تحميل الحلقات');
     context.read<MemorizationCirclesCubit>().loadMemorizationCircles();
   }
 
@@ -152,34 +145,28 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
               child: BlocBuilder<MemorizationCirclesCubit,
                   MemorizationCirclesState>(
                 builder: (context, state) {
-                  print(
-                      'MemorizationCirclesScreen: حالة BlocBuilder الحالية - ${state.runtimeType}');
-
+                
                   if (state is MemorizationCirclesLoading) {
-                    print('MemorizationCirclesScreen: عرض حالة التحميل');
+                   
                     return _buildLoadingState();
                   } else if (state is MemorizationCirclesLoaded) {
-                    print(
-                        'MemorizationCirclesScreen: تم تحميل الحلقات - ${state.circles.length} حلقة');
+                   
                     var circles = _filterCircles(state.circles);
-                    print(
-                        'MemorizationCirclesScreen: بعد التصفية - ${circles.length} حلقة');
+                    
 
                     // فلترة إضافية حسب الدور
                     circles = _filterCirclesByRole(circles);
-                    print(
-                        'MemorizationCirclesScreen: بعد فلترة الدور - ${circles.length} حلقة');
+                   
 
                     if (circles.isEmpty) {
-                      print(
-                          'MemorizationCirclesScreen: لا توجد حلقات للعرض - عرض الحالة الفارغة');
+                   
                       return _buildEmptyState();
                     }
 
                     return RefreshIndicator(
                       color: AppColors.logoTeal,
                       onRefresh: () async {
-                        print('MemorizationCirclesScreen: تحديث القائمة');
+                       
                         await context
                             .read<MemorizationCirclesCubit>()
                             .loadMemorizationCircles();
@@ -199,12 +186,10 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
                       ),
                     );
                   } else if (state is MemorizationCirclesError) {
-                    print(
-                        'MemorizationCirclesScreen: عرض حالة الخطأ - ${state.message}');
+                 
                     return _buildErrorState(state.message);
                   }
-                  print(
-                      'MemorizationCirclesScreen: عرض الحالة الفارغة الافتراضية');
+                 
                   return _buildEmptyState();
                 },
               ),
@@ -228,47 +213,35 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen> {
 
   List<MemorizationCircle> _filterCirclesByRole(
       List<MemorizationCircle> circles) {
-    print('MemorizationCirclesScreen: فلترة الحلقات حسب الدور - $_userRole');
-    print(
-        'MemorizationCirclesScreen: معرف المستخدم الحالي - ${_userId.isEmpty ? "فارغ" : _userId}');
+   
 
     // إذا كان معرف المستخدم فارغاً، أعد كل الحلقات
     if (_userId.isEmpty) {
-      print('MemorizationCirclesScreen: معرف المستخدم فارغ - عرض كل الحلقات');
       return circles;
     }
 
     switch (_userRole) {
       case UserRole.admin:
-        print('MemorizationCirclesScreen: المستخدم مشرف - عرض كل الحلقات');
         return circles;
       case UserRole.teacher:
         if (_isTeacherCirclesOnly) {
-          print('MemorizationCirclesScreen: المستخدم معلم - عرض حلقاته فقط');
           final filteredCircles =
               circles.where((circle) => circle.teacherId == _userId).toList();
-          print(
-              'MemorizationCirclesScreen: عدد حلقات المعلم - ${filteredCircles.length}');
+             
           return filteredCircles;
         }
-        print('MemorizationCirclesScreen: المستخدم معلم - عرض كل الحلقات');
+     
         return circles;
       case UserRole.student:
-        print(
-            'MemorizationCirclesScreen: المستخدم طالب - عرض الحلقات المسجل فيها');
         final studentCircles = circles
             .where((circle) =>
                 circle.studentIds.contains(_userId) ||
                 circle.teacherId == _userId)
             .toList();
-        print('MemorizationCirclesScreen: تفاصيل الحلقات المتاحة للطالب:');
         for (var circle in circles) {
-          print('- حلقة: ${circle.name}');
-          print('  معرف المعلم: ${circle.teacherId}');
-          print('  معرفات الطلاب: ${circle.studentIds}');
+       
         }
-        print(
-            'MemorizationCirclesScreen: عدد الحلقات المتاحة للطالب - ${studentCircles.length}');
+      
         return studentCircles;
       default:
         return circles;
