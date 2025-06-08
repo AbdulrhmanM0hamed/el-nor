@@ -155,17 +155,6 @@ class NavBarPainter extends CustomPainter {
       ..close();
 
     canvas.drawPath(path, paint);
-
-    // إضافة خط زخرفي في الأعلى
-    Paint linePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-
-    Path linePath = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0);
-
-    canvas.drawPath(linePath, linePaint);
   }
 
   @override
