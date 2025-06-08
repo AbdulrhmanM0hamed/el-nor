@@ -10,6 +10,7 @@ import '../cubit/memorization_circles_cubit.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MemorizationCircleDetailsScreen extends StatefulWidget {
   final MemorizationCircle circle;
@@ -31,29 +32,15 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   late MemorizationCircle _circle;
-  String? _currentUserId;
   
   @override
   bool get wantKeepAlive => true;
-  
-  // Helpers for user permissions
-  bool get _canManageCircle => 
-    widget.userRole == UserRole.admin || 
-    (_circle.teacherId != null && _circle.teacherId == _currentUserId);
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _circle = widget.circle;
-    _updateCurrentUserId();
-  }
-
-  void _updateCurrentUserId() {
-    final authCubit = context.read<AuthCubit>();
-    setState(() {
-      _currentUserId = authCubit.currentUser?.id;
-    });
   }
 
   @override
@@ -62,77 +49,118 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
     super.dispose();
   }
 
+  Future<Map<String, dynamic>> _getCurrentUserPermissions() async {
+    try {
+      final currentUser = Supabase.instance.client.auth.currentUser;
+      if (currentUser == null) {
+        return {'role': UserRole.student, 'userId': '', 'canManage': false};
+      }
+
+      final userData = await Supabase.instance.client
+          .from('students')
+          .select('id, is_admin, is_teacher')
+          .eq('id', currentUser.id)
+          .single();
+
+      if (userData == null) {
+        return {'role': UserRole.student, 'userId': currentUser.id, 'canManage': false};
+      }
+
+      UserRole role;
+      if (userData['is_admin'] == true) {
+        role = UserRole.admin;
+      } else if (userData['is_teacher'] == true) {
+        role = UserRole.teacher;
+      } else {
+        role = UserRole.student;
+      }
+
+      final bool canManage = role == UserRole.admin || 
+          (_circle.teacherId != null && _circle.teacherId == currentUser.id);
+
+      return {
+        'role': role,
+        'userId': currentUser.id,
+        'canManage': canManage,
+      };
+    } catch (e) {
+      return {'role': UserRole.student, 'userId': '', 'canManage': false};
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     
-    return BlocListener<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state is AuthAuthenticated) {
-          setState(() {
-            _currentUserId = state.user.id;
-          });
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _circle.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (_circle.teacherId == _currentUserId)
-                const Text(
-                  'حلقتي',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.normal,
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _getCurrentUserPermissions(),
+      builder: (context, snapshot) {
+        final permissions = snapshot.data ?? {
+          'role': UserRole.student,
+          'userId': '',
+          'canManage': false,
+        };
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _circle.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-            ],
+                if (_circle.teacherId == permissions['userId'])
+                  const Text(
+                    'حلقتي',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+              ],
+            ),
+            backgroundColor: _circle.isExam ? AppColors.logoOrange : AppColors.logoTeal,
+            centerTitle: true,
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              tabs: const [
+                Tab(text: 'السور المقررة'),
+                Tab(text: 'الطلاب'),
+              ],
+            ),
           ),
-          backgroundColor: _circle.isExam ? AppColors.logoOrange : AppColors.logoTeal,
-          centerTitle: true,
-          bottom: TabBar(
+          body: TabBarView(
             controller: _tabController,
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: const [
-              Tab(text: 'السور المقررة'),
-              Tab(text: 'الطلاب'),
+            children: [
+              // تبويب السور المقررة
+              CircleAssignmentsTab(
+                key: const PageStorageKey<String>('assignments_tab'),
+                assignments: _circle.assignments,
+                isEditable: permissions['canManage'],
+                onAddSurah: permissions['canManage'] ? _showAddSurahDialog : null,
+              ),
+              
+              // تبويب الطلاب
+              CircleStudentsTab(
+                key: const PageStorageKey<String>('students_tab'),
+                students: _circle.students,
+                teacherId: _circle.teacherId ?? '',
+                currentUserId: permissions['userId'],
+                onEvaluationChanged: permissions['canManage'] && _circle.teacherId != null ? _onEvaluationChanged : null,
+                onAttendanceChanged: permissions['canManage'] && _circle.teacherId != null ? _onAttendanceChanged : null,
+                onAddStudent: permissions['canManage'] ? _showAddStudentDialog : null,
+              ),
             ],
           ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // تبويب السور المقررة
-            CircleAssignmentsTab(
-              key: const PageStorageKey<String>('assignments_tab'),
-              assignments: _circle.assignments,
-              isEditable: _canManageCircle,
-              onAddSurah: _canManageCircle ? _showAddSurahDialog : null,
-            ),
-            
-            // تبويب الطلاب
-            CircleStudentsTab(
-              key: const PageStorageKey<String>('students_tab'),
-              students: _circle.students,
-              teacherId: _circle.teacherId ?? '',
-              currentUserId: _currentUserId ?? '',
-              onEvaluationChanged: _canManageCircle && _circle.teacherId != null ? _onEvaluationChanged : null,
-              onAttendanceChanged: _canManageCircle && _circle.teacherId != null ? _onAttendanceChanged : null,
-              onAddStudent: _canManageCircle ? _showAddStudentDialog : null,
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 

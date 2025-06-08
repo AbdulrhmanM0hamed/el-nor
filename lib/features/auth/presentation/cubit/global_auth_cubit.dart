@@ -2,15 +2,22 @@ import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
+import '../../../../core/services/session_service.dart';
+import '../../../../core/services/permissions_manager.dart';
 import 'auth_state.dart';
 
 class GlobalAuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;
+  final SessionService _sessionService;
+  final PermissionsManager _permissionsManager;
   static GlobalAuthCubit? _instance;
 
-  GlobalAuthCubit._({required AuthRepository authRepository})
-      : _authRepository = authRepository,
-        super(AuthInitial());
+  GlobalAuthCubit._({
+    required AuthRepository authRepository,
+  }) : _authRepository = authRepository,
+       _sessionService = SessionService(),
+       _permissionsManager = PermissionsManager(),
+       super(AuthInitial());
 
   static GlobalAuthCubit get instance {
     if (_instance == null) {
@@ -41,6 +48,14 @@ class GlobalAuthCubit extends Cubit<AuthState> {
       
       if (user != null) {
         print('GlobalAuthCubit: تم العثور على مستخدم مسجل');
+        
+        // Validate session and permissions
+        final isValid = await _permissionsManager.validatePermissions(user.id);
+        if (!isValid) {
+          print('GlobalAuthCubit: الجلسة غير صالحة، إعادة تعيين الصلاحيات');
+          await _permissionsManager.setPermissions(user.id, user.role);
+        }
+        
         emit(AuthAuthenticated(user));
       } else {
         print('GlobalAuthCubit: لا يوجد مستخدم مسجل');
@@ -63,6 +78,10 @@ class GlobalAuthCubit extends Cubit<AuthState> {
       );
       
       print('GlobalAuthCubit: تم تسجيل الدخول بنجاح');
+      
+      // Set up session and permissions
+      await _permissionsManager.setPermissions(user.id, user.role);
+      
       emit(AuthAuthenticated(user));
     } catch (e) {
       print('GlobalAuthCubit: حدث خطأ أثناء تسجيل الدخول: $e');
@@ -80,6 +99,11 @@ class GlobalAuthCubit extends Cubit<AuthState> {
         return;
       }
 
+      // Clear permissions and session first
+      await _permissionsManager.clearPermissions();
+      print('GlobalAuthCubit: تم مسح الصلاحيات والجلسة');
+      
+      // Then clear user data and sign out
       await _authRepository.clearUserData();
       print('GlobalAuthCubit: تم مسح بيانات المستخدم');
       
@@ -106,6 +130,12 @@ class GlobalAuthCubit extends Cubit<AuthState> {
         user: user,
         profileImage: profileImage,
       );
+      
+      // Update permissions if role changed
+      if (currentUser?.role != updatedUser.role) {
+        await _permissionsManager.setPermissions(updatedUser.id, updatedUser.role);
+      }
+      
       emit(AuthAuthenticated(updatedUser));
     } catch (e) {
       rethrow;

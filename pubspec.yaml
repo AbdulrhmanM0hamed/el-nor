@@ -51,6 +51,7 @@ dependencies:
   flutter_native_splash: ^2.4.6
   flutter_pdfview: ^1.4.0+1
   flutter_screenutil: ^5.9.3
+  flutter_secure_storage: ^9.2.4
   flutter_svg: ^2.0.14
   flutter_tts: ^3.8.5
   geolocator: ^14.0.0

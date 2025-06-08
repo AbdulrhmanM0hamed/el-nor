@@ -1,8 +1,10 @@
 import 'package:beat_elslam/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:beat_elslam/features/auth/presentation/cubit/auth_state.dart';
 import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/widgets/memorization_circle_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../cubit/memorization_circles_cubit.dart';
@@ -19,13 +21,10 @@ class MemorizationCirclesScreen extends StatefulWidget {
 
 class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     with AutomaticKeepAliveClientMixin {
-  late UserRole _userRole = UserRole.student;
-  late String _userId = '';
   bool _isTeacherCirclesOnly = false;
   bool _isAllCircles = true;
   bool _isMemorizationOnly = false;
   bool _isExamOnly = false;
-  bool _isInitialized = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -33,30 +32,6 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
   @override
   void initState() {
     super.initState();
-    _initializeUserData();
-  }
-
-  Future<void> _initializeUserData() async {
-    if (_isInitialized) return;
-
-    final authCubit = context.read<AuthCubit>();
-    final currentUser = authCubit.currentUser;
-
-    if (currentUser != null) {
-      setState(() {
-        _userId = currentUser.id;
-        if (currentUser.isAdmin) {
-          _userRole = UserRole.admin;
-        } else if (currentUser.isTeacher) {
-          _userRole = UserRole.teacher;
-        } else {
-          _userRole = UserRole.student;
-        }
-        _isInitialized = true;
-      });
-    }
-
-    await Future.delayed(Duration.zero);
     _loadCircles();
   }
 
@@ -65,138 +40,171 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     context.read<MemorizationCirclesCubit>().loadMemorizationCircles();
   }
 
+  Future<Map<String, dynamic>> _getCurrentUserPermissions() async {
+    try {
+      final currentUser = Supabase.instance.client.auth.currentUser;
+      if (currentUser == null) {
+        return {'role': UserRole.student, 'userId': '', 'isTeacher': false};
+      }
+
+      final userData = await Supabase.instance.client
+          .from('students')
+          .select('id, is_admin, is_teacher')
+          .eq('id', currentUser.id)
+          .single();
+
+      if (userData == null) {
+        return {'role': UserRole.student, 'userId': currentUser.id, 'isTeacher': false};
+      }
+
+      UserRole role;
+      if (userData['is_admin'] == true) {
+        role = UserRole.admin;
+      } else if (userData['is_teacher'] == true) {
+        role = UserRole.teacher;
+      } else {
+        role = UserRole.student;
+      }
+
+      return {
+        'role': role,
+        'userId': currentUser.id,
+        'isTeacher': userData['is_teacher'] == true,
+      };
+    } catch (e) {
+      return {'role': UserRole.student, 'userId': '', 'isTeacher': false};
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    final currentUser = context.read<AuthCubit>().currentUser;
-    if (currentUser != null && _userId != currentUser.id) {
-      setState(() {
-        _userId = currentUser.id;
-        if (currentUser.isAdmin) {
-          _userRole = UserRole.admin;
-        } else if (currentUser.isTeacher) {
-          _userRole = UserRole.teacher;
-        } else {
-          _userRole = UserRole.student;
-        }
-      });
-    }
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _getCurrentUserPermissions(),
+      builder: (context, snapshot) {
+        final permissions = snapshot.data ?? {
+          'role': UserRole.student,
+          'userId': '',
+          'isTeacher': false,
+        };
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _getScreenTitle(),
-          style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Theme.of(context).primaryColor,
-        centerTitle: true,
-        actions: [
-          if (_userRole == UserRole.teacher)
-            IconButton(
-              icon: Icon(
-                _isTeacherCirclesOnly ? Icons.person : Icons.people,
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              _getScreenTitle(permissions['role']),
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              onPressed: () {
-                setState(() {
-                  _isTeacherCirclesOnly = !_isTeacherCirclesOnly;
-                });
-                _loadCircles();
-              },
-              tooltip: _isTeacherCirclesOnly ? 'عرض كل الحلقات' : 'حلقاتي فقط',
             ),
-        ],
-      ),
-      body: Column(
-        key: const PageStorageKey<String>('memorization_circles_list'),
-        children: [
-          if (_userRole != UserRole.student) ...[
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
-              color: Theme.of(context).cardColor,
-              child: Row(
-                children: [
-                  _buildFilterChip('الكل', _isAllCircles, () {
+            backgroundColor: Theme.of(context).primaryColor,
+            centerTitle: true,
+            actions: [
+              if (permissions['isTeacher'])
+                IconButton(
+                  icon: Icon(
+                    _isTeacherCirclesOnly ? Icons.person : Icons.people,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
                     setState(() {
-                      _isAllCircles = true;
-                      _isMemorizationOnly = false;
-                      _isExamOnly = false;
+                      _isTeacherCirclesOnly = !_isTeacherCirclesOnly;
                     });
-                  }),
-                  SizedBox(width: 8.w),
-                  _buildFilterChip('حلقات الحفظ', _isMemorizationOnly, () {
-                    setState(() {
-                      _isAllCircles = false;
-                      _isMemorizationOnly = true;
-                      _isExamOnly = false;
-                    });
-                  }),
-                  SizedBox(width: 8.w),
-                  _buildFilterChip('امتحانات', _isExamOnly, () {
-                    setState(() {
-                      _isAllCircles = false;
-                      _isMemorizationOnly = false;
-                      _isExamOnly = true;
-                    });
-                  }),
-                ],
-              ),
-            ),
-          ],
-          Expanded(
-            child: BlocBuilder<MemorizationCirclesCubit, MemorizationCirclesState>(
-              builder: (context, state) {
-                if (state is MemorizationCirclesLoading && !_isInitialized) {
-                  return _buildLoadingState();
-                } else if (state is MemorizationCirclesLoaded) {
-                  var circles = _filterCircles(state.circles);
-                  circles = _filterCirclesByRole(circles);
-
-                  if (circles.isEmpty) {
-                    return _buildEmptyState();
-                  }
-
-                  return RefreshIndicator(
-                    color: AppColors.logoTeal,
-                    onRefresh: () async {
-                      await context
-                          .read<MemorizationCirclesCubit>()
-                          .loadMemorizationCircles();
-                    },
-                    child: ListView.builder(
-                      key: const PageStorageKey<String>('circles_list_view'),
-                      padding: EdgeInsets.symmetric(vertical: 16.h),
-                      itemCount: circles.length,
-                      itemBuilder: (context, index) {
-                        return MemorizationCircleCard(
-                          circle: circles[index],
-                          userRole: _userRole,
-                          userId: _userId,
-                          onTap: () => _navigateToCircleDetails(
-                              context, circles[index]),
-                        );
-                      },
-                    ),
-                  );
-                } else if (state is MemorizationCirclesError) {
-                  return _buildErrorState(state.message);
-                }
-                return _buildEmptyState();
-              },
-            ),
+                    _loadCircles();
+                  },
+                  tooltip: _isTeacherCirclesOnly ? 'عرض كل الحلقات' : 'حلقاتي فقط',
+                ),
+            ],
           ),
-        ],
-      ),
+          body: Column(
+            key: const PageStorageKey<String>('memorization_circles_list'),
+            children: [
+              if (permissions['role'] != UserRole.student) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                  color: Theme.of(context).cardColor,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('الكل', _isAllCircles, () {
+                        setState(() {
+                          _isAllCircles = true;
+                          _isMemorizationOnly = false;
+                          _isExamOnly = false;
+                        });
+                      }),
+                      SizedBox(width: 8.w),
+                      _buildFilterChip('حلقات الحفظ', _isMemorizationOnly, () {
+                        setState(() {
+                          _isAllCircles = false;
+                          _isMemorizationOnly = true;
+                          _isExamOnly = false;
+                        });
+                      }),
+                      SizedBox(width: 8.w),
+                      _buildFilterChip('امتحانات', _isExamOnly, () {
+                        setState(() {
+                          _isAllCircles = false;
+                          _isMemorizationOnly = false;
+                          _isExamOnly = true;
+                        });
+                      }),
+                    ],
+                  ),
+                ),
+              ],
+              Expanded(
+                child: BlocBuilder<MemorizationCirclesCubit, MemorizationCirclesState>(
+                  builder: (context, state) {
+                    if (state is MemorizationCirclesLoading) {
+                      return _buildLoadingState();
+                    } else if (state is MemorizationCirclesLoaded) {
+                      var circles = _filterCircles(state.circles);
+                      circles = _filterCirclesByRole(circles, permissions);
+
+                      if (circles.isEmpty) {
+                        return _buildEmptyState();
+                      }
+
+                      return RefreshIndicator(
+                        color: AppColors.logoTeal,
+                        onRefresh: () async {
+                          await context
+                              .read<MemorizationCirclesCubit>()
+                              .loadMemorizationCircles();
+                        },
+                        child: ListView.builder(
+                          key: const PageStorageKey<String>('circles_list_view'),
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          itemCount: circles.length,
+                          itemBuilder: (context, index) {
+                            return MemorizationCircleCard(
+                              circle: circles[index],
+                              userRole: permissions['role'],
+                              userId: permissions['userId'],
+                              onTap: () => _navigateToCircleDetails(
+                                  context, circles[index], permissions),
+                            );
+                          },
+                        ),
+                      );
+                    } else if (state is MemorizationCirclesError) {
+                      return _buildErrorState(state.message);
+                    }
+                    return _buildEmptyState();
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  String _getScreenTitle() {
-    switch (_userRole) {
+  String _getScreenTitle(UserRole role) {
+    switch (role) {
       case UserRole.admin:
         return 'إدارة حلقات التحفيظ';
       case UserRole.teacher:
@@ -209,32 +217,26 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
   }
 
   List<MemorizationCircle> _filterCirclesByRole(
-      List<MemorizationCircle> circles) {
-    if (_userId.isEmpty) {
+      List<MemorizationCircle> circles, Map<String, dynamic> permissions) {
+    final userId = permissions['userId'];
+    if (userId.isEmpty) {
       return circles;
     }
 
-    switch (_userRole) {
+    switch (permissions['role']) {
       case UserRole.admin:
         return circles;
       case UserRole.teacher:
         if (_isTeacherCirclesOnly) {
-          final filteredCircles =
-              circles.where((circle) => circle.teacherId == _userId).toList();
-          return filteredCircles;
+          return circles.where((circle) => circle.teacherId == userId).toList();
         }
         return circles;
       case UserRole.student:
-        final studentCircles = circles
+        return circles
             .where((circle) =>
-                circle.studentIds.contains(_userId) ||
-                circle.teacherId == _userId)
+                circle.studentIds.contains(userId) ||
+                circle.teacherId == userId)
             .toList();
-        for (var circle in circles) {
-       
-        }
-      
-        return studentCircles;
       default:
         return circles;
     }
@@ -366,23 +368,14 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
   }
 
   void _navigateToCircleDetails(
-      BuildContext context, MemorizationCircle circle) {
-    final authCubit = context.read<AuthCubit>();
-    final memorizationCirclesCubit = context.read<MemorizationCirclesCubit>();
-    
+      BuildContext context, MemorizationCircle circle, Map<String, dynamic> permissions) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: authCubit),
-            BlocProvider.value(value: memorizationCirclesCubit),
-          ],
-          child: MemorizationCircleDetailsScreen(
-            circle: circle,
-            userRole: _userRole,
-            userId: _userId,
-          ),
+        builder: (_) => MemorizationCircleDetailsScreen(
+          circle: circle,
+          userRole: permissions['role'],
+          userId: permissions['userId'],
         ),
       ),
     );

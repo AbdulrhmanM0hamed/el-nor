@@ -9,6 +9,8 @@ import '../../features/home/quran/presentation/cubit/quran_cubit.dart';
 import '../../features/quran_circles/presentation/cubit/memorization_circles_cubit.dart';
 import '../config/supabase_config.dart';
 import '../../features/quran_circles/data/repositories/memorization_circles_repository.dart';
+import 'session_service.dart';
+import 'permissions_manager.dart';
 
 final sl = GetIt.instance;
 
@@ -22,9 +24,13 @@ Future<void> init() async {
   // Registrar el cliente de Supabase
   sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
+  // Services
+  sl.registerLazySingleton(() => SessionService());
+  sl.registerLazySingleton(() => PermissionsManager());
+
   // Repositories
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(supabaseClient: sl<SupabaseClient>()),
+    () => AuthRepositoryImpl(supabaseClient: sl()),
   );
   
   sl.registerLazySingleton<AdminRepository>(
@@ -33,7 +39,7 @@ Future<void> init() async {
 
   // Registrar MemorizationCirclesRepository
   sl.registerLazySingleton<MemorizationCirclesRepository>(
-    () => MemorizationCirclesRepository(sl<SupabaseClient>()),
+    () => MemorizationCirclesRepository(sl()),
   );
 
   // Cubits
