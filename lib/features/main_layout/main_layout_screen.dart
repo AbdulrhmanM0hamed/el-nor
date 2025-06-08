@@ -1,4 +1,3 @@
-import 'package:beat_elslam/features/home/masbaha/presentation/screens/masbaha_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/widgets/custom_bottom_navigation.dart';
@@ -24,18 +23,20 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _currentIndex = 0;
   
   // قائمة الشاشات التي سيتم التنقل بينها
-  final List<Widget> _screens = [
-    const HomeView(),
-    const MemorizationCirclesScreen(), // شاشة حلقات الحفظ (الزر المركزي)
-    const ProfileScreen(), // شاشة الملف الشخصي
-  ];
+  late final List<Widget> _screens;
 
-  // قائمة عناوين الشاشات
-  final List<String> _screenTitles = [
-    'الرئيسية',
-    'حلقات الحفظ',
-    'الملف الشخصي',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const HomeView(),
+      BlocProvider(
+        create: (context) => di.sl<MemorizationCirclesCubit>(),
+        child: const MemorizationCirclesScreen(),
+      ),
+      const ProfileScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         BlocProvider<AuthCubit>(
           create: (context) {
             final authCubit = di.sl<AuthCubit>();
-            // Verificar el estado actual del usuario al cargar la pantalla principal
             authCubit.checkCurrentUser();
             return authCubit;
           },
@@ -57,7 +57,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         ),
       ],
       child: Scaffold(
-        
         body: IndexedStack(
           index: _currentIndex,
           children: _screens,
@@ -73,14 +72,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       ),
     );
   }
-  
-  // شريط تطبيق للشاشة الرئيسية
-  AppBar _buildHomeAppBar() {
-    return CustomAppBar(title: _screenTitles[_currentIndex]);
-  }
-  
-  // شريط تطبيق للشاشات الأخرى
-
 }
 
 // Se ha eliminado la clase ProfileScreen temporal y ahora se usa la implementación completa

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:beat_elslam/features/home/masbaha/presentation/screens/masbaha_screen.dart';
+import 'package:beat_elslam/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -123,7 +123,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar:  CustomAppBar(title: 'إنشاء حساب جديد'),
+          appBar: const CustomAppBar(title: 'إنشاء حساب جديد'),
           body: LoadingOverlay(
             isLoading: state is AuthLoading,
             child: AuthBackground(
@@ -211,13 +211,13 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
             toggleVisibility: _toggleConfirmPasswordVisibility,
             validator: _validateConfirmPassword,
           ),
-          SizedBox(height: 32.h),
+          SizedBox(height: 16.h),
           CustomButton(
             text: 'إنشاء حساب',
             onPressed: _register,
             icon: Icons.person_add,
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: 16.h),
           _buildLoginLink(),
         ],
       ),

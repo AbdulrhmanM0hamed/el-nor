@@ -27,10 +27,14 @@ class MemorizationCircleDetailsScreen extends StatefulWidget {
   State<MemorizationCircleDetailsScreen> createState() => _MemorizationCircleDetailsScreenState();
 }
 
-class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDetailsScreen> with SingleTickerProviderStateMixin {
+class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDetailsScreen> 
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   late MemorizationCircle _circle;
   String? _currentUserId;
+  
+  @override
+  bool get wantKeepAlive => true;
   
   // Helpers for user permissions
   bool get _canManageCircle => 
@@ -50,7 +54,6 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
     setState(() {
       _currentUserId = authCubit.currentUser?.id;
     });
-    print('Circle Details: Teacher ID = ${_circle.teacherId}, User ID = $_currentUserId');
   }
 
   @override
@@ -61,6 +64,8 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+    
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
@@ -109,6 +114,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
           children: [
             // تبويب السور المقررة
             CircleAssignmentsTab(
+              key: const PageStorageKey<String>('assignments_tab'),
               assignments: _circle.assignments,
               isEditable: _canManageCircle,
               onAddSurah: _canManageCircle ? _showAddSurahDialog : null,
@@ -116,6 +122,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
             
             // تبويب الطلاب
             CircleStudentsTab(
+              key: const PageStorageKey<String>('students_tab'),
               students: _circle.students,
               teacherId: _circle.teacherId ?? '',
               currentUserId: _currentUserId ?? '',
@@ -128,8 +135,6 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
       ),
     );
   }
-
-
 
   void _onEvaluationChanged(String studentId, int evaluation) {
     final updatedStudents = List<StudentRecord>.from(_circle.students);
