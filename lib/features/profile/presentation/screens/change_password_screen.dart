@@ -1,3 +1,4 @@
+import 'package:beat_elslam/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -74,10 +75,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('تغيير كلمة المرور'),
-            centerTitle: true,
-          ),
+          appBar: CustomAppBar(title: 'تغيير كلمة المرور'),
           body: SingleChildScrollView(
             padding: EdgeInsets.all(16.w),
             child: Form(

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:beat_elslam/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -92,10 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('تعديل الملف الشخصي'),
-        centerTitle: true,
-      ),
+      appBar: const CustomAppBar(title: 'تعديل الملف الشخصي'),
       body: Stack(
         children: [
           SingleChildScrollView(
