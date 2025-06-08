@@ -42,7 +42,7 @@ class ProfileInfoWidget extends StatelessWidget {
             height: 24.h,
             color: Theme.of(context).dividerColor,
           ),
-          _buildInfoRow(context, Icons.phone, 'رقم الهاتف', user.phoneNumber ?? 'غير متوفر'),
+          _buildInfoRow(context, Icons.phone, 'رقم الهاتف', user.phone ?? 'غير متوفر'),
           SizedBox(height: 12.h),
           _buildInfoRow(
             context,

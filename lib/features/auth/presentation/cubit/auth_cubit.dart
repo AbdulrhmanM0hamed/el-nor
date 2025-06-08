@@ -156,8 +156,8 @@ class AuthCubit extends Cubit<AuthState> {
     
     try {
       final user = await _authRepository.signIn(
-        email: email,
-        password: password,
+        email,
+        password,
       );
       
       if (!isClosed) {

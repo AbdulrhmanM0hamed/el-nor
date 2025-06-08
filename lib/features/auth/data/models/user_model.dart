@@ -5,19 +5,23 @@ class UserModel extends Equatable {
   final String id;
   final String name;
   final String email;
-  final String? phoneNumber;
+  final String? phone;
+  final int? age;
   final String? profileImageUrl;
   final bool isAdmin;
   final bool isTeacher;
+  final DateTime createdAt;
 
   const UserModel({
     required this.id,
     required this.name,
     required this.email,
-    this.phoneNumber,
+    this.phone,
+    this.age,
     this.profileImageUrl,
     this.isAdmin = false,
     this.isTeacher = false,
+    required this.createdAt,
   });
 
   // Helpers
@@ -34,10 +38,12 @@ class UserModel extends Equatable {
       id: json['id'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
-      phoneNumber: json['phone'] as String?,
+      phone: json['phone'] as String?,
+      age: json['age'] as int?,
       profileImageUrl: json['profile_image_url'] as String?,
       isAdmin: json['is_admin'] as bool? ?? false,
       isTeacher: json['is_teacher'] as bool? ?? false,
+      createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
 
@@ -46,10 +52,12 @@ class UserModel extends Equatable {
       'id': id,
       'name': name,
       'email': email,
-      'phone': phoneNumber,
+      'phone': phone,
+      'age': age,
       'profile_image_url': profileImageUrl,
       'is_admin': isAdmin,
       'is_teacher': isTeacher,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
@@ -57,22 +65,36 @@ class UserModel extends Equatable {
     String? id,
     String? name,
     String? email,
-    String? phoneNumber,
+    String? phone,
+    int? age,
     String? profileImageUrl,
     bool? isAdmin,
     bool? isTeacher,
+    DateTime? createdAt,
   }) {
     return UserModel(
       id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
+      phone: phone ?? this.phone,
+      age: age ?? this.age,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       isAdmin: isAdmin ?? this.isAdmin,
       isTeacher: isTeacher ?? this.isTeacher,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, email, phoneNumber, profileImageUrl, isAdmin, isTeacher];
+  List<Object?> get props => [
+        id,
+        name,
+        email,
+        phone,
+        age,
+        profileImageUrl,
+        isAdmin,
+        isTeacher,
+        createdAt,
+      ];
 }

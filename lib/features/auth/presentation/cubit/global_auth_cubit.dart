@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
@@ -57,8 +58,8 @@ class GlobalAuthCubit extends Cubit<AuthState> {
     
     try {
       final user = await _authRepository.signIn(
-        email: email,
-        password: password,
+        email,
+        password,
       );
       
       print('GlobalAuthCubit: تم تسجيل الدخول بنجاح');
@@ -94,5 +95,34 @@ class GlobalAuthCubit extends Cubit<AuthState> {
 
   void enterAsGuest() {
     emit(const AuthGuest());
+  }
+
+  Future<void> updateProfile({
+    required UserModel user,
+    File? profileImage,
+  }) async {
+    try {
+      final updatedUser = await _authRepository.updateProfile(
+        user: user,
+        profileImage: profileImage,
+      );
+      emit(AuthAuthenticated(updatedUser));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _authRepository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 } 

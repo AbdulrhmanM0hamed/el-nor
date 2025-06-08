@@ -12,10 +12,7 @@ abstract class AuthRepository {
     File? profileImage,
   });
 
-  Future<UserModel> signIn({
-    required String email,
-    required String password,
-  });
+  Future<UserModel> signIn(String email, String password);
 
   Future<UserModel?> getCurrentUser();
 
@@ -32,12 +29,23 @@ abstract class AuthRepository {
   Future<void> resetPasswordWithCode(String email, String newPassword);
 
   Future<bool> isEmailRegistered(String email);
+
+  Future<UserModel> updateProfile({
+    required UserModel user,
+    File? profileImage,
+  });
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }
 
 class AuthRepositoryImpl implements AuthRepository {
   final SupabaseClient _supabaseClient;
 
-  AuthRepositoryImpl(this._supabaseClient);
+  AuthRepositoryImpl({SupabaseClient? supabaseClient})
+      : _supabaseClient = supabaseClient ?? Supabase.instance.client;
 
   @override
   Future<UserModel> signUp({
@@ -129,10 +137,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<UserModel> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<UserModel> signIn(String email, String password) async {
     try {
       print('AuthRepository: بدء عملية تسجيل الدخول');
       
@@ -358,6 +363,130 @@ class AuthRepositoryImpl implements AuthRepository {
       return response != null;
     } catch (e) {
       return false;
+    }
+  }
+
+  @override
+  Future<UserModel> updateProfile({
+    required UserModel user,
+    File? profileImage,
+  }) async {
+    try {
+      String? imageUrl = user.profileImageUrl;
+
+      if (profileImage != null) {
+        final fileExt = profileImage.path.split('.').last;
+        final fileName = '${user.id}.$fileExt';
+        final filePath = 'profile_images/$fileName';
+
+        // حذف الصورة القديمة إذا كانت موجودة
+        try {
+          final List<FileObject> files = await _supabaseClient.storage
+              .from('students')
+              .list(path: 'profile_images');
+
+          // البحث عن أي ملف يبدأ باسم المستخدم (لحذف الملفات بأي امتداد)
+          final existingFiles = files.where(
+            (file) => file.name.startsWith(user.id + '.'),
+          );
+
+          if (existingFiles.isNotEmpty) {
+            await Future.wait(
+              existingFiles.map((file) => _supabaseClient.storage
+                  .from('students')
+                  .remove(['profile_images/${file.name}'])),
+            );
+          }
+        } catch (e) {
+          // تجاهل أخطاء الحذف - قد لا تكون هناك صورة قديمة
+          print('Warning: Failed to delete old profile image: $e');
+        }
+
+        // رفع الصورة الجديدة
+        await _supabaseClient.storage
+            .from('students')
+            .upload('profile_images/$fileName', profileImage);
+
+        final imageUrlResponse = _supabaseClient.storage
+            .from('students')
+            .getPublicUrl('profile_images/$fileName');
+
+        imageUrl = imageUrlResponse;
+      }
+
+      // تحديث بيانات المستخدم في الجدول
+      final Map<String, dynamic> updateData = {
+        'name': user.name,
+        'phone': user.phone,
+        'age': user.age,
+        'profile_image_url': imageUrl,
+      };
+
+      await _supabaseClient
+          .from('students')
+          .update(updateData)
+          .eq('id', user.id);
+
+      // جلب البيانات المحدثة
+      final updatedData = await _supabaseClient
+          .from('students')
+          .select()
+          .eq('id', user.id)
+          .single();
+
+      return UserModel.fromJson(updatedData);
+    } catch (e) {
+      throw Exception('Failed to update profile: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final user = _supabaseClient.auth.currentUser;
+      if (user == null) throw Exception('المستخدم غير موجود');
+
+      // التحقق من كلمة المرور الحالية
+      try {
+        print('AuthRepository: محاولة التحقق من كلمة المرور الحالية');
+        await _supabaseClient.auth.signInWithPassword(
+          email: user.email!,
+          password: currentPassword,
+        );
+        print('AuthRepository: كلمة المرور الحالية صحيحة');
+      } catch (e) {
+        print('AuthRepository: خطأ في التحقق من كلمة المرور الحالية');
+        print('AuthRepository: نوع الخطأ: ${e.runtimeType}');
+        print('AuthRepository: رسالة الخطأ: $e');
+        throw Exception('كلمة المرور الحالية غير صحيحة');
+      }
+
+      // تحديث كلمة المرور
+      print('AuthRepository: محاولة تحديث كلمة المرور');
+      await _supabaseClient.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+      print('AuthRepository: تم تحديث كلمة المرور بنجاح');
+    } catch (e) {
+      print('AuthRepository: خطأ في تغيير كلمة المرور');
+      print('AuthRepository: نوع الخطأ: ${e.runtimeType}');
+      print('AuthRepository: رسالة الخطأ: $e');
+      
+      if (e is AuthException) {
+        String message = e.message;
+        if (message.contains("New password should be different")) {
+          message = "كلمة المرور الجديدة يجب أن تكون مختلفة عن كلمة المرور القديمة";
+        } else if (message.contains("Password should be at least 6 characters")) {
+          message = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+        } else if (message.contains("Token has expired")) {
+          message = "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول";
+        }
+        throw Exception(message);
+      }
+      rethrow;
     }
   }
 }

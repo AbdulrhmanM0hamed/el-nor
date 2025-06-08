@@ -31,6 +31,11 @@ import '../../features/home/tafsir/presentation/cubit/tafsir_cubit.dart';
 import '../../features/auth/presentation/screens/forget_password_screen.dart';
 import '../../features/auth/presentation/screens/verification_code_screen.dart';
 import '../../features/auth/presentation/screens/new_password_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/profile/presentation/screens/change_password_screen.dart';
+import 'package:beat_elslam/features/auth/data/models/user_model.dart';
+import '../../features/auth/presentation/cubit/global_auth_cubit.dart';
+import '../../features/profile/presentation/cubit/change_password_cubit.dart';
 
 final _logger = Logger();
 
@@ -217,6 +222,31 @@ Route<dynamic> onGenratedRoutes(RouteSettings settings) {
       _logger.e('Error creating TafsirSurahListScreen route', error: e, stackTrace: stackTrace);
       return MaterialPageRoute(builder: (context) => const HomeView());
     }
+  }
+
+  if (routeName == EditProfileScreen.routeName) {
+    final user = settings.arguments as UserModel;
+    return MaterialPageRoute(
+      builder: (context) => EditProfileScreen(user: user),
+    );
+  }
+
+  if (routeName == ChangePasswordScreen.routeName) {
+    return MaterialPageRoute(
+      builder: (context) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(
+            value: GlobalAuthCubit.instance,
+          ),
+          BlocProvider(
+            create: (context) => ChangePasswordCubit(
+              context.read<GlobalAuthCubit>(),
+            ),
+          ),
+        ],
+        child: const ChangePasswordScreen(),
+      ),
+    );
   }
 
   // Ruta por defecto

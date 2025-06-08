@@ -6,6 +6,8 @@ import '../../../../core/utils/theme/app_colors.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/cubit/global_auth_cubit.dart';
 import '../../../admin/presentation/screens/circle_management_screen.dart';
+import '../../../profile/presentation/screens/edit_profile_screen.dart';
+import '../../../profile/presentation/screens/change_password_screen.dart';
 
 class ProfileActionsWidget extends StatelessWidget {
   final UserModel user;
@@ -59,14 +61,21 @@ class ProfileActionsWidget extends StatelessWidget {
             context,
             'تعديل الملف الشخصي',
             Icons.edit,
-            () {},
+            () => Navigator.pushNamed(
+              context,
+              EditProfileScreen.routeName,
+              arguments: user,
+            ),
           ),
           SizedBox(height: 12.h),
           _buildActionButton(
             context,
             'تغيير كلمة المرور',
             Icons.lock,
-            () {},
+            () => Navigator.pushNamed(
+              context,
+              ChangePasswordScreen.routeName,
+            ),
           ),
           SizedBox(height: 12.h),
           _buildActionButton(
