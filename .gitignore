@@ -47,3 +47,17 @@ notification_server-elnor/
 
 # Large files
 assets/pdf/*.pdf
+
+# Firebase credentials
+*firebase-adminsdk*.json
+lib/core/services/el-nor-firebase-adminsdk-fbsvc-20338f224f.json
+
+# Environment files
+.env
+.env.*
+
+# Web related
+lib/generated_plugin_registrant.dart
+
+# Node
+node_modules/
