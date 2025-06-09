@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "61940541937",
+    "project_id": "el-nor",
+    "storage_bucket": "el-nor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61940541937:android:a18b2a89db42c1db187c50",
+        "android_client_info": {
+          "package_name": "com.beat.elslam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIgDgPL325qZacPSAqk4bxxwnTQ6bjB0w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

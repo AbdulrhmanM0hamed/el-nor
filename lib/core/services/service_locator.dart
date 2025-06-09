@@ -15,20 +15,28 @@ import 'permissions_manager.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  // Inicializar Supabase
+  // Initialize Supabase first since it's critical
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl,
     anonKey: SupabaseConfig.supabaseAnonKey,
   );
 
-  // Registrar el cliente de Supabase
+  // Register services and repositories lazily
+  _registerServices();
+  _registerRepositories();
+}
+
+void _registerServices() {
+  // Register the Supabase client
   sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
-  // Services
+  // Register core services
   sl.registerLazySingleton(() => SessionService());
   sl.registerLazySingleton(() => PermissionsManager());
+}
 
-  // Repositories
+void _registerRepositories() {
+  // Register repositories
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(supabaseClient: sl()),
   );
@@ -37,7 +45,6 @@ Future<void> init() async {
     () => AdminRepository(sl<SupabaseClient>()),
   );
 
-  // Registrar MemorizationCirclesRepository
   sl.registerLazySingleton<MemorizationCirclesRepository>(
     () => MemorizationCirclesRepository(sl()),
   );

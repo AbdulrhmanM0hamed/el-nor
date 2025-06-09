@@ -4,12 +4,14 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/services/permissions_manager.dart';
+import '../../../../core/services/notification_service.dart';
 import 'auth_state.dart';
 
 class GlobalAuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;
   final SessionService _sessionService;
   final PermissionsManager _permissionsManager;
+  final NotificationService _notificationService;
   static GlobalAuthCubit? _instance;
 
   GlobalAuthCubit._({
@@ -17,6 +19,7 @@ class GlobalAuthCubit extends Cubit<AuthState> {
   }) : _authRepository = authRepository,
        _sessionService = SessionService(),
        _permissionsManager = PermissionsManager(),
+       _notificationService = NotificationService(),
        super(AuthInitial());
 
   static GlobalAuthCubit get instance {
@@ -81,6 +84,10 @@ class GlobalAuthCubit extends Cubit<AuthState> {
       
       // Set up session and permissions
       await _permissionsManager.setPermissions(user.id, user.role);
+      
+      // Get and save FCM token
+      final fcmToken = await _notificationService.getFCMToken();
+      await _notificationService.saveTokenToSupabase(fcmToken);
       
       emit(AuthAuthenticated(user));
     } catch (e) {

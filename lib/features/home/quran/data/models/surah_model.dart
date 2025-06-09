@@ -165,7 +165,11 @@ class SurahList {
   
   // Pre-initialize the JSON data at app start but without blocking
   static void preInitialize() {
-    loadJsonData();
+    // Use compute to load data in a separate isolate
+    compute<void, void>((message) async {
+      await loadJsonData();
+      return;
+    }, null);
   }
   
   static Future<void> loadJsonData() async {
