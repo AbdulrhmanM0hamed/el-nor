@@ -15,7 +15,7 @@ class QuranCollectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 8.h),
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.r),
@@ -46,22 +46,22 @@ class QuranCollectionCard extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(15.r),
         child: Container(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 60.w,
-                    height: 60.w,
+                    width: 70.w,
+                    height: 70.w,
                     decoration: BoxDecoration(
                       color: AppColors.logoTeal.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(15.r),
                     ),
                     child: Icon(
                       Icons.menu_book_rounded,
-                      size: 32.sp,
+                      size: 36.sp,
                       color: AppColors.logoTeal,
                     ),
                   ),
@@ -73,10 +73,11 @@ class QuranCollectionCard extends StatelessWidget {
                         Text(
                           collection.title,
                           style: TextStyle(
-                            fontSize: 18.sp,
+                            
+                            fontSize: 14.sp,
                             fontWeight: FontWeight.bold,
                           ),
-                          maxLines: 1,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 4.h),
