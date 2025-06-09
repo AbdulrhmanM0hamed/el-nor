@@ -4,6 +4,11 @@ import 'package:beat_elslam/features/auth/presentation/screens/register_screen.d
 import 'package:beat_elslam/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:beat_elslam/features/auth/presentation/cubit/reset_password/reset_password_cubit.dart';
 import 'package:beat_elslam/features/home/asma_allah/presentation/screens/asma_allah_screen.dart';
+import 'package:beat_elslam/features/home/quran_audio/data/models/quran_reciter_model.dart';
+import 'package:beat_elslam/features/home/quran_audio/data/repositories/quran_repository.dart';
+import 'package:beat_elslam/features/home/quran_audio/presentation/cubit/quran_audio_cubit.dart';
+import 'package:beat_elslam/features/home/quran_audio/presentation/screens/quran_player_screen.dart';
+import 'package:beat_elslam/features/home/quran_audio/presentation/screens/quran_reciters_screen.dart';
 import 'package:beat_elslam/features/home/view/home_View.dart';
 import 'package:beat_elslam/features/main_layout/main_layout_screen.dart';
 import 'package:flutter/material.dart';
@@ -172,6 +177,39 @@ Route<dynamic> onGenratedRoutes(RouteSettings settings) {
       builder: (context) => const QuranOptimizedScreen(),
     );
   }
+
+  if (routeName == QuranPlayerScreen.routeName) {
+  _logger.i('Navigating to QuranPlayerScreen');
+
+  final args = settings.arguments;
+  if (args == null || args is! QuranCollection) {
+    _logger.e('Invalid or null arguments for QuranPlayerScreen');
+    return MaterialPageRoute(
+      builder: (context) => const Scaffold(
+        body: Center(
+          child: Text('حدث خطأ: البيانات غير موجودة'),
+        ),
+      ),
+    );
+  }
+
+  final collection = args as QuranCollection;
+  return MaterialPageRoute(
+    builder: (context) => QuranPlayerScreen(collection: collection),
+  );
+}
+ if (routeName == QuranRecitersScreen.routeName) {
+    _logger.i('Navigating to QuranRecitersScreen');
+    return MaterialPageRoute(
+      builder: (context) => BlocProvider(
+        create: (context) => QuranAudioCubit(
+          repository: QuranRepository(),
+        ),
+        child: const QuranRecitersScreen(),
+      ),
+    );
+  }
+
 
   if (routeName == '/asma-allah') {
     _logger.i('Navigating to AsmaAllahScreen');

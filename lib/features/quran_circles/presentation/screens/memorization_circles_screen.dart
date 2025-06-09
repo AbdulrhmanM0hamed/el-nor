@@ -21,7 +21,6 @@ class MemorizationCirclesScreen extends StatefulWidget {
 
 class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     with AutomaticKeepAliveClientMixin {
-  bool _isTeacherCirclesOnly = false;
   bool _isAllCircles = true;
   bool _isMemorizationOnly = false;
   bool _isExamOnly = false;
@@ -101,27 +100,11 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
             ),
             backgroundColor: Theme.of(context).primaryColor,
             centerTitle: true,
-            actions: [
-              if (permissions['isTeacher'])
-                IconButton(
-                  icon: Icon(
-                    _isTeacherCirclesOnly ? Icons.person : Icons.people,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isTeacherCirclesOnly = !_isTeacherCirclesOnly;
-                    });
-                    _loadCircles();
-                  },
-                  tooltip: _isTeacherCirclesOnly ? 'عرض كل الحلقات' : 'حلقاتي فقط',
-                ),
-            ],
           ),
           body: Column(
             key: const PageStorageKey<String>('memorization_circles_list'),
             children: [
-              if (permissions['role'] != UserRole.student) ...[
+              if (permissions['role'] == UserRole.admin) ...[
                 Container(
                   padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
                   color: Theme.of(context).cardColor,
@@ -160,11 +143,13 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
                     if (state is MemorizationCirclesLoading) {
                       return _buildLoadingState();
                     } else if (state is MemorizationCirclesLoaded) {
-                      var circles = _filterCircles(state.circles);
+                      var circles = permissions['role'] == UserRole.admin 
+                          ? _filterCircles(state.circles)
+                          : state.circles;
                       circles = _filterCirclesByRole(circles, permissions);
 
                       if (circles.isEmpty) {
-                        return _buildEmptyState();
+                        return _buildEmptyState(permissions['role']);
                       }
 
                       return RefreshIndicator(
@@ -192,7 +177,7 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
                     } else if (state is MemorizationCirclesError) {
                       return _buildErrorState(state.message);
                     }
-                    return _buildEmptyState();
+                    return _buildEmptyState(permissions['role']);
                   },
                 ),
               ),
@@ -220,25 +205,18 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
       List<MemorizationCircle> circles, Map<String, dynamic> permissions) {
     final userId = permissions['userId'];
     if (userId.isEmpty) {
-      return circles;
+      return [];
     }
 
     switch (permissions['role']) {
       case UserRole.admin:
         return circles;
       case UserRole.teacher:
-        if (_isTeacherCirclesOnly) {
-          return circles.where((circle) => circle.teacherId == userId).toList();
-        }
-        return circles;
+        return circles.where((circle) => circle.teacherId == userId).toList();
       case UserRole.student:
-        return circles
-            .where((circle) =>
-                circle.studentIds.contains(userId) ||
-                circle.teacherId == userId)
-            .toList();
+        return circles.where((circle) => circle.studentIds.contains(userId)).toList();
       default:
-        return circles;
+        return [];
     }
   }
 
@@ -263,7 +241,28 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(UserRole role) {
+    String message;
+    String submessage;
+
+    switch (role) {
+      case UserRole.admin:
+        message = 'لا توجد حلقات حفظ حالياً';
+        submessage = 'سيتم إضافة حلقات جديدة قريباً';
+        break;
+      case UserRole.teacher:
+        message = 'لا توجد حلقات مسندة إليك';
+        submessage = 'سيتم إسناد حلقات جديدة قريباً';
+        break;
+      case UserRole.student:
+        message = 'لم يتم تسجيلك في أي حلقة';
+        submessage = 'سيتم تسجيلك في حلقة قريباً';
+        break;
+      default:
+        message = 'لا توجد حلقات متاحة';
+        submessage = 'حاول مرة أخرى لاحقاً';
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -275,7 +274,7 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
           ),
           SizedBox(height: 16.h),
           Text(
-            'لا توجد حلقات حفظ حالياً',
+            message,
             style: TextStyle(
               fontSize: 18.sp,
               color: Theme.of(context).textTheme.titleLarge?.color,
@@ -284,7 +283,7 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
           ),
           SizedBox(height: 8.h),
           Text(
-            'سيتم إضافة حلقات جديدة قريباً',
+            submessage,
             style: TextStyle(
               fontSize: 14.sp,
               color: Theme.of(context).textTheme.bodyMedium?.color,

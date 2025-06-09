@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../quran/data/models/surah_model.dart';
+import '../quran/data/models/surah_model.dart';
 import 'package:intl/intl.dart';
-import '../../quran/presentation/cubit/quran_cubit.dart';
+import '../quran/presentation/cubit/quran_cubit.dart';
 
 class LastReadCard extends StatefulWidget {
   final VoidCallback? onTap;
