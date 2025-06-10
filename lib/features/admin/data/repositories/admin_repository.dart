@@ -241,7 +241,6 @@ class AdminRepository {
         );
       }
       
-      print('تم إضافة الحلقة بنجاح. البيانات المرجعة: $insertedData');
       
       return MemorizationCircleModel.fromJson(insertedData);
     } catch (e) {

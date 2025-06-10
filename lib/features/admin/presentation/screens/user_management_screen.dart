@@ -39,6 +39,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   List<StudentModel> _filteredUsers = [];
   List<StudentModel> _allUsers = [];
   bool _hasShownInitialSnackbar = false;
+  bool _showRecentUsers = false;
 
   @override
   void initState() {
@@ -54,10 +55,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _filterUsers(String query) {
     setState(() {
+      List<StudentModel> baseList = _showRecentUsers ? _getRecentUsers(_allUsers) : _allUsers;
       if (query.isEmpty) {
-        _filteredUsers = _allUsers;
+        _filteredUsers = baseList;
       } else {
-        _filteredUsers = _allUsers.where((user) {
+        _filteredUsers = baseList.where((user) {
           final name = user.name?.toLowerCase() ?? '';
           final email = user.email.toLowerCase();
           final searchQuery = query.toLowerCase();
@@ -65,6 +67,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         }).toList();
       }
     });
+  }
+
+  List<StudentModel> _getRecentUsers(List<StudentModel> users) {
+    final now = DateTime.now();
+    return users.where((user) {
+      final createdAt = user.createdAt;
+      return createdAt.isAfter(now.subtract(const Duration(hours: 72)));
+    }).toList();
   }
 
   void _showEditRoleDialog(BuildContext context, StudentModel user) {
@@ -109,6 +119,28 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         ),
         backgroundColor: Theme.of(context).primaryColor,
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  _showRecentUsers = !_showRecentUsers;
+                  _filterUsers(_searchController.text);
+                });
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: _showRecentUsers ? Colors.green : Colors.white,
+                foregroundColor: _showRecentUsers ? Colors.white : Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: Colors.green),
+                ),
+              ),
+              child: Text('المنضم حديثاً', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

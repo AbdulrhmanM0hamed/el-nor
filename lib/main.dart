@@ -26,15 +26,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> _initializeApp() async {
   // Initialize Firebase first since it's critical
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
   // Initialize service locator
-  await di.init();
-  
+    await di.init();
+    
   // Initialize GlobalAuthCubit
-  await GlobalAuthCubit.initialize(authRepository: di.sl());
+    await GlobalAuthCubit.initialize(authRepository: di.sl());
 
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -44,16 +44,16 @@ Future<void> _initializeApp() async {
 
   // Initialize timezone data for scheduling notifications
   tz.initializeTimeZones();
-
-  // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+    
+    // Set preferred orientations
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
   // Start preloading data in parallel
-  SurahList.preInitialize();
-  AllahNamesList.preInitialize();
+    SurahList.preInitialize();
+    AllahNamesList.preInitialize();
 }
 
 void main() async {  

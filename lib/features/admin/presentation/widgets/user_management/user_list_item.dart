@@ -1,7 +1,6 @@
 import 'package:beat_elslam/features/admin/data/models/student_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../../core/utils/theme/app_colors.dart';
 import 'user_role_chip.dart';
 import 'user_info_chip.dart';
 

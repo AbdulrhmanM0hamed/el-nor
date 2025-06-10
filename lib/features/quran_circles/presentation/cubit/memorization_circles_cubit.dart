@@ -28,7 +28,7 @@ class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
       final circles = await repository.getAllCircles();
       _updateCache(circles);
       if (!_isClosed) {
-        emit(MemorizationCirclesLoaded(circles));
+      emit(MemorizationCirclesLoaded(circles));
       }
     } catch (e) {
       if (!_isClosed) {
@@ -115,7 +115,7 @@ class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
       await loadCircleDetails(circleId);
     } catch (e) {
       if (!_isClosed) {
-        emit(MemorizationCirclesError('حدث خطأ أثناء تحديث تقييم الطالب'));
+      emit(MemorizationCirclesError('حدث خطأ أثناء تحديث تقييم الطالب'));
         // Reload the circle to ensure UI is in sync
         await loadCircleDetails(circleId);
       }
@@ -175,7 +175,7 @@ class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
       await loadCircleDetails(circleId);
     } catch (e) {
       if (!_isClosed) {
-        emit(MemorizationCirclesError('حدث خطأ أثناء تحديث حضور الطالب'));
+      emit(MemorizationCirclesError('حدث خطأ أثناء تحديث حضور الطالب'));
         // Reload the circle to ensure UI is in sync
         await loadCircleDetails(circleId);
       }
