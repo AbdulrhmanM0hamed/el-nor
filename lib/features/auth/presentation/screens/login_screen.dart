@@ -9,7 +9,6 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/loading_overlay.dart';
 import 'register_screen.dart';
-import 'reset_password_screen.dart';
 import 'forget_password_screen.dart';
 
 class LoginScreen extends StatelessWidget {

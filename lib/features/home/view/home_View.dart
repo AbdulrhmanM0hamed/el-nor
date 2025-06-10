@@ -7,11 +7,34 @@ import '../../../features/auth/presentation/cubit/auth_state.dart';
 import '../../../core/utils/theme/app_colors.dart';
 import '../../../features/auth/presentation/screens/login_screen.dart';
 import 'widgets/home_view_body.dart';
+import 'widgets/waiting_list_dialog.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   static const String routeName = '/home';
 
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAndShowDialog();
+  }
+
+  void _checkAndShowDialog() {
+    final state = context.read<GlobalAuthCubit>().state;
+    if (state is AuthAuthenticated && state.isNewUser) {
+      Future.delayed(Duration.zero, () {
+        if (mounted) {
+          WaitingListDialog.show(context);
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +45,8 @@ class HomeView extends StatelessWidget {
             LoginScreen.routeName,
             (route) => false,
           );
+        } else if (state is AuthAuthenticated && state.isNewUser) {
+          WaitingListDialog.show(context);
         }
       },
       child: Scaffold(
@@ -47,7 +72,6 @@ class HomeView extends StatelessWidget {
         body: SafeArea(
           child: Stack(
             children: [
-              // Top SVG background
               Positioned(
                 top: 0,
                 right: 30.w,
@@ -59,8 +83,6 @@ class HomeView extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              // Bottom SVG background
               Positioned(
                 bottom: 0,
                 left: 30.w,
@@ -72,8 +94,6 @@ class HomeView extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              // Main content
               const HomeViewBody(),
             ],
           ),
