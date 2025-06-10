@@ -72,7 +72,6 @@ class SurahAssignmentsSection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: Colors.grey[300]!),
       ),

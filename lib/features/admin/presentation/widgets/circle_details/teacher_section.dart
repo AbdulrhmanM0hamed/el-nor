@@ -55,18 +55,6 @@ class _TeacherSectionState extends State<TeacherSection> {
   }
 
   void _initTeacher() {
-    print('TeacherSection - Circle teacherId: ${widget.circle.teacherId}');
-    print('TeacherSection - Circle teacherName: ${widget.circle.teacherName}');
-   
-    print('TeacherSection - Circle teacherImageUrl: ${widget.circle.teacherImageUrl}');
-    print('TeacherSection - Available teachers: ${widget.teachers.length}');
-
-    if (widget.teachers.isNotEmpty) {
-      for (var teacher in widget.teachers) {
-        print('TeacherSection - Teacher details: id=${teacher.id}, name=${teacher.name}, email=${teacher.email}, phone=${teacher.phoneNumber}, imageUrl=${teacher.profileImageUrl}');
-      }
-    }
-
     if (widget.teachers.isNotEmpty && widget.circle.teacherId != null) {
       final exactMatch = widget.teachers
           .where((t) => t.id == widget.circle.teacherId)
@@ -74,7 +62,6 @@ class _TeacherSectionState extends State<TeacherSection> {
 
       if (exactMatch.isNotEmpty) {
         final matchedTeacher = exactMatch.first;
-        print('TeacherSection - Found exact teacher match: ${matchedTeacher.name} with image URL: ${matchedTeacher.profileImageUrl}');
         setState(() {
           _teacher = matchedTeacher;
           _isLoading = false;
@@ -84,7 +71,6 @@ class _TeacherSectionState extends State<TeacherSection> {
     }
 
     // إنشاء معلم افتراضي بالمعلومات المتوفرة من الحلقة
-    print('TeacherSection - Using default teacher with data from circle');
     final defaultTeacher = StudentModel(
       id: widget.circle.teacherId ?? '',
       name: widget.circle.teacherName ?? 'لم يتم تعيين معلم بعد',
@@ -94,7 +80,8 @@ class _TeacherSectionState extends State<TeacherSection> {
       updatedAt: DateTime.now(),
       isTeacher: true,
       isAdmin: false,
-      profileImageUrl: widget.circle.teacherImageUrl,  // استخدام URL الصورة من الحلقة
+      profileImageUrl:
+          widget.circle.teacherImageUrl, // استخدام URL الصورة من الحلقة
     );
 
     setState(() {
@@ -134,7 +121,7 @@ class _TeacherSectionState extends State<TeacherSection> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
-        margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        margin: EdgeInsets.symmetric(horizontal: 0.w, vertical: 8.h),
         child: Padding(
           padding: EdgeInsets.all(16.r),
           child: Column(
@@ -159,7 +146,7 @@ class _TeacherSectionState extends State<TeacherSection> {
                     padding: EdgeInsets.symmetric(vertical: 20.h),
                     child: Column(
                       children: [
-                        CircularProgressIndicator(
+                        const CircularProgressIndicator(
                           color: AppColors.logoTeal,
                         ),
                         SizedBox(height: 8.h),
@@ -181,19 +168,13 @@ class _TeacherSectionState extends State<TeacherSection> {
   }
 
   Widget _buildTeacherCard(StudentModel teacher) {
-    print('TeacherCard - Building card for teacher: ${teacher.name}');
-    print('TeacherCard - Profile image URL: ${teacher.profileImageUrl}');
-    print('TeacherCard - Email: ${teacher.email}');
-    print('TeacherCard - Phone: ${teacher.phoneNumber}');
-    
     // التأكد من أن عنوان URL الصورة صالح قبل استخدامه
-    final hasValidImage = teacher.profileImageUrl != null && teacher.profileImageUrl!.isNotEmpty;
-    print('TeacherCard - Has valid image: $hasValidImage');
+    final hasValidImage =
+        teacher.profileImageUrl != null && teacher.profileImageUrl!.isNotEmpty;
 
     return Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -235,10 +216,8 @@ class _TeacherSectionState extends State<TeacherSection> {
               ),
             ],
           ),
-
           if (teacher.email.isNotEmpty || teacher.phoneNumber != null)
             SizedBox(height: 16.h),
-
           if (teacher.email.isNotEmpty)
             Padding(
               padding: EdgeInsets.only(bottom: 8.h),
@@ -259,7 +238,6 @@ class _TeacherSectionState extends State<TeacherSection> {
                 ],
               ),
             ),
-
           if (teacher.phoneNumber != null && teacher.phoneNumber!.isNotEmpty)
             Row(
               children: [

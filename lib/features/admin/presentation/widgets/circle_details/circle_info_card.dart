@@ -56,7 +56,6 @@ class CircleInfoCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
             ),
           ),
           SizedBox(width: 8.w),
@@ -65,7 +64,6 @@ class CircleInfoCard extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: Colors.black87,
               ),
               textAlign: TextAlign.start,
             ),

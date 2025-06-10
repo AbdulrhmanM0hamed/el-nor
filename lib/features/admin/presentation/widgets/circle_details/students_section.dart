@@ -107,7 +107,6 @@ class StudentsSection extends StatelessWidget {
   Widget _buildStudentCard(CircleStudent student) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -137,7 +136,6 @@ class StudentsSection extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
                         ),
                       ),
                       SizedBox(height: 4.h),
