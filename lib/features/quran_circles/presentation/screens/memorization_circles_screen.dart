@@ -1,4 +1,3 @@
-
 import 'package:beat_elslam/features/quran_circles/presentation/cubit/memorization_circles_state.dart';
 import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/widgets/memorization_circle_card.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +23,7 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
   bool _isAllCircles = true;
   bool _isMemorizationOnly = false;
   bool _isExamOnly = false;
+  bool _isDisposed = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -34,8 +34,14 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     _loadCircles();
   }
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
   void _loadCircles() {
-    if (!mounted) return;
+    if (!mounted || _isDisposed) return;
     context.read<MemorizationCirclesCubit>().loadMemorizationCircles();
   }
 
@@ -366,9 +372,11 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     );
   }
 
-  void _navigateToCircleDetails(
-      BuildContext context, MemorizationCircle circle, Map<String, dynamic> permissions) {
-    Navigator.push(
+  Future<void> _navigateToCircleDetails(
+      BuildContext context, MemorizationCircle circle, Map<String, dynamic> permissions) async {
+    if (!mounted || _isDisposed) return;
+    
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => MemorizationCircleDetailsScreenWrapper(
@@ -378,5 +386,11 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
         ),
       ),
     );
+
+    // Only refresh if we got a result indicating changes were made
+    if (mounted && !_isDisposed && result == true) {
+      // Force refresh only the specific circle that was modified
+      context.read<MemorizationCirclesCubit>().loadCircleDetails(circle.id);
+    }
   }
 }

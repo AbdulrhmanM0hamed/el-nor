@@ -40,7 +40,7 @@ void _registerRepositories() {
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(supabaseClient: sl()),
   );
-  
+
   sl.registerLazySingleton<AdminRepository>(
     () => AdminRepository(sl<SupabaseClient>()),
   );
@@ -53,22 +53,22 @@ void _registerRepositories() {
   sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(authRepository: sl<AuthRepository>()),
   );
-  
+
   // Register ResetPasswordCubit
   sl.registerFactory<ResetPasswordCubit>(
     () => ResetPasswordCubit(authRepository: sl<AuthRepository>()),
   );
-  
+
   // Cubits adicionales para la aplicación
   sl.registerFactory<QuranCubit>(
     () => QuranCubit(),
   );
-  
+
   // Registrar MemorizationCirclesCubit
   sl.registerFactory<MemorizationCirclesCubit>(
-    () => MemorizationCirclesCubit(repository: sl<MemorizationCirclesRepository>()),
+    () => MemorizationCirclesCubit(sl<MemorizationCirclesRepository>()),
   );
-  
+
   // Registrar AdminCubit para la gestión de usuarios y círculos
   sl.registerFactory<AdminCubit>(
     () => AdminCubit(sl<AdminRepository>()),

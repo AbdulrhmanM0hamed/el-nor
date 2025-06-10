@@ -1,15 +1,14 @@
-import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_assignments_tab.dart';
-import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_students_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/utils/user_role.dart';
+import '../../../../core/services/service_locator.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/student_record.dart';
-import '../../../../core/services/service_locator.dart';
-
 import '../cubit/memorization_circles_cubit.dart';
-import '../../../auth/presentation/cubit/auth_cubit.dart';
-import '../../../auth/presentation/cubit/auth_state.dart';
+import '../cubit/memorization_circles_state.dart';
+import 'memorization_circles/circle_details/widgets/circle_assignments_tab.dart';
+import 'memorization_circles/circle_details/widgets/circle_students_tab.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -59,6 +58,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   late MemorizationCircle _circle;
+  bool _isDisposed = false;
   
   @override
   bool get wantKeepAlive => true;
@@ -72,6 +72,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
 
   @override
   void dispose() {
+    _isDisposed = true;
     _tabController.dispose();
     super.dispose();
   }
@@ -115,83 +116,9 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _getCurrentUserPermissions(),
-      builder: (context, snapshot) {
-        final permissions = snapshot.data ?? {
-          'role': UserRole.student,
-          'userId': '',
-          'canManage': false,
-        };
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _circle.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (_circle.teacherId == permissions['userId'])
-                  const Text(
-                    'حلقتي',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-              ],
-            ),
-            backgroundColor: _circle.isExam ? AppColors.logoOrange : AppColors.logoTeal,
-            centerTitle: true,
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              tabs: const [
-                Tab(text: 'السور المقررة'),
-                Tab(text: 'الطلاب'),
-              ],
-            ),
-          ),
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              // تبويب السور المقررة
-              CircleAssignmentsTab(
-                key: const PageStorageKey<String>('assignments_tab'),
-                assignments: _circle.assignments,
-                isEditable: permissions['canManage'],
-                onAddSurah: permissions['canManage'] ? _showAddSurahDialog : null,
-              ),
-              
-              // تبويب الطلاب
-              CircleStudentsTab(
-                key: const PageStorageKey<String>('students_tab'),
-                students: _circle.students,
-                teacherId: _circle.teacherId ?? '',
-                currentUserId: permissions['userId'],
-                onEvaluationChanged: permissions['canManage'] && _circle.teacherId != null ? _onEvaluationChanged : null,
-                onAttendanceChanged: permissions['canManage'] && _circle.teacherId != null ? _onAttendanceChanged : null,
-                onAddStudent: permissions['canManage'] ? _showAddStudentDialog : null,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _onEvaluationChanged(String studentId, int evaluation) {
+    if (_isDisposed) return;
+
     final updatedStudents = List<StudentRecord>.from(_circle.students);
     final studentIndex = updatedStudents.indexWhere((s) => s.studentId == studentId);
     
@@ -242,6 +169,8 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
   }
 
   void _onAttendanceChanged(String studentId, bool isPresent) {
+    if (_isDisposed) return;
+
     final updatedStudents = List<StudentRecord>.from(_circle.students);
     final studentIndex = updatedStudents.indexWhere((s) => s.studentId == studentId);
     
@@ -291,20 +220,89 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
     }
   }
 
-  void _showAddSurahDialog() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('سيتم إضافة ميزة إضافة سورة قريباً'),
-        backgroundColor: AppColors.logoTeal,
-      ),
-    );
-  }
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
 
-  void _showAddStudentDialog() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('سيتم إضافة ميزة إضافة طالب قريباً'),
-        backgroundColor: AppColors.logoTeal,
+    return WillPopScope(
+      onWillPop: () async {
+        // Return true to indicate changes were made
+        Navigator.of(context).pop(true);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            _circle.name,
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: AppColors.logoTeal,
+          centerTitle: true,
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: const [
+              Tab(text: 'السور المقررة'),
+              Tab(text: 'الطلاب'),
+            ],
+          ),
+        ),
+        body: BlocListener<MemorizationCirclesCubit, MemorizationCirclesState>(
+          listener: (context, state) {
+            if (state is MemorizationCirclesLoaded && !_isDisposed) {
+              final updatedCircle = state.circles.firstWhere(
+                (c) => c.id == _circle.id,
+                orElse: () => _circle,
+              );
+              
+              if (updatedCircle != _circle) {
+                setState(() {
+                  _circle = updatedCircle;
+                });
+              }
+            }
+          },
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              // تبويب السور المقررة
+              CircleAssignmentsTab(
+                key: const PageStorageKey<String>('assignments_tab'),
+                assignments: _circle.assignments,
+                isEditable: false,
+                onAddSurah: null,
+              ),
+              
+              // تبويب الطلاب
+              FutureBuilder<Map<String, dynamic>>(
+                future: _getCurrentUserPermissions(),
+                builder: (context, snapshot) {
+                  final permissions = snapshot.data ?? {
+                    'role': UserRole.student,
+                    'userId': '',
+                    'canManage': false,
+                  };
+                  
+                  return CircleStudentsTab(
+                    key: const PageStorageKey<String>('students_tab'),
+                    students: _circle.students,
+                    teacherId: _circle.teacherId,
+                    currentUserId: widget.userId,
+                    onEvaluationChanged: permissions['canManage'] == true ? _onEvaluationChanged : null,
+                    onAttendanceChanged: permissions['canManage'] == true ? _onAttendanceChanged : null,
+                    onAddStudent: null,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

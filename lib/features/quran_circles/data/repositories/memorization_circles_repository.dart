@@ -5,6 +5,8 @@ import '../models/student_record.dart';
 
 class MemorizationCirclesRepository {
   final SupabaseClient _supabaseClient;
+  final Map<String, DateTime> _lastFetchTime = {};
+  final Duration _cacheDuration = const Duration(seconds: 30);
 
   MemorizationCirclesRepository(this._supabaseClient);
 
@@ -12,7 +14,8 @@ class MemorizationCirclesRepository {
   Future<List<MemorizationCircle>> getAllCircles() async {
     try {
       // جلب الحلقات مع بيانات المعلمين والطلاب
-      final data = await _supabaseClient.from('memorization_circles').select('''
+      final data = await _supabaseClient.from('memorization_circles')
+          .select('''
             *,
             teacher:teacher_id (
               id,
@@ -20,7 +23,8 @@ class MemorizationCirclesRepository {
               email,
               profile_image_url
             )
-          ''').order('created_at', ascending: false);
+          ''')
+          .order('created_at', ascending: false);
 
       List<MemorizationCircle> circles = [];
 
@@ -35,40 +39,47 @@ class MemorizationCirclesRepository {
           // جلب بيانات الطلاب إذا كان هناك student_ids
           if (json['student_ids'] != null &&
               (json['student_ids'] as List).isNotEmpty) {
-            final studentsData = await _supabaseClient
-                .from('students')
-                .select('id, name, profile_image_url')
-                .filter('id', 'in', json['student_ids']);
+            
+            // Check if we need to fetch student data
+            final circleId = json['id'];
+            final lastFetch = _lastFetchTime[circleId];
+            final now = DateTime.now();
+            
+            if (lastFetch == null || now.difference(lastFetch) > _cacheDuration) {
+              final studentsData = await _supabaseClient
+                  .from('students')
+                  .select('id, name, profile_image_url')
+                  .filter('id', 'in', json['student_ids']);
 
-            // تحويل بيانات الطلاب إلى الشكل المطلوب مع الحفاظ على بيانات التقييم والحضور
-            final List<Map<String, dynamic>> studentsFormatted = [];
+              // تحويل بيانات الطلاب إلى الشكل المطلوب مع الحفاظ على بيانات التقييم والحضور
+              final List<Map<String, dynamic>> studentsFormatted = [];
 
-            for (var student in studentsData) {
-              // البحث عن بيانات الطالب في الـ students column
-              var existingStudentData = json['students'] != null
-                  ? (json['students'] as List).firstWhere(
-                      (s) => s['id'] == student['id'],
-                      orElse: () => null)
-                  : null;
+              for (var student in studentsData) {
+                // البحث عن بيانات الطالب في الـ students column
+                var existingStudentData = json['students'] != null
+                    ? (json['students'] as List).firstWhere(
+                        (s) => s['id'] == student['id'],
+                        orElse: () => null)
+                    : null;
 
-              studentsFormatted.add({
-                'id': student['id'],
-                'name': student['name'],
-                'profile_image_url': student['profile_image_url'],
-                'evaluations': existingStudentData?['evaluations'] ?? [],
-                'attendance': existingStudentData?['attendance'] ?? []
-              });
+                studentsFormatted.add({
+                  'id': student['id'],
+                  'name': student['name'],
+                  'profile_image_url': student['profile_image_url'],
+                  'evaluations': existingStudentData?['evaluations'] ?? [],
+                  'attendance': existingStudentData?['attendance'] ?? []
+                });
+              }
+
+              json['students'] = studentsFormatted;
+              _lastFetchTime[circleId] = now;
             }
-
-            json['students'] = studentsFormatted;
           } else {
             json['students'] = [];
           }
 
           final circle = _parseCircleFromJson(json);
           circles.add(circle);
-
-          if (circle.students.isNotEmpty) {}
         } catch (e) {
           print('MemorizationCirclesRepository: خطأ في معالجة الحلقة: $e');
         }
@@ -81,7 +92,7 @@ class MemorizationCirclesRepository {
     }
   }
 
-  // Update student attendance and evaluation
+  // Update student attendance and evaluation with optimistic updates
   Future<void> updateStudentAttendanceAndEvaluation({
     required String circleId,
     required String studentId,
@@ -106,7 +117,6 @@ class MemorizationCirclesRepository {
 
       if (studentIndex == -1) {
         // إذا لم يكن الطالب موجوداً، نضيفه
-
         final studentData = await _supabaseClient
             .from('students')
             .select('id, name, profile_image_url')
@@ -152,13 +162,18 @@ class MemorizationCirclesRepository {
         students[studentIndex]['evaluations'] = evaluationsList;
       }
 
-      final response = await _supabaseClient
+      // 5. تحديث البيانات في قاعدة البيانات
+      await _supabaseClient
           .from('memorization_circles')
           .update({
-        'students': students,
-        'updated_at': DateTime.now().toIso8601String()
-      }).eq('id', circleId);
-    } catch (e, stackTrace) {
+            'students': students,
+            'updated_at': DateTime.now().toIso8601String()
+          })
+          .eq('id', circleId);
+
+      // 6. تحديث وقت آخر تحديث للحلقة
+      _lastFetchTime.remove(circleId);
+    } catch (e) {
       throw Exception('Failed to update student records: $e');
     }
   }
@@ -197,20 +212,17 @@ class MemorizationCirclesRepository {
       description: json['description'] ?? '',
       teacherId: json['teacher_id'] ?? '',
       teacherName: json['teacher_name'] ?? '',
-      startDate: DateTime.parse(json['start_date']),
-      endDate:
-          json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
       isExam: json['is_exam'] ?? false,
+      startDate: DateTime.parse(json['start_date']),
+      endDate: json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
       status: json['status'] ?? 'active',
-      assignments: ((json['surah_assignments'] as List?)
-              ?.cast<Map<String, dynamic>>()
-              ?.map((a) => SurahAssignment.fromJson(a))
-              ?.toList()) ??
-          [],
+      assignments: json['surah_assignments'] != null
+          ? (json['surah_assignments'] as List)
+              .map((a) => SurahAssignment.fromJson(a))
+              .toList()
+          : [],
       students: students,
-      studentIds:
-          (json['student_ids'] as List?)?.map((id) => id.toString()).toList() ??
-              [],
+      studentIds: (json['student_ids'] as List?)?.cast<String>() ?? [],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
