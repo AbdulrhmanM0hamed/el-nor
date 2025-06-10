@@ -14,8 +14,7 @@ class MemorizationCirclesRepository {
   Future<List<MemorizationCircle>> getAllCircles() async {
     try {
       // جلب الحلقات مع بيانات المعلمين والطلاب
-      final data = await _supabaseClient.from('memorization_circles')
-          .select('''
+      final data = await _supabaseClient.from('memorization_circles').select('''
             *,
             teacher:teacher_id (
               id,
@@ -23,8 +22,7 @@ class MemorizationCirclesRepository {
               email,
               profile_image_url
             )
-          ''')
-          .order('created_at', ascending: false);
+          ''').order('created_at', ascending: false);
 
       List<MemorizationCircle> circles = [];
 
@@ -39,13 +37,13 @@ class MemorizationCirclesRepository {
           // جلب بيانات الطلاب إذا كان هناك student_ids
           if (json['student_ids'] != null &&
               (json['student_ids'] as List).isNotEmpty) {
-            
             // Check if we need to fetch student data
             final circleId = json['id'];
             final lastFetch = _lastFetchTime[circleId];
             final now = DateTime.now();
-            
-            if (lastFetch == null || now.difference(lastFetch) > _cacheDuration) {
+
+            if (lastFetch == null ||
+                now.difference(lastFetch) > _cacheDuration) {
               final studentsData = await _supabaseClient
                   .from('students')
                   .select('id, name, profile_image_url')
@@ -163,13 +161,10 @@ class MemorizationCirclesRepository {
       }
 
       // 5. تحديث البيانات في قاعدة البيانات
-      await _supabaseClient
-          .from('memorization_circles')
-          .update({
-            'students': students,
-            'updated_at': DateTime.now().toIso8601String()
-          })
-          .eq('id', circleId);
+      await _supabaseClient.from('memorization_circles').update({
+        'students': students,
+        'updated_at': DateTime.now().toIso8601String()
+      }).eq('id', circleId);
 
       // 6. تحديث وقت آخر تحديث للحلقة
       _lastFetchTime.remove(circleId);
@@ -214,7 +209,8 @@ class MemorizationCirclesRepository {
       teacherName: json['teacher_name'] ?? '',
       isExam: json['is_exam'] ?? false,
       startDate: DateTime.parse(json['start_date']),
-      endDate: json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
+      endDate:
+          json['end_date'] != null ? DateTime.parse(json['end_date']) : null,
       status: json['status'] ?? 'active',
       assignments: json['surah_assignments'] != null
           ? (json['surah_assignments'] as List)
@@ -226,5 +222,21 @@ class MemorizationCirclesRepository {
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
+  }
+
+  Future<MemorizationCircle?> getCircleById(String circleId) async {
+    try {
+      final circleData = await _supabaseClient
+          .from('memorization_circles')
+          .select()
+          .eq('id', circleId)
+          .single();
+
+      if (circleData == null) return null;
+
+      return _parseCircleFromJson(circleData);
+    } catch (e) {
+      throw Exception('Failed to get circle: $e');
+    }
   }
 }

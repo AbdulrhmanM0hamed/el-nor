@@ -1,4 +1,6 @@
 import 'package:beat_elslam/features/admin/data/repositories/admin_repository.dart';
+import 'package:beat_elslam/features/quran_circles/data/datasources/circle_details_remote_datasource.dart';
+import 'package:beat_elslam/features/quran_circles/data/repositories/circle_details_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
@@ -11,6 +13,9 @@ import '../config/supabase_config.dart';
 import '../../features/quran_circles/data/repositories/memorization_circles_repository.dart';
 import 'session_service.dart';
 import 'permissions_manager.dart';
+import '../../features/quran_circles/presentation/cubit/circle_details_cubit.dart';
+import '../../features/quran_circles/data/models/memorization_circle_model.dart';
+import '../utils/user_role.dart';
 
 final sl = GetIt.instance;
 
@@ -41,12 +46,20 @@ void _registerRepositories() {
     () => AuthRepositoryImpl(supabaseClient: sl()),
   );
 
+  sl.registerLazySingleton<CircleDetailsRemoteDataSource>(
+    () => CircleDetailsRemoteDataSourceImpl(supabaseClient: sl()),
+  );
+
+  sl.registerLazySingleton<CircleDetailsRepository>(
+    () => CircleDetailsRepositoryImpl(
+        remoteDataSource: sl<CircleDetailsRemoteDataSource>()),
+  );
+
   sl.registerLazySingleton<AdminRepository>(
     () => AdminRepository(sl<SupabaseClient>()),
   );
-
   sl.registerLazySingleton<MemorizationCirclesRepository>(
-    () => MemorizationCirclesRepository(sl()),
+    () => MemorizationCirclesRepository(sl<SupabaseClient>()),
   );
 
   // Cubits
@@ -72,5 +85,16 @@ void _registerRepositories() {
   // Registrar AdminCubit para la gestión de usuarios y círculos
   sl.registerFactory<AdminCubit>(
     () => AdminCubit(sl<AdminRepository>()),
+  );
+
+  // Circle Details
+  sl.registerFactoryParam<CircleDetailsCubit, MemorizationCircle,
+      Map<String, dynamic>>(
+    (circle, params) => CircleDetailsCubit(
+      repository: sl(),
+      initialCircle: circle,
+      userId: params['userId'] as String,
+      userRole: params['userRole'],
+    ),
   );
 }
