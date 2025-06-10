@@ -92,7 +92,7 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 90.h),
+                      SizedBox(height: 120.h),
                       _buildHeader(),
                       SizedBox(height: 30.h),
                       _buildLoginForm(),
@@ -112,9 +112,9 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
       children: [
         Center(
           child: Text(
-            'النور',
+            'ملتقى النّور القرآني ',
             style: TextStyle(
-              fontSize: 48.sp,
+              fontSize: 26.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.logoTeal,
             ),
@@ -187,22 +187,12 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
           _buildRegisterLink(),
           // Guest login button
           Center(
-            child: TextButton.icon(
+            child: CustomButton(
+              text: 'الدخول كزائر',
               onPressed: () {
                 context.read<GlobalAuthCubit>().enterAsGuest();
               },
-              icon: const Icon(
-                Icons.person_outline,
-                color: AppColors.logoTeal,
-              ),
-              label: Text(
-                'الدخول كزائر',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: AppColors.logoTeal,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              icon: Icons.person_outline,
             ),
           ),
           SizedBox(height: 20.h),

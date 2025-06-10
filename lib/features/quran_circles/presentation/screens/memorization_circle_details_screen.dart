@@ -5,12 +5,39 @@ import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/utils/user_role.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/student_record.dart';
+import '../../../../core/services/service_locator.dart';
 
 import '../cubit/memorization_circles_cubit.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Wrapper component to provide MemorizationCirclesCubit
+class MemorizationCircleDetailsScreenWrapper extends StatelessWidget {
+  final MemorizationCircle circle;
+  final UserRole userRole;
+  final String userId;
+
+  const MemorizationCircleDetailsScreenWrapper({
+    Key? key,
+    required this.circle,
+    required this.userRole,
+    required this.userId,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<MemorizationCirclesCubit>(
+      create: (context) => sl<MemorizationCirclesCubit>(),
+      child: MemorizationCircleDetailsScreen(
+        circle: circle,
+        userRole: userRole,
+        userId: userId,
+      ),
+    );
+  }
+}
 
 class MemorizationCircleDetailsScreen extends StatefulWidget {
   final MemorizationCircle circle;
