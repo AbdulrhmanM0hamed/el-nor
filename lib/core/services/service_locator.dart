@@ -15,6 +15,8 @@ import 'session_service.dart';
 import 'permissions_manager.dart';
 import '../../features/quran_circles/presentation/cubit/circle_details_cubit.dart';
 import '../../features/quran_circles/data/models/memorization_circle_model.dart';
+import '../../features/learning_plan/data/repositories/learning_plan_repository.dart';
+import '../../features/learning_plan/presentation/cubit/learning_plan_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -61,6 +63,10 @@ void _registerRepositories() {
     () => MemorizationCirclesRepository(sl<SupabaseClient>()),
   );
 
+  sl.registerLazySingleton<LearningPlanRepository>(
+    () => LearningPlanRepository(sl<SupabaseClient>()),
+  );
+
   // Cubits
   sl.registerLazySingleton<AuthCubit>(
     () => AuthCubit(authRepository: sl<AuthRepository>()),
@@ -94,6 +100,13 @@ void _registerRepositories() {
       initialCircle: circle,
       userId: params['userId'] as String,
       userRole: params['userRole'],
+    ),
+  );
+
+  sl.registerFactoryParam<LearningPlanCubit, bool, void>(
+    (isAdmin, _) => LearningPlanCubit(
+      repository: sl<LearningPlanRepository>(),
+      isAdmin: isAdmin,
     ),
   );
 }

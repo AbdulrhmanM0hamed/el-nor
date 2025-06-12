@@ -52,7 +52,13 @@ class ProfileActionsWidget extends StatelessWidget {
               color: Colors.amber,
             ),
             SizedBox(height: 12.h),
-           
+            _buildActionButton(
+              context,
+              'خطة التعلم',
+              Icons.picture_as_pdf,
+              () => Navigator.pushNamed(context, '/learning-plan', arguments: user),
+              color: Colors.orange,
+            ),
             SizedBox(height: 24.h),
           ],
 
@@ -76,6 +82,13 @@ class ProfileActionsWidget extends StatelessWidget {
               context,
               ChangePasswordScreen.routeName,
             ),
+          ),
+          SizedBox(height: 12.h),
+          _buildActionButton(
+            context,
+            'خطة التعلم',
+            Icons.picture_as_pdf,
+            () => Navigator.pushNamed(context, '/learning-plan', arguments: user),
           ),
           SizedBox(height: 12.h),
           _buildActionButton(

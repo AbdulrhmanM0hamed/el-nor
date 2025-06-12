@@ -189,14 +189,14 @@ class MemorizationCirclesRepository {
                         date: DateTime.parse(e['date']),
                         rating: e['rating'],
                       ))
-                  ?.toList() ??
+                  .toList() ??
               [],
           attendance: (studentJson['attendance'] as List?)
                   ?.map((a) => AttendanceRecord(
                         date: DateTime.parse(a['date']),
                         isPresent: a['is_present'],
                       ))
-                  ?.toList() ??
+                  .toList() ??
               [],
           createdAt: DateTime.parse(studentJson['created_at']),
         ));

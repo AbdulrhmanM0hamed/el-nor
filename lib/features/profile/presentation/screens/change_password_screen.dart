@@ -2,7 +2,6 @@ import 'package:beat_elslam/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../auth/presentation/cubit/global_auth_cubit.dart';
 import '../cubit/change_password_cubit.dart';
 import '../widgets/profile_form/profile_text_field.dart';
 
@@ -57,9 +56,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     }
 
     context.read<ChangePasswordCubit>().changePassword(
-      currentPassword: _currentPasswordController.text,
-      newPassword: _newPasswordController.text,
-    );
+          currentPassword: _currentPasswordController.text,
+          newPassword: _newPasswordController.text,
+        );
   }
 
   @override
@@ -75,7 +74,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: CustomAppBar(title: 'تغيير كلمة المرور'),
+          appBar: const CustomAppBar(title: 'تغيير كلمة المرور'),
           body: SingleChildScrollView(
             padding: EdgeInsets.all(16.w),
             child: Form(
@@ -91,10 +90,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureCurrentPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscureCurrentPassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: Colors.grey,
                       ),
-                      onPressed: () => setState(() => _obscureCurrentPassword = !_obscureCurrentPassword),
+                      onPressed: () => setState(() =>
+                          _obscureCurrentPassword = !_obscureCurrentPassword),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -112,10 +114,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureNewPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscureNewPassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: Colors.grey,
                       ),
-                      onPressed: () => setState(() => _obscureNewPassword = !_obscureNewPassword),
+                      onPressed: () => setState(
+                          () => _obscureNewPassword = !_obscureNewPassword),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -136,10 +141,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscureConfirmPassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: Colors.grey,
                       ),
-                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                      onPressed: () => setState(() =>
+                          _obscureConfirmPassword = !_obscureConfirmPassword),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -150,7 +158,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                   SizedBox(height: 32.h),
                   ElevatedButton(
-                    onPressed: state is ChangePasswordLoading ? null : _handleChangePassword,
+                    onPressed: state is ChangePasswordLoading
+                        ? null
+                        : _handleChangePassword,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                       backgroundColor: Theme.of(context).primaryColor,
@@ -177,4 +187,4 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       },
     );
   }
-} 
+}

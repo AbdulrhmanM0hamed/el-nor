@@ -41,6 +41,7 @@ import '../../features/profile/presentation/screens/change_password_screen.dart'
 import 'package:beat_elslam/features/auth/data/models/user_model.dart';
 import '../../features/auth/presentation/cubit/global_auth_cubit.dart';
 import '../../features/profile/presentation/cubit/change_password_cubit.dart';
+import '../../features/learning_plan/presentation/screens/learning_plan_screen.dart';
 
 final _logger = Logger();
 
@@ -284,6 +285,13 @@ Route<dynamic> onGenratedRoutes(RouteSettings settings) {
         ],
         child: const ChangePasswordScreen(),
       ),
+    );
+  }
+
+  if (routeName == LearningPlanScreen.routeName) {
+    final user = settings.arguments as UserModel;
+    return MaterialPageRoute(
+      builder: (context) => LearningPlanScreen(user: user),
     );
   }
 
