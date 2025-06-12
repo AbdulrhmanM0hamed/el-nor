@@ -1,6 +1,7 @@
 import 'package:beat_elslam/features/admin/data/models/student_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'user_role_chip.dart';
 import 'user_info_chip.dart';
 
@@ -167,6 +168,12 @@ class UserListItem extends StatelessWidget {
           color: _getRoleColor(user),
           icon: _getRoleIcon(user),
         ),
+        SizedBox(width: 8.w),
+        UserInfoChip(
+          text: _formatDate(user.createdAt),
+          icon: Icons.calendar_today_outlined,
+          color: Colors.orange,
+        ),
         if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
           SizedBox(width: 8.w),
           UserInfoChip(
@@ -201,4 +208,8 @@ class UserListItem extends StatelessWidget {
     if (user.isTeacher) return Icons.school_outlined;
     return Icons.person_outline;
   }
-} 
+
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+}
