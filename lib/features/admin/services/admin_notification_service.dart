@@ -4,7 +4,7 @@ import 'dart:convert';
 
 class AdminNotificationService {
   final supabase = Supabase.instance.client;
-  static const String serverUrl = 'https://notification-server-elnor.vercel.app';  // قم بتغيير هذا الرابط برابط مشروعك على Vercel
+  static const String serverUrl = 'https://notification-server-elnor.vercel.app'; 
 
   Future<void> sendNotificationToAll({
     required String title,
@@ -36,7 +36,6 @@ class AdminNotificationService {
         );
       }
 
-      print('تم إرسال الإشعار بنجاح لـ ${tokens.length} مستخدم');
     } catch (e) {
       print('خطأ في إرسال الإشعارات: $e');
       rethrow;

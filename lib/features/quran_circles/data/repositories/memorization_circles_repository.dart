@@ -46,7 +46,7 @@ class MemorizationCirclesRepository {
                 now.difference(lastFetch) > _cacheDuration) {
               final studentsData = await _supabaseClient
                   .from('students')
-                  .select('id, name, profile_image_url')
+                  .select('id, name, profile_image_url, created_at')
                   .filter('id', 'in', json['student_ids']);
 
               // تحويل بيانات الطلاب إلى الشكل المطلوب مع الحفاظ على بيانات التقييم والحضور
@@ -65,7 +65,8 @@ class MemorizationCirclesRepository {
                   'name': student['name'],
                   'profile_image_url': student['profile_image_url'],
                   'evaluations': existingStudentData?['evaluations'] ?? [],
-                  'attendance': existingStudentData?['attendance'] ?? []
+                  'attendance': existingStudentData?['attendance'] ?? [],
+                  'created_at': student['created_at']
                 });
               }
 
@@ -197,6 +198,7 @@ class MemorizationCirclesRepository {
                       ))
                   ?.toList() ??
               [],
+          createdAt: DateTime.parse(studentJson['created_at']),
         ));
       }
     }

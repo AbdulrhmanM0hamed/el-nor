@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../../../core/utils/theme/app_colors.dart';
 import '../../../../../data/models/student_record.dart';
+import 'package:intl/intl.dart';
 
 class CircleStudentsTab extends StatelessWidget {
   final List<StudentRecord> students;
@@ -98,7 +99,9 @@ class CircleStudentsTab extends StatelessWidget {
                 subtitle: Text(
                   'آخر تقييم: ${_getEvaluationText(lastEvaluation)}',
                 ),
-                trailing: _buildAttendanceIndicator(lastAttendance),
+                trailing: Text(
+                  DateFormat('yyyy-MM-dd').format(student.createdAt.toLocal()),
+                ),
               ),
               if (onEvaluationChanged != null || onAttendanceChanged != null)
                 Padding(

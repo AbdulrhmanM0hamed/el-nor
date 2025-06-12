@@ -5,6 +5,7 @@ class StudentRecord {
   final String? profileImageUrl;
   final List<EvaluationRecord> evaluations;
   final List<AttendanceRecord> attendance;
+  final DateTime createdAt;
 
   const StudentRecord({
     required this.studentId,
@@ -12,6 +13,7 @@ class StudentRecord {
     this.profileImageUrl,
     this.evaluations = const [],
     this.attendance = const [],
+    required this.createdAt,
   });
 
   factory StudentRecord.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class StudentRecord {
       attendance: (json['attendance'] as List<dynamic>?)
           ?.map((a) => AttendanceRecord.fromJson(a as Map<String, dynamic>))
           .toList() ?? [],
+      createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
 
@@ -35,6 +38,7 @@ class StudentRecord {
       'profile_image_url': profileImageUrl,
       'evaluations': evaluations.map((e) => e.toJson()).toList(),
       'attendance': attendance.map((a) => a.toJson()).toList(),
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
@@ -44,6 +48,7 @@ class StudentRecord {
     String? profileImageUrl,
     List<EvaluationRecord>? evaluations,
     List<AttendanceRecord>? attendance,
+    DateTime? createdAt,
   }) {
     return StudentRecord(
       studentId: studentId ?? this.studentId,
@@ -51,6 +56,7 @@ class StudentRecord {
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       evaluations: evaluations ?? this.evaluations,
       attendance: attendance ?? this.attendance,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

@@ -13,7 +13,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/auth/presentation/cubit/global_auth_cubit.dart';
 import 'core/helper/on_genrated_routes.dart';
 import 'core/services/notification_service.dart';
-
 import 'features/home/quran/data/models/surah_model.dart';
 import 'features/home/asma_allah/models/allah_name_model.dart';
 
@@ -26,15 +25,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> _initializeApp() async {
   // Initialize Firebase first since it's critical
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize service locator
-    await di.init();
-    
+  await di.init();
+
   // Initialize GlobalAuthCubit
-    await GlobalAuthCubit.initialize(authRepository: di.sl());
+  await GlobalAuthCubit.initialize(authRepository: di.sl());
 
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -44,23 +43,23 @@ Future<void> _initializeApp() async {
 
   // Initialize timezone data for scheduling notifications
   tz.initializeTimeZones();
-    
-    // Set preferred orientations
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+
+  // Set preferred orientations
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   // Start preloading data in parallel
-    SurahList.preInitialize();
-    AllahNamesList.preInitialize();
+  SurahList.preInitialize();
+  AllahNamesList.preInitialize();
 }
 
-void main() async {  
+void main() async {
   try {
     // Ensure Flutter bindings are initialized first
     WidgetsFlutterBinding.ensureInitialized();
-    
+
     // Wait for critical initializations to complete
     await _initializeApp();
 
@@ -74,7 +73,7 @@ void main() async {
 
 class ErrorApp extends StatelessWidget {
   final String error;
-  
+
   const ErrorApp({super.key, required this.error});
 
   @override

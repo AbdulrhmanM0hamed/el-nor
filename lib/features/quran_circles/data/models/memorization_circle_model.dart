@@ -169,171 +169,176 @@ class MemorizationCircle extends Equatable {
   }
 
   // Método para generar datos de ejemplo
-  static List<MemorizationCircle> getSampleCircles() {
-    print('MemorizationCircle: إنشاء بيانات تجريبية للحلقات');
-    final circles = [
-      MemorizationCircle(
-        id: '1',
-        name: 'حلقة حفظ جزء عم',
-        teacherName: 'محمد أحمد',
-        teacherId: '79550bdb-f10c-4089-a0b3-ee9a2969e0e9', // استخدام معرف المستخدم الحقيقي
-        description: 'حلقة لحفظ سور جزء عم للمبتدئين',
-        startDate: DateTime.now().add(const Duration(days: 2)),
-        endDate: DateTime.now().add(const Duration(days: 30)),
-        isExam: false,
-        assignments: [
-          SurahAssignment(
-            id: '1',
-            surahName: 'الناس',
-            startVerse: 1,
-            endVerse: 6,
-          ),
-          SurahAssignment(
-            id: '2',
-            surahName: 'الفلق',
-            startVerse: 1,
-            endVerse: 5,
-          ),
-        ],
-        students: [
-          StudentRecord(
-            studentId: '79550bdb-f10c-4089-a0b3-ee9a2969e0e9',
-            name: 'محمد أحمد',
-            profileImageUrl: 'assets/images/student1.jpg',
-            evaluations: [
-              EvaluationRecord(
-                date: DateTime.now(),
-                rating: 4,
-              ),
-            ],
-            attendance: [
-              AttendanceRecord(
-                date: DateTime.now(),
-                isPresent: true,
-              ),
-            ],
-          ),
-        ],
-        studentIds: ['79550bdb-f10c-4089-a0b3-ee9a2969e0e9'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      MemorizationCircle(
-        id: '2',
-        name: 'امتحان حفظ سورة البقرة',
-        teacherName: 'أحمد إبراهيم',
-        teacherId: 'teacher2',
-        description: 'امتحان حفظ للجزء الأول من سورة البقرة',
-        startDate: DateTime.now().add(const Duration(days: 5)),
-        endDate: DateTime.now().add(const Duration(days: 35)),
-        isExam: true,
-        assignments: [
-          SurahAssignment(
-            id: '3',
-            surahName: 'البقرة',
-            startVerse: 1,
-            endVerse: 141,
-          ),
-        ],
-        students: [
-          StudentRecord(
-            studentId: '4',
-            name: 'أحمد محمد',
-            profileImageUrl: 'assets/images/student4.jpg',
-            evaluations: [
-              EvaluationRecord(
-                date: DateTime.now(),
-                rating: 0,
-              ),
-            ],
-            attendance: [
-              AttendanceRecord(
-                date: DateTime.now(),
-                isPresent: true,
-              ),
-            ],
-          ),
-          StudentRecord(
-            studentId: '5',
-            name: 'عمر خالد',
-            profileImageUrl: 'assets/images/student5.jpg',
-            evaluations: [
-              EvaluationRecord(
-                date: DateTime.now(),
-                rating: 0,
-              ),
-            ],
-            attendance: [
-              AttendanceRecord(
-                date: DateTime.now(),
-                isPresent: true,
-              ),
-            ],
-          ),
-        ],
-        studentIds: ['4', '5'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      MemorizationCircle(
-        id: '3',
-        name: 'حلقة حفظ سورة يس',
-        teacherName: 'إبراهيم محمود',
-        teacherId: 'teacher3',
-        description: 'حلقة لحفظ سورة يس كاملة',
-        startDate: DateTime.now().add(const Duration(days: 1)),
-        endDate: DateTime.now().add(const Duration(days: 60)),
-        isExam: false,
-        assignments: [
-          SurahAssignment(
-            id: '4',
-            surahName: 'يس',
-            startVerse: 1,
-            endVerse: 83,
-          ),
-        ],
-        students: [
-          StudentRecord(
-            studentId: '6',
-            name: 'خالد محمود',
-            profileImageUrl: 'assets/images/student6.jpg',
-            evaluations: [
-              EvaluationRecord(
-                date: DateTime.now(),
-                rating: 4,
-              ),
-            ],
-            attendance: [
-              AttendanceRecord(
-                date: DateTime.now(),
-                isPresent: true,
-              ),
-            ],
-          ),
-          StudentRecord(
-            studentId: '7',
-            name: 'عبد الله أحمد',
-            profileImageUrl: 'assets/images/student7.jpg',
-            evaluations: [
-              EvaluationRecord(
-                date: DateTime.now(),
-                rating: 3,
-              ),
-            ],
-            attendance: [
-              AttendanceRecord(
-                date: DateTime.now(),
-                isPresent: true,
-              ),
-            ],
-          ),
-        ],
-        studentIds: ['6', '7'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-    print('MemorizationCircle: تم إنشاء ${circles.length} حلقة تجريبية');
-    return circles;
-  }
+  // static List<MemorizationCircle> getSampleCircles() {
+  //   print('MemorizationCircle: إنشاء بيانات تجريبية للحلقات');
+  //   final circles = [
+  //     MemorizationCircle(
+  //       id: '1',
+  //       name: 'حلقة حفظ جزء عم',
+  //       teacherName: 'محمد أحمد',
+  //       teacherId: '79550bdb-f10c-4089-a0b3-ee9a2969e0e9', // استخدام معرف المستخدم الحقيقي
+  //       description: 'حلقة لحفظ سور جزء عم للمبتدئين',
+  //       startDate: DateTime.now().add(const Duration(days: 2)),
+  //       endDate: DateTime.now().add(const Duration(days: 30)),
+  //       isExam: false,
+  //       assignments: [
+  //         SurahAssignment(
+  //           id: '1',
+  //           surahName: 'الناس',
+  //           startVerse: 1,
+  //           endVerse: 6,
+  //         ),
+  //         SurahAssignment(
+  //           id: '2',
+  //           surahName: 'الفلق',
+  //           startVerse: 1,
+  //           endVerse: 5,
+  //         ),
+  //       ],
+  //       students: [
+  //         StudentRecord(
+  //           createdAt: DateTime.now(),
+  //           studentId: '79550bdb-f10c-4089-a0b3-ee9a2969e0e9',
+  //           name: 'محمد أحمد',
+  //           profileImageUrl: 'assets/images/student1.jpg',
+  //           evaluations: [
+  //             EvaluationRecord(
+  //               date: DateTime.now(),
+  //               rating: 4,
+  //             ),
+  //           ],
+  //           attendance: [
+  //             AttendanceRecord(
+  //               date: DateTime.now(),
+  //               isPresent: true,
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //       studentIds: ['79550bdb-f10c-4089-a0b3-ee9a2969e0e9'],
+  //       createdAt: DateTime.now(),
+  //       updatedAt: DateTime.now(),
+  //     ),
+  //     MemorizationCircle(
+  //       id: '2',
+  //       name: 'امتحان حفظ سورة البقرة',
+  //       teacherName: 'أحمد إبراهيم',
+  //       teacherId: 'teacher2',
+  //       description: 'امتحان حفظ للجزء الأول من سورة البقرة',
+  //       startDate: DateTime.now().add(const Duration(days: 5)),
+  //       endDate: DateTime.now().add(const Duration(days: 35)),
+  //       isExam: true,
+  //       assignments: [
+  //         SurahAssignment(
+  //           id: '3',
+  //           surahName: 'البقرة',
+  //           startVerse: 1,
+  //           endVerse: 141,
+  //         ),
+  //       ],
+  //       students: [
+  //         StudentRecord(
+  //           createdAt: DateTime.now(),
+  //           studentId: '4',
+  //           name: 'أحمد محمد',
+  //           profileImageUrl: 'assets/images/student4.jpg',
+  //           evaluations: [
+  //             EvaluationRecord(
+  //               date: DateTime.now(),
+  //               rating: 0,
+  //             ),
+  //           ],
+  //           attendance: [
+  //             AttendanceRecord(
+  //               date: DateTime.now(),
+  //               isPresent: true,
+  //             ),
+  //           ],
+  //         ),
+  //         StudentRecord(
+  //           createdAt: DateTime.now(),
+  //           studentId: '5',
+  //           name: 'عمر خالد',
+  //           profileImageUrl: 'assets/images/student5.jpg',
+  //           evaluations: [
+  //             EvaluationRecord(
+  //               date: DateTime.now(),
+  //               rating: 0,
+  //             ),
+  //           ],
+  //           attendance: [
+  //             AttendanceRecord(
+  //               date: DateTime.now(),
+  //               isPresent: true,
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //       studentIds: ['4', '5'],
+  //       createdAt: DateTime.now(),
+  //       updatedAt: DateTime.now(),
+  //     ),
+  //     MemorizationCircle(
+  //       id: '3',
+  //       name: 'حلقة حفظ سورة يس',
+  //       teacherName: 'إبراهيم محمود',
+  //       teacherId: 'teacher3',
+  //       description: 'حلقة لحفظ سورة يس كاملة',
+  //       startDate: DateTime.now().add(const Duration(days: 1)),
+  //       endDate: DateTime.now().add(const Duration(days: 60)),
+  //       isExam: false,
+  //       assignments: [
+  //         SurahAssignment(
+  //           id: '4',
+  //           surahName: 'يس',
+  //           startVerse: 1,
+  //           endVerse: 83,
+  //         ),
+  //       ],
+  //       students: [
+  //         StudentRecord(
+  //           createdAt: DateTime.now(),
+  //           studentId: '6',
+  //           name: 'خالد محمود',
+  //           profileImageUrl: 'assets/images/student6.jpg',
+  //           evaluations: [
+  //             EvaluationRecord(
+  //               date: DateTime.now(),
+  //               rating: 4,
+  //             ),
+  //           ],
+  //           attendance: [
+  //             AttendanceRecord(
+  //               date: DateTime.now(),
+  //               isPresent: true,
+  //             ),
+  //           ],
+  //         ),
+  //         StudentRecord(
+  //           createdAt: DateTime.now(),
+  //           studentId: '7',
+  //           name: 'عبد الله أحمد',
+  //           profileImageUrl: 'assets/images/student7.jpg',
+  //           evaluations: [
+  //             EvaluationRecord(
+  //               date: DateTime.now(),
+  //               rating: 3,
+  //             ),
+  //           ],
+  //           attendance: [
+  //             AttendanceRecord(
+  //               date: DateTime.now(),
+  //               isPresent: true,
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //       studentIds: ['6', '7'],
+  //       createdAt: DateTime.now(),
+  //       updatedAt: DateTime.now(),
+  //     ),
+  //   ];
+  //   print('MemorizationCircle: تم إنشاء ${circles.length} حلقة تجريبية');
+  //   return circles;
+  // }
 }

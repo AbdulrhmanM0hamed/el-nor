@@ -59,7 +59,11 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
           .single();
 
       if (userData == null) {
-        return {'role': UserRole.student, 'userId': currentUser.id, 'isTeacher': false};
+        return {
+          'role': UserRole.student,
+          'userId': currentUser.id,
+          'isTeacher': false
+        };
       }
 
       UserRole role;
@@ -88,11 +92,12 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     return FutureBuilder<Map<String, dynamic>>(
       future: _getCurrentUserPermissions(),
       builder: (context, snapshot) {
-        final permissions = snapshot.data ?? {
-          'role': UserRole.student,
-          'userId': '',
-          'isTeacher': false,
-        };
+        final permissions = snapshot.data ??
+            {
+              'role': UserRole.student,
+              'userId': '',
+              'isTeacher': false,
+            };
 
         return Scaffold(
           appBar: AppBar(
@@ -112,7 +117,8 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
             children: [
               if (permissions['role'] == UserRole.admin) ...[
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                  padding:
+                      EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
                   color: Theme.of(context).cardColor,
                   child: Row(
                     children: [
@@ -144,12 +150,13 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
                 ),
               ],
               Expanded(
-                child: BlocBuilder<MemorizationCirclesCubit, MemorizationCirclesState>(
+                child: BlocBuilder<MemorizationCirclesCubit,
+                    MemorizationCirclesState>(
                   builder: (context, state) {
                     if (state is MemorizationCirclesLoading) {
                       return _buildLoadingState();
                     } else if (state is MemorizationCirclesLoaded) {
-                      var circles = permissions['role'] == UserRole.admin 
+                      var circles = permissions['role'] == UserRole.admin
                           ? _filterCircles(state.circles)
                           : state.circles;
                       circles = _filterCirclesByRole(circles, permissions);
@@ -166,7 +173,8 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
                               .loadMemorizationCircles();
                         },
                         child: ListView.builder(
-                          key: const PageStorageKey<String>('circles_list_view'),
+                          key:
+                              const PageStorageKey<String>('circles_list_view'),
                           padding: EdgeInsets.symmetric(vertical: 16.h),
                           itemCount: circles.length,
                           itemBuilder: (context, index) {
@@ -220,7 +228,9 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
       case UserRole.teacher:
         return circles.where((circle) => circle.teacherId == userId).toList();
       case UserRole.student:
-        return circles.where((circle) => circle.studentIds.contains(userId)).toList();
+        return circles
+            .where((circle) => circle.studentIds.contains(userId))
+            .toList();
       default:
         return [];
     }
@@ -372,10 +382,10 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
     );
   }
 
-  Future<void> _navigateToCircleDetails(
-      BuildContext context, MemorizationCircle circle, Map<String, dynamic> permissions) async {
+  Future<void> _navigateToCircleDetails(BuildContext context,
+      MemorizationCircle circle, Map<String, dynamic> permissions) async {
     if (!mounted || _isDisposed) return;
-    
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
