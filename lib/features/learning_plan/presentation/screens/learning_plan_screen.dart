@@ -43,7 +43,8 @@ class _LearningPlanView extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('حذف خطة التعلم'),
-        content: const Text('هل أنت متأكد من حذف الخطة؟ لا يمكن التراجع عن هذا الإجراء.'),
+        content: const Text(
+            'هل أنت متأكد من حذف الخطة؟ لا يمكن التراجع عن هذا الإجراء.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
