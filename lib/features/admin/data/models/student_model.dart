@@ -49,7 +49,7 @@ class StudentModel {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : DateTime.now(),
-      phoneNumber: json['phone_number'],
+      phoneNumber: json['phone'],
       parentName: json['parent_name'],
       parentPhone: json['parent_phone'],
       profileImageUrl: json['profile_image_url'],
@@ -91,7 +91,7 @@ class StudentModel {
       'email': email,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
-      'phone_number': phoneNumber,
+      'phone': phoneNumber,
       'parent_name': parentName,
       'parent_phone': parentPhone,
       'profile_image_url': profileImageUrl,

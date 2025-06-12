@@ -3,7 +3,6 @@ import '../../data/repositories/admin_repository.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/surah_assignment.dart';
 import '../../data/models/student_model.dart';
-import '../../../auth/data/models/user_model.dart';
 import 'admin_state.dart';
 
 class AdminCubit extends Cubit<AdminState> {
@@ -64,10 +63,10 @@ class AdminCubit extends Cubit<AdminState> {
         isAdmin: isAdmin,
         isTeacher: isTeacher,
       );
-      
+
       // Get updated users list
       final updatedUsers = await _adminRepository.getAllUsers();
-      
+
       // Emit success with updated users list
       emit(AdminUsersLoaded(updatedUsers));
     } catch (e) {
@@ -75,7 +74,8 @@ class AdminCubit extends Cubit<AdminState> {
     }
   }
 
-  Future<List<MemorizationCircleModel>> loadAllCircles({bool forceRefresh = false}) async {
+  Future<List<MemorizationCircleModel>> loadAllCircles(
+      {bool forceRefresh = false}) async {
     try {
       if (!forceRefresh && state is AdminCirclesLoaded) {
         final currentState = state as AdminCirclesLoaded;
@@ -95,13 +95,12 @@ class AdminCubit extends Cubit<AdminState> {
 
       if (currentTeachers.isNotEmpty) {
         final enhancedCircles = circles.map((circle) {
-          if (circle.teacherId != null && 
-              circle.teacherId!.isNotEmpty && 
+          if (circle.teacherId != null &&
+              circle.teacherId!.isNotEmpty &&
               (circle.teacherName == null || circle.teacherName!.isEmpty)) {
-            
-            final matchingTeachers = currentTeachers.where(
-              (t) => t.id == circle.teacherId && t.isTeacher
-            ).toList();
+            final matchingTeachers = currentTeachers
+                .where((t) => t.id == circle.teacherId && t.isTeacher)
+                .toList();
 
             if (matchingTeachers.isNotEmpty) {
               final teacher = matchingTeachers.first;
@@ -162,13 +161,10 @@ class AdminCubit extends Cubit<AdminState> {
 
       // إضافة الحلقة باستخدام المستودع
       final createdCircle = await _adminRepository.addCircle(newCircle);
-      
-      print('Circle created successfully: ${createdCircle.id}');
-      print('Teacher ID: ${createdCircle.teacherId}, Teacher Name: ${createdCircle.teacherName}');
 
       // First emit creation success
       emit(AdminCircleCreated(createdCircle));
-      
+
       // Then refresh the circles list
       await loadAllCircles(forceRefresh: true);
     } catch (e) {
@@ -196,7 +192,7 @@ class AdminCubit extends Cubit<AdminState> {
       // الحصول على الحلقة الحالية
       final circles = await _adminRepository.getAllCircles();
       final circle = circles.firstWhere((c) => c.id == id);
-      
+
       // تحديث الحلقة بالبيانات الجديدة
       final updatedCircle = circle.copyWith(
         name: name,
@@ -209,18 +205,21 @@ class AdminCubit extends Cubit<AdminState> {
         isExam: isExam,
         updatedAt: DateTime.now(),
       );
-      
-      print('Circle before update: Teacher ID=${circle.teacherId}, Name=${circle.teacherName}');
-      print('Circle after update: Teacher ID=${updatedCircle.teacherId}, Name=${updatedCircle.teacherName}');
-      
+
+      print(
+          'Circle before update: Teacher ID=${circle.teacherId}, Name=${circle.teacherName}');
+      print(
+          'Circle after update: Teacher ID=${updatedCircle.teacherId}, Name=${updatedCircle.teacherName}');
+
       // حفظ التغييرات
       final savedCircle = await _adminRepository.updateCircle(updatedCircle);
-      
-      print('Circle saved successfully: Teacher ID=${savedCircle.teacherId}, Name=${savedCircle.teacherName}');
+
+      print(
+          'Circle saved successfully: Teacher ID=${savedCircle.teacherId}, Name=${savedCircle.teacherName}');
 
       // First emit update success
       emit(AdminCircleUpdated(savedCircle));
-      
+
       // Then refresh the circles list
       await loadAllCircles(forceRefresh: true);
     } catch (e) {
@@ -254,30 +253,31 @@ class AdminCubit extends Cubit<AdminState> {
       // Store current state to preserve data
       final currentState = state;
       List<StudentModel> currentTeachers = [];
-      
+
       // Preserve teacher data if available
       if (currentState is AdminTeachersLoaded) {
         currentTeachers = currentState.teachers;
       }
-      
+
       // Only emit loading if we don't have teacher data to preserve
       if (currentTeachers.isEmpty) {
         emit(AdminLoading());
       }
 
       // طباعة معلومات للتشخيص
-      print('محاولة تعيين المعلم $teacherName (المعرف: $teacherId) للحلقة $circleId');
+      print(
+          'محاولة تعيين المعلم $teacherName (المعرف: $teacherId) للحلقة $circleId');
 
       // تحديث الحلقة بمعلم جديد مباشرة في قاعدة البيانات
       try {
         // تحديث حقل teacher_id فقط في قاعدة البيانات
         await _adminRepository.updateCircleTeacher(circleId, teacherId);
-        
+
         // If we have teacher data, re-emit it first to preserve it
         if (currentTeachers.isNotEmpty) {
           emit(AdminTeachersLoaded(currentTeachers));
         }
-        
+
         // Then emit the teacher assigned state
         emit(AdminTeacherAssigned(
           circleId: circleId,
@@ -297,25 +297,26 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminError('حدث خطأ أثناء تعيين المعلم للحلقة: ${e.toString()}'));
     }
   }
-  
+
   // تحميل طلاب حلقة محددة
-  Future<void> loadCircleStudents(String circleId, List<String> studentIds) async {
+  Future<void> loadCircleStudents(
+      String circleId, List<String> studentIds) async {
     try {
       emit(AdminLoading());
-      
+
       // طباعة معلومات للتصحيح
       print('تحميل بيانات ${studentIds.length} طالب للحلقة $circleId');
-      
+
       if (studentIds.isEmpty) {
         // إذا لم يكن هناك طلاب، نعود إلى الحالة السابقة
         final circles = await _adminRepository.getAllCircles();
         emit(AdminCirclesLoaded(circles));
         return;
       }
-      
+
       // تحميل جميع الحلقات
       final circles = await _adminRepository.getAllCircles();
-      
+
       // تحديث الحلقة المحددة بالطلاب المحملين
       final updatedCircles = circles.map((circle) {
         if (circle.id == circleId) {
@@ -324,7 +325,7 @@ class AdminCubit extends Cubit<AdminState> {
         }
         return circle;
       }).toList();
-      
+
       // إرسال الحالة المحدثة
       emit(AdminCirclesLoaded(updatedCircles));
     } catch (e) {
@@ -354,7 +355,8 @@ class AdminCubit extends Cubit<AdminState> {
       final circles = await _adminRepository.getAllCircles();
       emit(AdminCirclesLoaded(circles));
     } catch (e) {
-      emit(AdminError('حدث خطأ أثناء تحديث حضور وتقييم الطالب: ${e.toString()}'));
+      emit(AdminError(
+          'حدث خطأ أثناء تحديث حضور وتقييم الطالب: ${e.toString()}'));
     }
   }
 
@@ -363,12 +365,9 @@ class AdminCubit extends Cubit<AdminState> {
     try {
       emit(AdminLoading());
 
-      final student = await _adminRepository.getStudentRecords(circleId, studentId);
-      
       // تحميل بيانات الحلقة المحدثة
       final circles = await _adminRepository.getAllCircles();
-      final circle = circles.firstWhere((c) => c.id == circleId);
-      
+
       emit(AdminCirclesLoaded(circles));
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء تحميل سجلات الطالب: ${e.toString()}'));

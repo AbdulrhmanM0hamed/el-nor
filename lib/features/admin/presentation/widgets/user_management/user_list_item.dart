@@ -74,7 +74,7 @@ class UserListItem extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      user.name ?? '',
+                      user.name,
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
@@ -93,6 +93,26 @@ class UserListItem extends StatelessWidget {
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
+              if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.phone_outlined,
+                      size: 14.r,
+                      color: Colors.grey.shade600,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      user.phoneNumber!,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -107,12 +127,12 @@ class UserListItem extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: _getRoleColor(user).withOpacity(0.3),
+          color: _getRoleColor(user).withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.1),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 2),
@@ -120,7 +140,7 @@ class UserListItem extends StatelessWidget {
         ],
       ),
       child: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
         backgroundImage: user.profileImageUrl != null
             ? NetworkImage(user.profileImageUrl!)
             : null,
@@ -147,7 +167,7 @@ class UserListItem extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.all(8.r),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Icon(
@@ -161,27 +181,20 @@ class UserListItem extends StatelessWidget {
   }
 
   Widget _buildUserChips() {
-    return Row(
+    return Wrap(
+      spacing: 8.w,
+      runSpacing: 4.h,
       children: [
         UserRoleChip(
           text: _getUserRoleText(),
           color: _getRoleColor(user),
           icon: _getRoleIcon(user),
         ),
-        SizedBox(width: 8.w),
         UserInfoChip(
           text: _formatDate(user.createdAt),
           icon: Icons.calendar_today_outlined,
           color: Colors.orange,
         ),
-        if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
-          SizedBox(width: 8.w),
-          UserInfoChip(
-            text: user.phoneNumber!,
-            icon: Icons.phone_outlined,
-            color: Colors.blue,
-          ),
-        ],
       ],
     );
   }

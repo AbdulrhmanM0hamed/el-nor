@@ -34,8 +34,6 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
     } else {
       _selectedRole = UserRole.student;
     }
-    
-    print('الدور الحالي للمستخدم ${widget.user.name}: ${_getRoleText(_selectedRole)}');
   }
 
   @override
@@ -65,7 +63,7 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'المستخدم: ${widget.user.name ?? "غير معروف"}',
+                  'المستخدم: ${widget.user.name}',
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -91,7 +89,7 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
             ),
           ),
           SizedBox(height: 16.h),
-          
+
           // Role selection with radio buttons and descriptions
           _buildRoleOption(
             title: 'مشرف',
@@ -135,11 +133,9 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
           onPressed: () {
             // Convert selected role to isAdmin and isTeacher flags
             final isAdmin = _selectedRole == UserRole.admin;
-            final isTeacher = _selectedRole == UserRole.admin || _selectedRole == UserRole.teacher;
-            
-            print('تم اختيار الدور: ${_getRoleText(_selectedRole)}');
-            print('isAdmin: $isAdmin, isTeacher: $isTeacher');
-            
+            final isTeacher = _selectedRole == UserRole.admin ||
+                _selectedRole == UserRole.teacher;
+
             widget.onRoleChanged(isAdmin, isTeacher);
             Navigator.of(context).pop();
           },
@@ -184,7 +180,9 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
             width: _selectedRole == role ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8.r),
-          color: _selectedRole == role ? color.withOpacity(0.1) : Colors.transparent,
+          color: _selectedRole == role
+              ? color.withValues(alpha: 0.1)
+              : Colors.transparent,
         ),
         child: Row(
           children: [
@@ -228,14 +226,5 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
         ),
       ),
     );
-  }
-  
-  // Helper method to get role text
-  String _getRoleText(UserRole role) {
-    return switch (role) {
-      UserRole.admin => 'مشرف',
-      UserRole.teacher => 'معلم',
-      UserRole.student => 'طالب',
-    };
   }
 }

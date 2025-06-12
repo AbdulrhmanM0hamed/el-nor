@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../features/auth/presentation/cubit/global_auth_cubit.dart';
 
@@ -55,7 +54,7 @@ class WaitingListDialog extends StatelessWidget {
             SizedBox(height: 20.h),
             ElevatedButton(
               onPressed: () async {
-                final Uri whatsappUrl = Uri.parse('https://wa.me/+201282933582');
+                final Uri whatsappUrl = Uri.parse('https://wa.me/+972569009186');
                 if (await canLaunchUrl(whatsappUrl)) {
                   await launchUrl(whatsappUrl);
                 }

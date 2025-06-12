@@ -3,7 +3,9 @@ import 'package:beat_elslam/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import '../../../../core/utils/theme/app_colors.dart';
+import '../../../../core/utils/input_validator.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../widgets/auth_background.dart';
@@ -42,6 +44,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   File? _profileImage;
+  String _completePhoneNumber = '';
 
   @override
   void dispose() {
@@ -68,6 +71,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
 
   void _register() {
     if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
       if (_passwordController.text != _confirmPasswordController.text) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -89,11 +93,14 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
         return;
       }
 
+      final String phoneNumber =
+          _completePhoneNumber.isNotEmpty ? _completePhoneNumber : _phoneController.text.trim();
+
       context.read<AuthCubit>().signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             name: _nameController.text.trim(),
-            phone: _phoneController.text.trim(),
+            phone: phoneNumber,
             age: age,
             profileImage: _profileImage,
           );
@@ -162,14 +169,14 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
     return Form(
       key: _formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildTextField(
             label: 'الاسم',
             hint: 'أدخل اسمك الكامل',
             controller: _nameController,
             icon: Icons.person_outline,
-            validator: _validateName,
+            validator: InputValidator.name,
           ),
           _buildTextField(
             label: 'البريد الإلكتروني',
@@ -177,23 +184,36 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
             controller: _emailController,
             icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
-            validator: _validateEmail,
+            validator: InputValidator.email,
           ),
-          _buildTextField(
-            label: 'رقم الهاتف',
-            hint: 'أدخل رقم هاتفك',
-            controller: _phoneController,
-            icon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
-            validator: _validatePhone,
+          Padding(
+            padding: EdgeInsets.only(bottom: 16.h),
+            child: IntlPhoneField(
+              controller: _phoneController,
+              decoration: InputDecoration(
+                labelText: 'رقم الهاتف',
+                hintText: 'أدخل رقم هاتفك',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              initialCountryCode: 'EG',
+              onChanged: (phone) {
+                _completePhoneNumber = phone.completeNumber;
+              },
+              onSaved: (phone) {
+                if (phone != null) _completePhoneNumber = phone.completeNumber;
+              },
+              validator: (value) => InputValidator.phone(value?.completeNumber),
+            ),
           ),
           _buildTextField(
             label: 'العمر',
             hint: 'أدخل عمرك',
             controller: _ageController,
-            icon: Icons.calendar_today_outlined,
+            icon: Icons.cake_outlined,
             keyboardType: TextInputType.number,
-            validator: _validateAge,
+            validator: InputValidator.age,
           ),
           _buildPasswordField(
             label: 'كلمة المرور',
@@ -201,7 +221,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
             controller: _passwordController,
             obscureText: _obscurePassword,
             toggleVisibility: _togglePasswordVisibility,
-            validator: _validatePassword,
+            validator: InputValidator.password,
           ),
           _buildPasswordField(
             label: 'تأكيد كلمة المرور',
@@ -209,7 +229,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
             controller: _confirmPasswordController,
             obscureText: _obscureConfirmPassword,
             toggleVisibility: _toggleConfirmPasswordVisibility,
-            validator: _validateConfirmPassword,
+            validator: (v) => InputValidator.confirmPassword(v, _passwordController.text),
           ),
           SizedBox(height: 16.h),
           CustomButton(
@@ -299,60 +319,4 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
       ],
     );
   }
-
-  String? _validateName(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء إدخال الاسم';
-    }
-    return null;
-  }
-
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء إدخال البريد الإلكتروني';
-    }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      return 'الرجاء إدخال بريد إلكتروني صحيح';
-    }
-    return null;
-  }
-
-  String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء إدخال رقم الهاتف';
-    }
-    return null;
-  }
-
-  String? _validateAge(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء إدخال العمر';
-    }
-    if (int.tryParse(value) == null) {
-      return 'الرجاء إدخال رقم صحيح';
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء إدخال كلمة المرور';
-    }
-    if (value.length < 6) {
-      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-    }
-    return null;
-  }
-
-  String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء تأكيد كلمة المرور';
-    }
-    if (value != _passwordController.text) {
-      return 'كلمات المرور غير متطابقة';
-    }
-    return null;
-  }
 }
-
-

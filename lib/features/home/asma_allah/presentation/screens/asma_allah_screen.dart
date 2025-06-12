@@ -9,7 +9,6 @@ import '../../data/repositories/allah_names_repository.dart';
 import '../../models/allah_name_model.dart';
 import '../cubit/asma_allah_cubit.dart';
 import '../cubit/asma_allah_states.dart';
-import '../widgets/name_card.dart';
 import 'allah_name_details_screen.dart';
 
 class AsmaAllahScreen extends StatefulWidget {
@@ -29,7 +28,6 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   @override
   void initState() {
     super.initState();
-    _logger.i('AsmaAllahScreen initState called');
   }
 
   @override
@@ -42,11 +40,9 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      _logger.i('AsmaAllahScreen didChangeDependencies - loading names');
       _isInitialized = true;
       // Load directly from the repository first to check if there are any issues
       AllahNamesRepositoryImpl().getAllahNames().then((names) {
-        _logger.i('Direct repository call returned ${names.length} names');
         context.read<AsmaAllahCubit>().loadAllahNames();
       }).catchError((error) {
         _logger.e('Error pre-loading names', error: error);
@@ -56,7 +52,6 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _logger.i('AsmaAllahScreen build called');
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -103,11 +98,8 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   }
 
   Widget _buildBody() {
-    _logger.i('AsmaAllahScreen _buildBody called');
     return BlocBuilder<AsmaAllahCubit, AsmaAllahState>(
       builder: (context, state) {
-        _logger.i('AsmaAllahScreen BlocBuilder state: $state');
-        
         if (state is AsmaAllahLoading) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -120,11 +112,11 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              
+
               if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                 return _buildNamesList(snapshot.data!);
               }
-              
+
               // Show error if both approaches failed
               return Center(
                 child: Column(
@@ -137,7 +129,8 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                     ),
                     const SizedBox(height: AppDimensions.paddingM),
                     ElevatedButton(
-                      onPressed: () => context.read<AsmaAllahCubit>().loadAllahNames(),
+                      onPressed: () =>
+                          context.read<AsmaAllahCubit>().loadAllahNames(),
                       child: const Text('إعادة المحاولة'),
                     ),
                   ],
@@ -158,11 +151,11 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (snapshot.hasData && snapshot.data!.isNotEmpty) {
               return _buildNamesList(snapshot.data!);
             }
-            
+
             return const Center(child: CircularProgressIndicator());
           },
         );
@@ -171,7 +164,6 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
   }
 
   Widget _buildNamesList(List<AllahName> names) {
-    _logger.i('AsmaAllahScreen _buildNamesList called with ${names.length} names');
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(AppDimensions.paddingM),
@@ -179,17 +171,16 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
       itemBuilder: (context, index) {
         final name = names[index];
         final nameNumber = index + 1;
-        
+
         return Card(
           elevation: 2,
           margin: const EdgeInsets.symmetric(
             vertical: AppDimensions.paddingS,
-       
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.radiusM),
             side: BorderSide(
-              color: AppColors.primary.withOpacity(0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -199,7 +190,8 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AllahNameDetailsScreen(name: name, index: nameNumber),
+                  builder: (context) =>
+                      AllahNameDetailsScreen(name: name, index: nameNumber),
                 ),
               );
             },
@@ -211,7 +203,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.primary,
                       shape: BoxShape.circle,
                     ),
@@ -227,7 +219,7 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                     ),
                   ),
                   const SizedBox(width: AppDimensions.paddingM),
-                  
+
                   // Name
                   Expanded(
                     child: Column(
@@ -243,8 +235,8 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          name.text.length > 100 
-                              ? '${name.text.substring(0, 100)}...' 
+                          name.text.length > 100
+                              ? '${name.text.substring(0, 100)}...'
                               : name.text,
                           style: getMediumStyle(
                             fontFamily: FontConstant.cairo,
@@ -256,9 +248,9 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
                       ],
                     ),
                   ),
-                  
+
                   // Arrow
-                  Icon(
+                  const Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
                     color: AppColors.primary,
@@ -271,4 +263,4 @@ class _AsmaAllahScreenState extends State<AsmaAllahScreen> {
       },
     );
   }
-} 
+}

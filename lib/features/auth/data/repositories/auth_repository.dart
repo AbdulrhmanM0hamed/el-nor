@@ -93,14 +93,14 @@ class AuthRepositoryImpl implements AuthRepository {
       // إنشاء سجل في جدول الطلاب
       final userData = {
         'id': response.user!.id,
-        'email': email,
         'name': name,
+        'email': email,
         'phone': phone,
         'age': age,
-        'profile_image_url': profileImageUrl,
-        'created_at': DateTime.now().toIso8601String(),
         'is_admin': false,
         'is_teacher': isTeacher, // إضافة حقل is_teacher إلى البيانات
+        'created_at': DateTime.now().toIso8601String(),
+        'profile_image_url': profileImageUrl,
       };
 
       try {

@@ -60,7 +60,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         _filteredUsers = baseList;
       } else {
         _filteredUsers = baseList.where((user) {
-          final name = user.name?.toLowerCase() ?? '';
+          final name = user.name.toLowerCase();
           final email = user.email.toLowerCase();
           final searchQuery = query.toLowerCase();
           return name.contains(searchQuery) || email.contains(searchQuery);
@@ -134,10 +134,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 foregroundColor: _showRecentUsers ? Colors.white : Colors.green,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: Colors.green),
+                  side:const BorderSide(color: Colors.green),
                 ),
               ),
-              child: Text('المنضم حديثاً', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('المنضم حديثاً', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
