@@ -1,3 +1,4 @@
+import 'package:beat_elslam/core/utils/constant/styles_manger.dart';
 import 'package:flutter/material.dart';
 import '../../../../../../../core/utils/theme/app_colors.dart';
 import '../../../../../data/models/student_record.dart';
@@ -63,9 +64,9 @@ class CircleStudentsTab extends StatelessWidget {
       itemCount: students.length,
       itemBuilder: (context, index) {
         final student = students[index];
-        final lastEvaluation = student.evaluations.isNotEmpty 
-          ? student.evaluations.last.rating 
-          : null;
+        final lastEvaluation = student.evaluations.isNotEmpty
+            ? student.evaluations.last.rating
+            : null;
 
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
@@ -74,18 +75,18 @@ class CircleStudentsTab extends StatelessWidget {
             children: [
               ListTile(
                 leading: CircleAvatar(
-                  backgroundImage: student.profileImageUrl != null 
-                    ? NetworkImage(student.profileImageUrl!) 
-                    : null,
-                  child: student.profileImageUrl == null 
-                    ? Text(
-                        student.name[0],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
+                  backgroundImage: student.profileImageUrl != null
+                      ? NetworkImage(student.profileImageUrl!)
+                      : null,
+                  child: student.profileImageUrl == null
+                      ? Text(
+                          student.name[0],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
                 title: Text(
                   student.name,
@@ -93,7 +94,8 @@ class CircleStudentsTab extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                subtitle: Text('آخر تقييم: ${_getEvaluationText(lastEvaluation)}'),
+                subtitle:
+                    Text('آخر تقييم: ${_getEvaluationText(lastEvaluation)}'),
                 trailing: Text(
                   DateFormat('yyyy-MM-dd').format(student.createdAt.toLocal()),
                 ),
@@ -101,30 +103,48 @@ class CircleStudentsTab extends StatelessWidget {
               // قائمة التقييمات السابقة
               if (student.evaluations.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: student.evaluations
-                        .asMap()
-                        .entries
-                        .map((entry) {
-                          final idx = entry.key;
-                          final eval = entry.value;
-                          final isLast = idx == student.evaluations.length - 1;
-                          return Chip(
-                            label: Text(
+                    children: student.evaluations.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final eval = entry.value;
+                      final isLast = idx == student.evaluations.length - 1;
+                      final dateStr =
+                          DateFormat('dd/MM/yyyy').format(eval.date);
+                      return Chip(
+                        label: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
                               _getEvaluationText(eval.rating),
-                              style: TextStyle(
-                                fontWeight: isLast ? FontWeight.bold : FontWeight.normal,
+                              style: getMediumStyle(
+                                fontFamily: 'Cairo',
                                 color: isLast ? Colors.white : Colors.black,
+                                fontSize: 11,
                               ),
                             ),
-                            avatar: isLast ? const Icon(Icons.star, color: Colors.white) : null,
-                            backgroundColor: isLast ? _getEvaluationColor(eval.rating) : Colors.grey.shade200,
-                          );
-                        })
-                        .toList(),
+                            Text(
+                              dateStr,
+                              style: getMediumStyle(
+                                fontFamily: 'Cairo',
+                                color: isLast ? Colors.white : Colors.black54,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                        avatar: isLast
+                            ? const Icon(Icons.star,
+                                color: Colors.white, size: 16)
+                            : null,
+                        backgroundColor: isLast
+                            ? _getEvaluationColor(eval.rating)
+                            : Colors.grey.shade200,
+                      );
+                    }).toList(),
                   ),
                 ),
               if (onEvaluationChanged != null)
