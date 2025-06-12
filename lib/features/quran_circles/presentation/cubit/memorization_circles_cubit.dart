@@ -188,6 +188,17 @@ class MemorizationCirclesCubit extends Cubit<MemorizationCirclesState> {
     }
   }
 
+  // Replace a single circle in current state without fetching from backend
+  void replaceCircle(MemorizationCircle updatedCircle) {
+    _circlesCache[updatedCircle.id] = updatedCircle;
+
+    if (state is MemorizationCirclesLoaded && !_isClosed) {
+      final currentCircles = (state as MemorizationCirclesLoaded).circles;
+      final updatedCircles = currentCircles.map((c) => c.id == updatedCircle.id ? updatedCircle : c).toList();
+      emit(MemorizationCirclesLoaded(updatedCircles));
+    }
+  }
+
   @override
   Future<void> close() {
     _isClosed = true;

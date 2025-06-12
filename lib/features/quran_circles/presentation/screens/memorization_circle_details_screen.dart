@@ -95,7 +95,13 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
 
     return WillPopScope(
       onWillPop: () async {
-        Navigator.of(context).pop(true);
+        // Return updated circle (with optimistic updates) when popping so parent screen can refresh immediately
+        final cubitState = context.read<CircleDetailsCubit>().state;
+        if (cubitState is CircleDetailsLoaded) {
+          Navigator.of(context).pop(cubitState.circle);
+        } else {
+          Navigator.of(context).pop(widget.circle);
+        }
         return false;
       },
       child: BlocBuilder<CircleDetailsCubit, CircleDetailsState>(

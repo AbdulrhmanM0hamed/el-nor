@@ -397,10 +397,12 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
       ),
     );
 
-    // Only refresh if we got a result indicating changes were made
-    if (mounted && !_isDisposed && result == true) {
-      // Force refresh only the specific circle that was modified
-      context.read<MemorizationCirclesCubit>().loadCircleDetails(circle.id);
+    if (mounted && !_isDisposed) {
+      if (result is MemorizationCircle) {
+        context.read<MemorizationCirclesCubit>().replaceCircle(result);
+      } else if (result == true) {
+        context.read<MemorizationCirclesCubit>().loadCircleDetails(circle.id);
+      }
     }
   }
 }
