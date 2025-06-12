@@ -66,9 +66,6 @@ class CircleStudentsTab extends StatelessWidget {
         final lastEvaluation = student.evaluations.isNotEmpty 
           ? student.evaluations.last.rating 
           : null;
-        final lastAttendance = student.attendance.isNotEmpty 
-          ? student.attendance.last.isPresent 
-          : null;
 
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
@@ -96,25 +93,44 @@ class CircleStudentsTab extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                subtitle: Text(
-                  'آخر تقييم: ${_getEvaluationText(lastEvaluation)}',
-                ),
+                subtitle: Text('آخر تقييم: ${_getEvaluationText(lastEvaluation)}'),
                 trailing: Text(
                   DateFormat('yyyy-MM-dd').format(student.createdAt.toLocal()),
                 ),
               ),
-              if (onEvaluationChanged != null || onAttendanceChanged != null)
+              // قائمة التقييمات السابقة
+              if (student.evaluations.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      if (onEvaluationChanged != null)
-                        _buildEvaluationButtons(student.studentId),
-                      if (onAttendanceChanged != null)
-                        _buildAttendanceButtons(student.studentId),
-                    ],
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: student.evaluations
+                        .asMap()
+                        .entries
+                        .map((entry) {
+                          final idx = entry.key;
+                          final eval = entry.value;
+                          final isLast = idx == student.evaluations.length - 1;
+                          return Chip(
+                            label: Text(
+                              _getEvaluationText(eval.rating),
+                              style: TextStyle(
+                                fontWeight: isLast ? FontWeight.bold : FontWeight.normal,
+                                color: isLast ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            avatar: isLast ? const Icon(Icons.star, color: Colors.white) : null,
+                            backgroundColor: isLast ? _getEvaluationColor(eval.rating) : Colors.grey.shade200,
+                          );
+                        })
+                        .toList(),
                   ),
+                ),
+              if (onEvaluationChanged != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: _buildEvaluationButtons(student.studentId),
                 ),
             ],
           ),
@@ -123,57 +139,29 @@ class CircleStudentsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildAttendanceIndicator(bool? isPresent) {
-    if (isPresent == null) return const SizedBox();
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isPresent ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        isPresent ? 'حاضر' : 'غائب',
-        style: TextStyle(
-          color: isPresent ? Colors.green : Colors.red,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
   Widget _buildEvaluationButtons(String studentId) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        IconButton(
-          icon: const Icon(Icons.thumb_down, color: Colors.red),
-          onPressed: () => onEvaluationChanged?.call(studentId, 1),
+        ElevatedButton(
+          onPressed: () => onEvaluationChanged?.call(studentId, 4),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+          child: const Text('متميز'),
         ),
-        IconButton(
-          icon: const Icon(Icons.thumbs_up_down, color: Colors.orange),
-          onPressed: () => onEvaluationChanged?.call(studentId, 2),
-        ),
-        IconButton(
-          icon: const Icon(Icons.thumb_up, color: Colors.green),
+        ElevatedButton(
           onPressed: () => onEvaluationChanged?.call(studentId, 3),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+          child: const Text('ملتزم'),
         ),
-      ],
-    );
-  }
-
-  Widget _buildAttendanceButtons(String studentId) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.check_circle, color: Colors.green),
-          onPressed: () => onAttendanceChanged?.call(studentId, true),
+        ElevatedButton(
+          onPressed: () => onEvaluationChanged?.call(studentId, 2),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+          child: const Text('مقصر'),
         ),
-        IconButton(
-          icon: const Icon(Icons.cancel, color: Colors.red),
-          onPressed: () => onAttendanceChanged?.call(studentId, false),
+        ElevatedButton(
+          onPressed: () => onEvaluationChanged?.call(studentId, 1),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text('مهدد'),
         ),
       ],
     );
@@ -183,13 +171,30 @@ class CircleStudentsTab extends StatelessWidget {
     if (evaluation == null) return 'لا يوجد';
     switch (evaluation) {
       case 1:
-        return 'ضعيف';
+        return 'مهدد بالفصل';
       case 2:
-        return 'جيد';
+        return 'مقصر';
       case 3:
-        return 'ممتاز';
+        return 'ملتزم';
+      case 4:
+        return 'متميز';
       default:
         return 'غير معروف';
     }
   }
-} 
+
+  Color _getEvaluationColor(int rating) {
+    switch (rating) {
+      case 1:
+        return Colors.red;
+      case 2:
+        return Colors.orange;
+      case 3:
+        return Colors.blue;
+      case 4:
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+}

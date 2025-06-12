@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import '../../../../core/services/service_locator.dart' as di;
-import '../../../auth/data/models/user_model.dart';
+import '../../../../../core/services/service_locator.dart' as di;
+import '../../../../auth/data/models/user_model.dart';
 import '../cubit/learning_plan_cubit.dart';
 
 class LearningPlanScreen extends StatelessWidget {

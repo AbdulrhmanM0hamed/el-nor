@@ -85,8 +85,6 @@ class AuthRepositoryImpl implements AuthRepository {
               .from('students')
               .getPublicUrl(path);
         } catch (storageError) {
-          print('خطأ في رفع الصورة الشخصية: ${storageError.toString()}');
-          // نستمر في إنشاء الحساب حتى لو فشل رفع الصورة
         }
       }
 
@@ -107,12 +105,7 @@ class AuthRepositoryImpl implements AuthRepository {
         await _supabaseClient.from('students').insert(userData);
         return UserModel.fromJson(userData);
       } catch (dbError) {
-        // إذا فشل إدراج البيانات في الجدول، نحاول التعامل مع الخطأ
         if (dbError.toString().contains('infinite recursion')) {
-          // مشكلة في سياسات الأمان، نحاول مرة أخرى بطريقة مختلفة
-          print('حدث خطأ في سياسات الأمان، محاولة إصلاح...');
-          
-          // محاولة إدراج البيانات بطريقة مختلفة (باستخدام RPC إذا كان متاحًا)
           try {
             await _supabaseClient.rpc('insert_student', params: userData);
             return UserModel.fromJson(userData);
@@ -158,14 +151,11 @@ class AuthRepositoryImpl implements AuthRepository {
             .eq('id', response.user!.id)
             .single();
 
-        print('AuthRepository: تم تسجيل الدخول وجلب البيانات بنجاح');
         return UserModel.fromJson(userData);
       } catch (dbError) {
-        print('AuthRepository: خطأ في جلب بيانات المستخدم: $dbError');
         throw Exception('حدث خطأ في جلب بيانات المستخدم، الرجاء المحاولة مرة أخرى');
       }
     } catch (e) {
-      print('AuthRepository: خطأ في تسجيل الدخول: $e');
       if (e.toString().contains('Invalid login credentials')) {
         throw Exception('البريد الإلكتروني أو كلمة المرور غير صحيحة');
       } else if (e.toString().contains('network')) {
@@ -179,30 +169,22 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserModel?> getCurrentUser() async {
     try {
-      print('AuthRepository: Verificando usuario actual en Supabase');
       final user = _supabaseClient.auth.currentUser;
       if (user == null) {
-        print('AuthRepository: No hay usuario autenticado en Supabase');
         return null;
       }
-      print('AuthRepository: Usuario encontrado en Supabase con ID: ${user.id}');
 
       try {
-        // Obtener datos del usuario desde la tabla de estudiantes
-        print('AuthRepository: Consultando datos del usuario en la tabla students');
         final userData = await _supabaseClient
             .from('students')
             .select()
             .eq('id', user.id)
             .single();
 
-        print('AuthRepository: Datos del usuario obtenidos correctamente');
         return UserModel.fromJson(userData);
       } catch (dbError) {
-        // إذا كان هناك خطأ في الوصول إلى البيانات، نحاول إنشاء سجل جديد
         if (dbError.toString().contains('infinite recursion') || 
             dbError.toString().contains('not found')) {
-          // إنشاء بيانات المستخدم الافتراضية
           final defaultUserData = {
             'id': user.id,
             'email': user.email ?? '',
@@ -237,11 +219,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() async {
     try {
-      print('AuthRepository: بدء عملية تسجيل الخروج');
       await _supabaseClient.auth.signOut();
-      print('AuthRepository: تم تسجيل الخروج بنجاح');
     } catch (e) {
-      print('AuthRepository: خطأ في تسجيل الخروج: $e');
       throw Exception('Failed to sign out: $e');
     }
   }
@@ -249,12 +228,9 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> clearUserData() async {
     try {
-      print('AuthRepository: بدء عملية مسح بيانات المستخدم');
       // مسح أي بيانات مخزنة محلياً إذا كان هناك
       // يمكنك إضافة المزيد من عمليات المسح هنا إذا كنت تخزن بيانات إضافية
-      print('AuthRepository: تم مسح بيانات المستخدم بنجاح');
     } catch (e) {
-      print('AuthRepository: خطأ في مسح بيانات المستخدم: $e');
       throw Exception('Failed to clear user data: $e');
     }
   }
@@ -377,7 +353,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (profileImage != null) {
         final fileExt = profileImage.path.split('.').last;
         final fileName = '${user.id}.$fileExt';
-        final filePath = 'profile_images/$fileName';
+        // final filePath = 'profile_images/$fileName';
 
         // حذف الصورة القديمة إذا كانت موجودة
         try {
@@ -399,7 +375,6 @@ class AuthRepositoryImpl implements AuthRepository {
           }
         } catch (e) {
           // تجاهل أخطاء الحذف - قد لا تكون هناك صورة قديمة
-          print('Warning: Failed to delete old profile image: $e');
         }
 
         // رفع الصورة الجديدة
@@ -451,29 +426,19 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // التحقق من كلمة المرور الحالية
       try {
-        print('AuthRepository: محاولة التحقق من كلمة المرور الحالية');
         await _supabaseClient.auth.signInWithPassword(
           email: user.email!,
           password: currentPassword,
         );
-        print('AuthRepository: كلمة المرور الحالية صحيحة');
       } catch (e) {
-        print('AuthRepository: خطأ في التحقق من كلمة المرور الحالية');
-        print('AuthRepository: نوع الخطأ: ${e.runtimeType}');
-        print('AuthRepository: رسالة الخطأ: $e');
         throw Exception('كلمة المرور الحالية غير صحيحة');
       }
 
       // تحديث كلمة المرور
-      print('AuthRepository: محاولة تحديث كلمة المرور');
       await _supabaseClient.auth.updateUser(
         UserAttributes(password: newPassword),
       );
-      print('AuthRepository: تم تحديث كلمة المرور بنجاح');
     } catch (e) {
-      print('AuthRepository: خطأ في تغيير كلمة المرور');
-      print('AuthRepository: نوع الخطأ: ${e.runtimeType}');
-      print('AuthRepository: رسالة الخطأ: $e');
       
       if (e is AuthException) {
         String message = e.message;

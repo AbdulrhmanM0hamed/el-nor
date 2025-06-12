@@ -15,8 +15,8 @@ import 'session_service.dart';
 import 'permissions_manager.dart';
 import '../../features/quran_circles/presentation/cubit/circle_details_cubit.dart';
 import '../../features/quran_circles/data/models/memorization_circle_model.dart';
-import '../../features/learning_plan/data/repositories/learning_plan_repository.dart';
-import '../../features/learning_plan/presentation/cubit/learning_plan_cubit.dart';
+import '../../features/profile/learning_plan/data/repositories/learning_plan_repository.dart';
+import '../../features/profile/learning_plan/presentation/cubit/learning_plan_cubit.dart';
 
 final sl = GetIt.instance;
 
