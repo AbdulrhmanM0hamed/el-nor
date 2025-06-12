@@ -8,6 +8,7 @@ import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/utils/input_validator.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import '../cubit/global_auth_cubit.dart';
 import '../widgets/auth_background.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -125,6 +126,9 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
               backgroundColor: Colors.green,
             ),
           );
+          try {
+            GlobalAuthCubit.instance.checkAuthState();
+          } catch (_) {}
           Navigator.pushReplacementNamed(context, '/main');
         }
       },
