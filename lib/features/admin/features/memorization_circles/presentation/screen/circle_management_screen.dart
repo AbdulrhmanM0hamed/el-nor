@@ -1,13 +1,14 @@
+import 'package:beat_elslam/features/admin/features/memorization_circles/presentation/cubit/circle_management_cubit.dart';
+import 'package:beat_elslam/features/admin/features/memorization_circles/presentation/cubit/circle_management_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../core/utils/theme/app_colors.dart';
-import '../../../../core/services/service_locator.dart';
-import '../../data/models/memorization_circle_model.dart';
-import '../cubit/admin_cubit.dart';
-import '../cubit/admin_state.dart';
-import '../widgets/circle_management/circles_list.dart';
-import 'circle_details_screen.dart';
+import '../../../../../../core/utils/theme/app_colors.dart';
+import '../../../../../../core/services/service_locator.dart';
+import '../../../../data/models/memorization_circle_model.dart';
+import '../../../user_management/presentation/cubit/admin_cubit.dart';
+import '../../../user_management/presentation/cubit/admin_state.dart';
+import '../widgets/circles_list.dart';
+import '../../../memorization_circles_detials/circle_details_screen.dart';
 import '../widgets/circle_form_dialog.dart';
 // Removed unused import
 
@@ -20,16 +21,41 @@ class CircleManagementScreen extends StatefulWidget {
   State<CircleManagementScreen> createState() => _CircleManagementScreenState();
 }
 
-// Wrapper para proporcionar el AdminCubit
-class CircleManagementScreenWrapper extends StatelessWidget {
+// Wrapper para proporcionar el CircleManagementCubit
+class CircleManagementScreenWrapper extends StatefulWidget {
   static const String routeName = '/circle-management';
 
   const CircleManagementScreenWrapper({Key? key}) : super(key: key);
 
   @override
+  State<CircleManagementScreenWrapper> createState() => _CircleManagementScreenWrapperState();
+}
+
+class _CircleManagementScreenWrapperState extends State<CircleManagementScreenWrapper> {
+  late CircleManagementCubit _circleManagementCubit;
+  late AdminCubit _adminCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _circleManagementCubit = sl<CircleManagementCubit>();
+    _adminCubit = sl<AdminCubit>();
+  }
+
+  @override
+  void dispose() {
+    _circleManagementCubit.close();
+    _adminCubit.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider<AdminCubit>(
-      create: (context) => sl<AdminCubit>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<CircleManagementCubit>.value(value: _circleManagementCubit),
+        BlocProvider<AdminCubit>.value(value: _adminCubit),
+      ],
       child: const CircleManagementScreen(),
     );
   }
@@ -40,7 +66,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
   void initState() {
     super.initState();
     // Cargar los círculos de memorización al iniciar la pantalla
-    context.read<AdminCubit>().loadAllCircles();
+    context.read<CircleManagementCubit>().loadAllCircles();
   }
 
   @override
@@ -52,7 +78,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
-      body: BlocConsumer<AdminCubit, AdminState>(
+      body: BlocConsumer<CircleManagementCubit, AdminState>(
         listener: (context, state) {
           if (state is AdminError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -61,9 +87,12 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
                 backgroundColor: Colors.red,
               ),
             );
-          } else if (state is AdminCircleCreated || state is AdminCircleUpdated) {
+          } else if (state is AdminCircleCreated ||
+              state is AdminCircleUpdated) {
             // Refresh the circles list after successful create/update
-            context.read<AdminCubit>().loadAllCircles(forceRefresh: true);
+            context
+                .read<CircleManagementCubit>()
+                .loadAllCircles(forceRefresh: true);
           }
         },
         builder: (context, state) {
@@ -71,7 +100,8 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
             circles: state is AdminCirclesLoaded ? state.circles : [],
             isLoading: state is AdminLoading,
             errorMessage: state is AdminError ? state.message : null,
-            onRetry: () => context.read<AdminCubit>().loadAllCircles(),
+            onRetry: () =>
+                context.read<CircleManagementCubit>().loadAllCircles(),
             onCircleTap: (circle) => _showCircleDetailsDialog(circle),
             onEditCircle: (circle) => _showEditCircleDialog(circle),
             onDeleteCircle: (circle) => _showDeleteConfirmationDialog(circle),
@@ -90,6 +120,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
 
   void _showAddCircleDialog() async {
     // Obtener la referencia al cubit
+    final circleManagementCubit = context.read<CircleManagementCubit>();
     final adminCubit = context.read<AdminCubit>();
 
     // Cargar profesores y estudiantes antes de mostrar el diálogo
@@ -106,7 +137,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         availableStudents: students,
         onSave: (name, description, startDate, teacherId, teacherName, surahs,
             studentIds, isExam, learningPlanUrl) {
-          adminCubit.createCircle(
+          circleManagementCubit.createCircle(
             name: name,
             description: description,
             startDate: startDate,
@@ -123,12 +154,14 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
 
     // Refresh circles list if dialog was saved successfully
     if (result == true) {
-      adminCubit.loadAllCircles();
+      circleManagementCubit.loadAllCircles();
     }
   }
 
   void _showEditCircleDialog(MemorizationCircleModel circle) async {
     // Obtener la referencia al cubit
+    final circleManagementCubit = context.read<CircleManagementCubit>();
+
     final adminCubit = context.read<AdminCubit>();
 
     // Cargar profesores y estudiantes antes de mostrar el diálogo
@@ -138,8 +171,10 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
     if (!mounted) return; // Verificar si el widget todavía está montado
 
     // Debug print to confirm teacher data is being passed
-    print('CircleManagementScreen: Showing edit dialog for circle ${circle.id}');
-    print('CircleManagementScreen: Teacher ID: ${circle.teacherId}, Teacher Name: ${circle.teacherName}');
+    print(
+        'CircleManagementScreen: Showing edit dialog for circle ${circle.id}');
+    print(
+        'CircleManagementScreen: Teacher ID: ${circle.teacherId}, Teacher Name: ${circle.teacherName}');
 
     final result = await showDialog(
       context: context,
@@ -158,14 +193,14 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         availableStudents: students,
         onSave: (name, description, startDate, teacherId, teacherName, surahs,
             studentIds, isExam, learningPlanUrl) {
-          adminCubit.updateCircle(
+          circleManagementCubit.updateCircle(
             id: circle.id,
             name: name,
             description: description,
             startDate: startDate,
             teacherId: teacherId,
             teacherName: teacherName,
-            surahs: surahs,
+            surahAssignments: surahs,
             studentIds: studentIds,
             isExam: isExam,
             learningPlanUrl: learningPlanUrl,
@@ -176,13 +211,13 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
 
     // Refresh circles list if dialog was saved successfully
     if (result == true) {
-      adminCubit.loadAllCircles();
+      circleManagementCubit.loadAllCircles();
     }
   }
 
   void _showDeleteConfirmationDialog(MemorizationCircleModel circle) {
     // Get cubit reference before showing dialog
-    final adminCubit = context.read<AdminCubit>();
+    final circleManagementCubit = context.read<CircleManagementCubit>();
 
     showDialog(
       context: context,
@@ -198,7 +233,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              adminCubit.deleteCircle(circle.id);
+              circleManagementCubit.deleteCircle(circle.id);
               Navigator.of(dialogContext).pop();
             },
             style: ElevatedButton.styleFrom(
@@ -214,15 +249,18 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
 
   // التنقل إلى صفحة تفاصيل الحلقة
   void _showCircleDetailsDialog(MemorizationCircleModel circle) {
-    // طباعة معلومات الحلقة للتصحيح
-    print('عرض تفاصيل الحلقة: ${circle.name}');
-    print('عدد الطلاب في studentIds: ${circle.studentIds.length}');
-    print('عدد الطلاب في students: ${circle.students.length}');
-    
-    // الانتقال إلى صفحة تفاصيل الحلقة مع الـ wrapper
+    // Get cubit references before showing dialog
+    final circleManagementCubit = context.read<CircleManagementCubit>();
+    final adminCubit = context.read<AdminCubit>();
+
+    // Navigate to circle details screen with existing cubits
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => CircleDetailsScreenWrapper(circle: circle),
+        builder: (context) => CircleDetailsScreenWrapper(
+          circle: circle,
+          circleManagementCubit: circleManagementCubit,
+          adminCubit: adminCubit,
+        ),
       ),
     );
   }

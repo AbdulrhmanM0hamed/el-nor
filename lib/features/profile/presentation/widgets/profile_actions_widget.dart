@@ -1,11 +1,11 @@
-import 'package:beat_elslam/features/admin/presentation/screens/user_management_screen.dart';
+import 'package:beat_elslam/features/admin/features/user_management/presentation/screen/user_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/cubit/global_auth_cubit.dart';
-import '../../../admin/presentation/screens/circle_management_screen.dart';
+import '../../../admin/features/memorization_circles/presentation/screen/circle_management_screen.dart';
 import '../../../profile/presentation/screens/edit_profile_screen.dart';
 import '../../../profile/presentation/screens/change_password_screen.dart';
 

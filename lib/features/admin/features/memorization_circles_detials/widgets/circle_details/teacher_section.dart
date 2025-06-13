@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../../core/utils/theme/app_colors.dart';
-import '../../../data/models/memorization_circle_model.dart';
-import '../../../data/models/student_model.dart';
-import '../../cubit/admin_cubit.dart';
-import '../../cubit/admin_state.dart';
-import '../shared/profile_image_fixed.dart';
+import '../../../../../../../core/utils/theme/app_colors.dart';
+import '../../../../data/models/memorization_circle_model.dart';
+import '../../../../data/models/student_model.dart';
+import '../../../user_management/presentation/cubit/admin_cubit.dart';
+import '../../../user_management/presentation/cubit/admin_state.dart';
+import '../../../../shared/profile_image_fixed.dart';
 
 class TeacherSection extends StatefulWidget {
   final MemorizationCircleModel circle;

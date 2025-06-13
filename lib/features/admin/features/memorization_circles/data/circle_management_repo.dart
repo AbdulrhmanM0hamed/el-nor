@@ -1,137 +1,21 @@
-import 'dart:io';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/student_model.dart';
-import '../models/memorization_circle_model.dart';
-import '../../../../core/services/notification_service.dart';
-import 'dart:io';
+import 'package:beat_elslam/core/services/notification_service.dart';
+import '../../../../admin/data/models/memorization_circle_model.dart';
 
-class AdminRepository {
+class CircleManagementRepository {
   final SupabaseClient _supabaseClient;
   final NotificationService _notificationService;
 
-  AdminRepository(this._supabaseClient)
-      : _notificationService = NotificationService();
+  CircleManagementRepository({
+    required SupabaseClient supabaseClient,
+    required NotificationService notificationService,
+  })  : _supabaseClient = supabaseClient,
+        _notificationService = notificationService;
 
-  // التحقق من صلاحيات المشرف
-  Future<bool> checkAdminPermission() async {
-    try {
-      final currentUser = _supabaseClient.auth.currentUser;
-      if (currentUser == null) {
-        return false;
-      }
-
-      final userData = await _supabaseClient
-          .from('students')
-          .select()
-          .eq('id', currentUser.id)
-          .single();
-
-      return userData['is_admin'] ?? false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // حفظ خطة التعلم القديمة
-  Future<void> saveOldLearningPlan(String oldUrl) async {
-    try {
-      // Extract filename from URL
-      final filename = oldUrl.split('/').last;
-      
-      // First delete the existing file if it exists
-      try {
-        await _supabaseClient.storage
-            .from('learning-plans-archive')
-            .remove([filename]);
-      } catch (e) {
-        // If file doesn't exist, continue without error
-      }
-      
-      // Download the file as bytes
-      final bytes = await _supabaseClient.storage
-          .from('learning-plans')
-          .download(oldUrl);
-      
-      // Create a temporary file from bytes
-      final tempFile = await File('temp_${filename}').create();
-      await tempFile.writeAsBytes(bytes);
-      
-      // Upload the temporary file
-      await _supabaseClient.storage
-          .from('learning-plans-archive')
-          .upload(filename, tempFile);
-      
-      // Clean up the temporary file
-      await tempFile.delete();
-    } catch (e) {
-      throw Exception('فشل في حفظ خطة التعلم القديمة: $e');
-    }
-  }
-
-  // رفع خطة التعلم الجديدة
-  Future<String?> uploadLearningPlan(String fileName, List<int> bytes) async {
-    try {
-      // First delete the existing file if it exists
-      try {
-        await _supabaseClient.storage
-            .from('learning-plans')
-            .remove([fileName]);
-      } catch (e) {
-        // If file doesn't exist, continue without error
-      }
-      
-      // Create a temporary file from bytes
-      final tempFile = await File(fileName).writeAsBytes(bytes);
-      
-      // Upload the file to Supabase
-      final response = await _supabaseClient.storage
-          .from('learning-plans')
-          .upload(fileName, tempFile);
-
-      // Get the public URL of the file
-      final url = await _supabaseClient.storage
-          .from('learning-plans')
-          .getPublicUrl(fileName);
-
-      // Clean up temporary file
-      await tempFile.delete();
-
-      return url;
-    } catch (e) {
-      throw Exception('فشل في رفع خطة التعلم: $e');
-    }
-  }
-
-  // جلب جميع المستخدمين
-  Future<List<StudentModel>> getAllUsers() async {
-    try {
-      final data = await _supabaseClient.from('students').select();
-      return data.map((user) => StudentModel.fromJson(user)).toList();
-    } catch (e) {
-      throw Exception('فشل في جلب المستخدمين: $e');
-    }
-  }
-
-  // جلب جميع المعلمين
-  Future<List<StudentModel>> getAllTeachers() async {
-    try {
-      final data = await _supabaseClient
-          .from('students')
-          .select('*, profile_image_url, email, phone')
-          .eq('is_teacher', true)
-          .order('name');
-
-      return data.map((json) => StudentModel.fromJson(json)).toList();
-    } catch (e) {
-      throw Exception('فشل في جلب المعلمين: $e');
-    }
-  }
-
-  // جلب جميع حلقات التحفيظ
+  // Get all memorization circles
   Future<List<MemorizationCircleModel>> getAllCircles() async {
     try {
-      // جلب الحلقات
+      // Get the circles
       final data = await _supabaseClient
           .from('memorization_circles')
           .select()
@@ -141,11 +25,11 @@ class AdminRepository {
 
       for (final json in data) {
         try {
-          // جلب بيانات المعلم من جدول students إذا كان موجوداً
+          // Get teacher data from students table if exists
           if (json['teacher_id'] != null) {
             try {
               print(
-                  'AdminRepository: Fetching teacher data for teacher_id: ${json['teacher_id']}');
+                  'CircleManagementRepository: Fetching teacher data for teacher_id: ${json['teacher_id']}');
 
               final teacherData = await _supabaseClient
                   .from('students')
@@ -178,9 +62,9 @@ class AdminRepository {
             studentIds = (json['student_ids'] as List)
                 .map((id) => id.toString())
                 .toList();
-          } else {}
+          }
 
-          // تحميل تفاصيل الطلاب من جدول students
+          // Load student details from students table
           List<CircleStudent> students = [];
           if (studentIds.isNotEmpty) {
             try {
@@ -220,33 +104,11 @@ class AdminRepository {
     }
   }
 
-  // تحديث دور المستخدم
-  Future<void> updateUserRole({
-    required String userId,
-    required bool isAdmin,
-    required bool isTeacher,
-  }) async {
-    try {
-      // التحقق من صلاحيات المشرف
-      final hasPermission = await checkAdminPermission();
-      if (!hasPermission) {
-        throw Exception('ليس لديك صلاحية لتعديل أدوار المستخدمين');
-      }
-
-      await _supabaseClient.from('students').update({
-        'is_admin': isAdmin,
-        'is_teacher': isTeacher,
-      }).eq('id', userId);
-    } catch (e) {
-      throw Exception('فشل في تحديث دور المستخدم: $e');
-    }
-  }
-
-  // إضافة حلقة تحفيظ جديدة
+  // Add new memorization circle
   Future<MemorizationCircleModel> addCircle(
       MemorizationCircleModel circle) async {
     try {
-      // التحقق من وجود المعلم في جدول students قبل إضافة الحلقة
+      // Verify teacher exists in students table before adding the circle
       if (circle.teacherId != null && circle.teacherId!.isNotEmpty) {
         final teacherExists = await _supabaseClient
             .from('students')
@@ -260,7 +122,7 @@ class AdminRepository {
         }
       }
 
-      // إعداد البيانات للإدخال
+      // Prepare data for insertion
       final Map<String, dynamic> circleData = {
         'id': circle.id,
         'name': circle.name,
@@ -278,14 +140,14 @@ class AdminRepository {
         'updated_at': circle.updatedAt.toIso8601String(),
       };
 
-      // إضافة الحلقة في قاعدة البيانات
+      // Add the circle to the database
       final insertedData = await _supabaseClient
           .from('memorization_circles')
           .insert(circleData)
           .select()
           .single();
 
-      // جلب بيانات المعلم من جدول students
+      // Get teacher data from students table
       if (insertedData['teacher_id'] != null) {
         final teacherData = await _supabaseClient
             .from('students')
@@ -300,7 +162,7 @@ class AdminRepository {
         insertedData['teacher_image_url'] = teacherData['profile_image_url'];
       }
 
-      // إرسال إشعارات للطلاب المضافين
+      // Send notifications to added students
       if (circle.studentIds.isNotEmpty) {
         await _sendNotificationToStudents(
           studentIds: circle.studentIds,
@@ -311,56 +173,37 @@ class AdminRepository {
 
       return MemorizationCircleModel.fromJson(insertedData);
     } catch (e) {
-      print('خطأ في إضافة حلقة التحفيظ: $e');
       throw Exception('فشل في إضافة حلقة التحفيظ: $e');
     }
   }
 
-  // إرسال إشعارات للطلاب
+  // Send notifications to students
   Future<void> _sendNotificationToStudents({
     required List<String> studentIds,
     required String circleName,
     required bool isExam,
   }) async {
     try {
-      print(
-          'AdminRepository: بدء إرسال الإشعارات للطلاب - عدد الطلاب: ${studentIds.length}');
-      print('AdminRepository: معرفات الطلاب: $studentIds');
-
-      // الحصول على tokens الطلاب
+      // Get student tokens
       final response = await _supabaseClient
           .from('user_tokens')
           .select('fcm_token, user_id')
           .filter('user_id', 'in', studentIds);
 
-      print('AdminRepository: تم جلب الـ tokens - البيانات: $response');
-
       final List<String> tokens = (response as List)
           .map((item) => item['fcm_token'].toString())
           .toList();
 
-      if (tokens.isEmpty) {
-        print('AdminRepository: لا يوجد tokens للطلاب المحددين');
-        return;
-      }
-
-      print(
-          'AdminRepository: عدد الـ tokens التي تم العثور عليها: ${tokens.length}');
-
-      // تحضير محتوى الإشعار
+      // Prepare notification content
       final title = isExam
           ? 'تم إضافتك إلى حلقة اختبار جديدة'
           : 'تم إضافتك إلى حلقة تحفيظ جديدة';
       final body = 'تم إضافتك إلى حلقة: $circleName';
 
-      print('AdminRepository: محتوى الإشعار:');
-      print('- العنوان: $title');
-      print('- المحتوى: $body');
-
-      // إرسال الإشعار لكل token
+      // Send notification to each token
       for (final token in tokens) {
         print(
-            'AdminRepository: جاري إرسال الإشعار للـ token: ${token.substring(0, 10)}...');
+            'CircleManagementRepository: جاري إرسال الإشعار للـ token: ${token.substring(0, 10)}...');
         try {
           await _notificationService.sendNotification(
             token: token,
@@ -373,26 +216,22 @@ class AdminRepository {
             },
           );
           print(
-              'AdminRepository: تم إرسال الإشعار بنجاح للـ token: ${token.substring(0, 10)}...');
+              'CircleManagementRepository: تم إرسال الإشعار بنجاح للـ token: ${token.substring(0, 10)}...');
         } catch (e) {
           print(
-              'AdminRepository: فشل في إرسال الإشعار للـ token: ${token.substring(0, 10)}... - الخطأ: $e');
+              'CircleManagementRepository: فشل في إرسال الإشعار للـ token: ${token.substring(0, 10)}... - الخطأ: $e');
         }
       }
-
-      print('AdminRepository: تم الانتهاء من إرسال الإشعارات للطلاب');
     } catch (e) {
-      print('AdminRepository: خطأ في إرسال الإشعارات للطلاب: $e');
-      print('AdminRepository: تفاصيل الخطأ الكامل:');
-      print(e.toString());
+      throw Exception('Failed to assign circle to student: $e');
     }
   }
 
-  // تحديث بيانات حلقة تحفيظ
+  // Update memorization circle
   Future<MemorizationCircleModel> updateCircle(
       MemorizationCircleModel circle) async {
     try {
-      // التحقق من وجود المعلم في جدول students قبل التحديث
+      // Verify teacher exists in students table before updating
       if (circle.teacherId != null && circle.teacherId!.isNotEmpty) {
         final teacherExists = await _supabaseClient
             .from('students')
@@ -421,7 +260,7 @@ class AdminRepository {
         'learning_plan_url': circle.learningPlanUrl,
       };
 
-      // تحديث بيانات الحلقة
+      // Update circle data
       final updatedData = await _supabaseClient
           .from('memorization_circles')
           .update(circleData)
@@ -429,7 +268,7 @@ class AdminRepository {
           .select()
           .single();
 
-      // جلب بيانات المعلم من جدول students
+      // Get teacher data from students table
       if (updatedData['teacher_id'] != null) {
         final teacherData = await _supabaseClient
             .from('students')
@@ -450,7 +289,7 @@ class AdminRepository {
     }
   }
 
-  // تحديث معلم الحلقة فقط
+  // Update circle teacher only
   Future<void> updateCircleTeacher(String circleId, String teacherId) async {
     try {
       await _supabaseClient.from('memorization_circles').update({
@@ -462,7 +301,7 @@ class AdminRepository {
     }
   }
 
-  // حذف حلقة تحفيظ
+  // Delete memorization circle
   Future<void> deleteCircle(String circleId) async {
     try {
       await _supabaseClient
@@ -474,7 +313,7 @@ class AdminRepository {
     }
   }
 
-  // تحديث حضور وتقييم الطالب في الحلقة
+  // Update student attendance and evaluation in circle
   Future<void> updateStudentAttendanceAndEvaluation({
     required String circleId,
     required String studentId,
@@ -482,49 +321,49 @@ class AdminRepository {
     EvaluationRecord? evaluation,
   }) async {
     try {
-      // الحصول على بيانات الحلقة الحالية
+      // Get current circle data
       final circleData = await _supabaseClient
           .from('memorization_circles')
           .select()
           .eq('id', circleId)
           .single();
 
-      // تحويل البيانات إلى نموذج
+      // Convert data to model
       final circle = MemorizationCircleModel.fromJson(circleData);
 
-      // البحث عن الطالب في قائمة الطلاب
+      // Find student in students list
       final studentIndex = circle.students.indexWhere((s) => s.id == studentId);
       if (studentIndex == -1) {
         throw Exception('الطالب غير موجود في هذه الحلقة');
       }
 
-      // تحديث بيانات الطالب
+      // Update student data
       final student = circle.students[studentIndex];
       List<AttendanceRecord> updatedAttendance = List.from(student.attendance);
       List<EvaluationRecord> updatedEvaluations =
           List.from(student.evaluations);
 
-      // إضافة سجل الحضور الجديد إذا وجد
+      // Add new attendance record if exists
       if (attendance != null) {
         updatedAttendance.add(attendance);
       }
 
-      // إضافة سجل التقييم الجديد إذا وجد
+      // Add new evaluation record if exists
       if (evaluation != null) {
         updatedEvaluations.add(evaluation);
       }
 
-      // تحديث الطالب بالبيانات الجديدة
+      // Update student with new data
       final updatedStudent = student.copyWith(
         attendance: updatedAttendance,
         evaluations: updatedEvaluations,
       );
 
-      // تحديث قائمة الطلاب في الحلقة
+      // Update students list in circle
       final updatedStudents = List<CircleStudent>.from(circle.students);
       updatedStudents[studentIndex] = updatedStudent;
 
-      // تحديث الحلقة في قاعدة البيانات
+      // Update circle in database
       await _supabaseClient.from('memorization_circles').update({
         'students': updatedStudents.map((s) => s.toJson()).toList(),
         'updated_at': DateTime.now().toIso8601String(),
@@ -534,7 +373,7 @@ class AdminRepository {
     }
   }
 
-  // الحصول على سجلات حضور وتقييم طالب في حلقة معينة
+  // Get student records in circle
   Future<CircleStudent> getStudentRecords(
       String circleId, String studentId) async {
     try {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../data/models/memorization_circle_model.dart';
-import '../../../data/models/surah_assignment.dart';
+import '../../../../data/models/memorization_circle_model.dart';
+import '../../../../data/models/surah_assignment.dart';
 
 class SurahAssignmentsSection extends StatelessWidget {
   final MemorizationCircleModel circle;

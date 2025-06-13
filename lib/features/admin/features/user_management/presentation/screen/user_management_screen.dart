@@ -1,11 +1,11 @@
-import 'package:beat_elslam/features/admin/presentation/widgets/user_management/user_list_item.dart';
-import 'package:beat_elslam/features/admin/presentation/widgets/user_management/user_role_dialog.dart';
-import 'package:beat_elslam/features/admin/presentation/widgets/user_management/user_search_bar.dart';
+import 'package:beat_elslam/features/admin/features/user_management/presentation/widgets/user_list_item.dart';
+import 'package:beat_elslam/features/admin/features/user_management/presentation/widgets/user_role_dialog.dart';
+import 'package:beat_elslam/features/admin/features/user_management/presentation/widgets/user_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/services/service_locator.dart';
-import '../../data/models/student_model.dart';
+import '../../../../../../core/services/service_locator.dart';
+import '../../../../data/models/student_model.dart';
 import '../cubit/admin_cubit.dart';
 import '../cubit/admin_state.dart';
 

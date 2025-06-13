@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../../core/utils/theme/app_colors.dart';
-import '../../../data/models/memorization_circle_model.dart';
-import '../shared/profile_image.dart';
+import '../../../../../../../core/utils/theme/app_colors.dart';
+import '../../../../data/models/memorization_circle_model.dart';
+import '../../../../shared/profile_image.dart';
 
 class StudentsSection extends StatelessWidget {
   final MemorizationCircleModel circle;

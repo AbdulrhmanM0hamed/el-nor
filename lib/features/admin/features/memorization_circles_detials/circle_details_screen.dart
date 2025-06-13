@@ -1,3 +1,5 @@
+import 'package:beat_elslam/features/admin/features/memorization_circles/presentation/cubit/circle_management_cubit.dart';
+import 'package:beat_elslam/features/admin/features/memorization_circles/presentation/cubit/circle_management_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -5,27 +7,34 @@ import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/student_model.dart';
-import '../cubit/admin_cubit.dart';
-import '../cubit/admin_state.dart';
-import '../widgets/circle_details/circle_info_card.dart';
-import '../widgets/circle_details/students_section.dart';
-import '../widgets/circle_details/teacher_section.dart';
-import '../widgets/circle_details/surah_assignments_section.dart';
-import '../widgets/shared/loading_error_handler.dart';
+import '../user_management/presentation/cubit/admin_cubit.dart';
+import '../user_management/presentation/cubit/admin_state.dart';
+import 'widgets/circle_details/circle_info_card.dart';
+import 'widgets/circle_details/students_section.dart';
+import 'widgets/circle_details/teacher_section.dart';
+import 'widgets/circle_details/surah_assignments_section.dart';
+import '../../shared/loading_error_handler.dart';
 
 // Wrapper لتوفير AdminCubit
 class CircleDetailsScreenWrapper extends StatelessWidget {
   final MemorizationCircleModel circle;
+  final CircleManagementCubit circleManagementCubit;
+  final AdminCubit adminCubit;
 
   const CircleDetailsScreenWrapper({
     Key? key,
     required this.circle,
+    required this.circleManagementCubit,
+    required this.adminCubit,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AdminCubit>(
-      create: (context) => sl<AdminCubit>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<CircleManagementCubit>.value(value: circleManagementCubit),
+        BlocProvider<AdminCubit>.value(value: adminCubit),
+      ],
       child: CircleDetailsScreen(circle: circle),
     );
   }
@@ -41,6 +50,7 @@ class CircleDetailsScreen extends StatefulWidget {
 }
 
 class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
+  late CircleManagementCubit _circleManagementCubit;
   late AdminCubit _adminCubit;
   late MemorizationCircleModel _circle;
   bool _isLoading = true;
@@ -51,6 +61,7 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
   void initState() {
     super.initState();
     _circle = widget.circle;
+    _circleManagementCubit = context.read<CircleManagementCubit>();
     _adminCubit = context.read<AdminCubit>();
 
     // Ensure we have the latest circle data
@@ -65,7 +76,7 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
   void dispose() {
     // When leaving this screen, ensure we reload circles in the parent screen
     // This prevents the issue where circles disappear when returning
-    _adminCubit.loadAllCircles();
+    _circleManagementCubit.loadAllCircles();
     super.dispose();
   }
 
@@ -106,11 +117,22 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
       }
 
       // تحميل بيانات الحلقة المحدثة
-      final circles = await _adminCubit.loadAllCircles();
-      final updatedCircle = circles.firstWhere(
-        (c) => c.id == _circle.id,
-        orElse: () => _circle,
-      );
+      await _circleManagementCubit.loadAllCircles();
+
+      // انتظار حتى يتم تحديث حالة الحلقات
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // الحصول على الحلقة المحدثة من الحالة
+      final updatedCircle = BlocProvider.of<CircleManagementCubit>(context)
+              .state is AdminCirclesLoaded
+          ? (BlocProvider.of<CircleManagementCubit>(context).state
+                  as AdminCirclesLoaded)
+              .circles
+              .firstWhere(
+                (c) => c.id == _circle.id,
+                orElse: () => _circle,
+              )
+          : _circle;
 
       setState(() {
         _circle = updatedCircle;
@@ -119,10 +141,10 @@ class _CircleDetailsScreenState extends State<CircleDetailsScreen> {
 
       // تحميل الطلاب إذا كان ضرورياً
       if (_circle.students.isEmpty && _circle.studentIds.isNotEmpty) {
-        await _adminCubit.loadCircleStudents(_circle.id, _circle.studentIds);
+        await _circleManagementCubit.loadCircleStudents(
+            _circle.id, _circle.studentIds);
       }
     } catch (e) {
-      print('CircleDetailsScreen: Error loading data: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;

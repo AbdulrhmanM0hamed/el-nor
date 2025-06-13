@@ -3,18 +3,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
-
-import '../../../../core/utils/theme/app_colors.dart';
-import '../../../../core/services/service_locator.dart';
-import '../../data/models/student_model.dart';
-import '../../data/models/surah_assignment.dart';
-import '../cubit/admin_cubit.dart';
-import '../cubit/admin_state.dart';
-import '../widgets/shared/profile_image.dart';
+import '../../../../../../core/utils/theme/app_colors.dart';
+import '../../../../../../core/services/service_locator.dart';
+import '../../../../data/models/student_model.dart';
+import '../../../../data/models/surah_assignment.dart';
+import '../../../user_management/presentation/cubit/admin_cubit.dart';
+import '../../../user_management/presentation/cubit/admin_state.dart';
+import '../../../../shared/profile_image.dart';
 
 class CircleFormDialog extends StatefulWidget {
   final String title;
@@ -276,7 +274,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم رفع خطة التعلم بنجاح')),
+          const SnackBar(content: Text('تم رفع خطة التعلم بنجاح')),
         );
       }
     } catch (e) {
@@ -543,7 +541,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
           width: 2,
         ),
       ),
-      color: isSelected ? AppColors.logoTeal.withOpacity(0.1) : null,
+      color: isSelected ? AppColors.logoTeal.withValues(alpha: 0.1) : null,
       child: InkWell(
         onTap: () {
           setState(() {
@@ -618,8 +616,8 @@ class _CircleFormDialogState extends State<CircleFormDialog>
               ),
               ElevatedButton.icon(
                 onPressed: _showAddSurahDialog,
-                icon: Icon(Icons.add),
-                label: Text('إضافة سورة'),
+                icon: const Icon(Icons.add),
+                label: const Text('إضافة سورة'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.logoTeal,
                   foregroundColor: Colors.white,
@@ -655,7 +653,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
                             style: TextStyle(fontSize: 14.sp),
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {
                               setState(() {
                                 _selectedSurahs.removeAt(index);
@@ -771,7 +769,8 @@ class _CircleFormDialogState extends State<CircleFormDialog>
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.description, color: AppColors.primary),
+                            const Icon(Icons.description,
+                                color: AppColors.primary),
                             SizedBox(width: 8.w),
                             Text(
                               _learningPlanUrl != null
@@ -801,7 +800,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
             SizedBox(height: 8.h),
             Expanded(
               child: widget.availableStudents?.isEmpty ?? true
-                  ? Center(child: Text('لا يوجد طلاب متاحين'))
+                  ? const Center(child: Text('لا يوجد طلاب متاحين'))
                   : BlocBuilder<AdminCubit, AdminState>(
                       builder: (context, state) {
                         if (state is AdminStudentsLoaded) {
@@ -839,7 +838,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
           width: 2,
         ),
       ),
-      color: isSelected ? AppColors.logoTeal.withOpacity(0.1) : null,
+      color: isSelected ? AppColors.logoTeal.withValues(alpha: 0.1) : null,
       child: CheckboxListTile(
         value: isSelected,
         onChanged: (selected) {
@@ -893,7 +892,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
             ),
             if (isSelected)
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.logoTeal,
                   shape: BoxShape.circle,
                 ),
@@ -990,7 +989,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'إلغاء',
               style: TextStyle(color: Colors.grey),
             ),
@@ -1027,7 +1026,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
               backgroundColor: AppColors.logoTeal,
               foregroundColor: Colors.white,
             ),
-            child: Text('إضافة'),
+            child: const Text('إضافة'),
           ),
         ],
       ),

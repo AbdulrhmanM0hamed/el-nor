@@ -1,4 +1,7 @@
-import 'package:beat_elslam/features/admin/data/repositories/admin_repository.dart';
+import 'package:beat_elslam/core/services/notification_service.dart';
+import 'package:beat_elslam/features/admin/features/user_management/data/repositories/admin_repository.dart';
+import 'package:beat_elslam/features/admin/features/memorization_circles/data/circle_management_repo.dart';
+import 'package:beat_elslam/features/admin/features/memorization_circles/presentation/cubit/circle_management_cubit.dart';
 import 'package:beat_elslam/features/quran_circles/data/datasources/circle_details_remote_datasource.dart';
 import 'package:beat_elslam/features/quran_circles/data/repositories/circle_details_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -6,7 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/reset_password/reset_password_cubit.dart';
-import '../../features/admin/presentation/cubit/admin_cubit.dart';
+import '../../features/admin/features/user_management/presentation/cubit/admin_cubit.dart';
 import '../../features/home/quran/presentation/cubit/quran_cubit.dart';
 import '../../features/quran_circles/presentation/cubit/memorization_circles_cubit.dart';
 import '../config/supabase_config.dart';
@@ -39,6 +42,7 @@ void _registerServices() {
   // Register core services
   sl.registerLazySingleton(() => SessionService());
   sl.registerLazySingleton(() => PermissionsManager());
+  sl.registerLazySingleton(() => NotificationService());
 }
 
 void _registerRepositories() {
@@ -59,6 +63,14 @@ void _registerRepositories() {
   sl.registerLazySingleton<AdminRepository>(
     () => AdminRepository(sl<SupabaseClient>()),
   );
+
+  // Register Circle Management Repository
+  sl.registerLazySingleton<CircleManagementRepository>(
+    () => CircleManagementRepository(
+        supabaseClient: sl<SupabaseClient>(),
+        notificationService: sl<NotificationService>()),
+  );
+
   sl.registerLazySingleton<MemorizationCirclesRepository>(
     () => MemorizationCirclesRepository(sl<SupabaseClient>()),
   );
@@ -72,6 +84,10 @@ void _registerRepositories() {
     () => AuthCubit(authRepository: sl<AuthRepository>()),
   );
 
+  // Register Circle Management Cubit
+  sl.registerLazySingleton<CircleManagementCubit>(
+    () => CircleManagementCubit(sl<CircleManagementRepository>()),
+  );
   // Register ResetPasswordCubit
   sl.registerFactory<ResetPasswordCubit>(
     () => ResetPasswordCubit(authRepository: sl<AuthRepository>()),
