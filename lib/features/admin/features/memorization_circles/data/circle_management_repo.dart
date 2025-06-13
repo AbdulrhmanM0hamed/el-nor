@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:noor_quran/core/services/notification_service.dart';
 import '../../../../admin/data/models/memorization_circle_model.dart';
@@ -28,7 +29,7 @@ class CircleManagementRepository {
           // Get teacher data from students table if exists
           if (json['teacher_id'] != null) {
             try {
-              print(
+              debugPrint(
                   'CircleManagementRepository: Fetching teacher data for teacher_id: ${json['teacher_id']}');
 
               final teacherData = await _supabaseClient
@@ -83,7 +84,7 @@ class CircleManagementRepository {
                       ))
                   .toList();
             } catch (e) {
-              print('Error fetching students: $e');
+              debugPrint('Error fetching students: $e');
             }
           }
 
@@ -94,7 +95,7 @@ class CircleManagementRepository {
           );
           circles.add(updatedCircle);
         } catch (e) {
-          print('Error fetching circle: $e');
+          debugPrint('Error fetching circle: $e');
         }
       }
 
@@ -202,7 +203,7 @@ class CircleManagementRepository {
 
       // Send notification to each token
       for (final token in tokens) {
-        print(
+        debugPrint(
             'CircleManagementRepository: جاري إرسال الإشعار للـ token: ${token.substring(0, 10)}...');
         try {
           await _notificationService.sendNotification(
@@ -215,10 +216,10 @@ class CircleManagementRepository {
               'is_exam': isExam.toString(),
             },
           );
-          print(
+          debugPrint(
               'CircleManagementRepository: تم إرسال الإشعار بنجاح للـ token: ${token.substring(0, 10)}...');
         } catch (e) {
-          print(
+          debugPrint(
               'CircleManagementRepository: فشل في إرسال الإشعار للـ token: ${token.substring(0, 10)}... - الخطأ: $e');
         }
       }

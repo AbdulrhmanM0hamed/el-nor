@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class HadithCollection {
   final int id;
   final String name;
@@ -18,7 +16,7 @@ class HadithCollection {
     final data = json['data'] as Map<String, dynamic>;
     final metadata = data['metadata'] as Map<String, dynamic>;
     final section = metadata['section'] as Map<String, dynamic>;
-    
+
     return HadithCollection(
       id: id,
       name: metadata['name'] as String,
@@ -58,7 +56,8 @@ class Hadith {
       arabicNumber: json['arabicnumber'] as int,
       text: json['text'] as String,
       grades: gradesList,
-      reference: json['reference'] is Map ? '' : (json['reference'] as String? ?? ''),
+      reference:
+          json['reference'] is Map ? '' : (json['reference'] as String? ?? ''),
     );
   }
 }
@@ -78,4 +77,4 @@ class Grade {
       grade: json['grade'] as String,
     );
   }
-} 
+}

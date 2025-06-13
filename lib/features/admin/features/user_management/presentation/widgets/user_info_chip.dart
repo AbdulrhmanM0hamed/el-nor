@@ -21,10 +21,10 @@ class UserInfoChip extends StatelessWidget {
         vertical: 6.h,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:  0.1),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha:  0.3),
           width: 1,
         ),
       ),

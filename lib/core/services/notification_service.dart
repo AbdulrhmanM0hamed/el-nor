@@ -13,10 +13,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
   final supabase = Supabase.instance.client;
-  
-  static const String serverUrl = 'https://notification-server-elnor.vercel.app';
+
+  static const String serverUrl =
+      'https://notification-server-elnor.vercel.app';
 
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -25,7 +27,8 @@ class NotificationService {
   Future<void> initNotifications() async {
     try {
       // Request permissions first
-      NotificationSettings settings = await _firebaseMessaging.requestPermission(
+      NotificationSettings settings =
+          await _firebaseMessaging.requestPermission(
         alert: true,
         badge: true,
         sound: true,
@@ -35,28 +38,28 @@ class NotificationService {
       switch (settings.authorizationStatus) {
         case AuthorizationStatus.authorized:
           debugPrint('تم منح إذن الإشعارات');
-          
+
           // Initialize local notifications in parallel
           await _initLocalNotifications();
-          
+
           // Setup message handlers in parallel
           await _setupMessageHandlers();
-          
+
           // Get and save FCM token
           final fcmToken = await getFCMToken();
           if (fcmToken != null) {
             await saveTokenToSupabase(fcmToken);
           }
           break;
-        
+
         case AuthorizationStatus.provisional:
           debugPrint('تم منح إذن الإشعارات مؤقتاً');
           break;
-        
+
         case AuthorizationStatus.denied:
           debugPrint('تم رفض إذن الإشعارات');
           break;
-        
+
         case AuthorizationStatus.notDetermined:
           debugPrint('لم يتم تحديد حالة إذن الإشعارات');
           break;
@@ -67,15 +70,15 @@ class NotificationService {
   }
 
   Future<void> _initLocalNotifications() async {
-    const AndroidInitializationSettings androidSettings = 
+    const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    
-    const DarwinInitializationSettings iosSettings = 
+
+    const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
@@ -93,26 +96,23 @@ class NotificationService {
   Future<String?> getFCMToken() async {
     try {
       String? token = await _firebaseMessaging.getToken();
-      print('FCM Token: $token');
+      debugPrint('FCM Token: $token');
       return token;
     } catch (e) {
-      print('Error getting FCM token: $e');
+      debugPrint('Error getting FCM token: $e');
       return null;
     }
   }
 
   Future<void> saveTokenToSupabase(String? token) async {
     if (token == null) return;
-    
+
     try {
       final userId = supabase.auth.currentUser?.id;
       if (userId == null) return;
 
       // Delete existing tokens for this user first
-      await supabase
-          .from('user_tokens')
-          .delete()
-          .eq('user_id', userId);
+      await supabase.from('user_tokens').delete().eq('user_id', userId);
 
       // Insert new token
       await supabase.from('user_tokens').insert({
@@ -120,10 +120,10 @@ class NotificationService {
         'fcm_token': token,
         'updated_at': DateTime.now().toIso8601String(),
       });
-      
-      print('تم حفظ التوكن بنجاح');
+
+      debugPrint('تم حفظ التوكن بنجاح');
     } catch (e) {
-      print('خطأ في حفظ التوكن: $e');
+      debugPrint('خطأ في حفظ التوكن: $e');
     }
   }
 
@@ -142,7 +142,8 @@ class NotificationService {
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
-    final AndroidNotificationDetails androidDetails =  AndroidNotificationDetails(
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
       'default_channel',
       'Default Channel',
       importance: Importance.high,
@@ -150,9 +151,9 @@ class NotificationService {
       showWhen: true,
     );
 
-    final NotificationDetails details = NotificationDetails(
+    const NotificationDetails details = NotificationDetails(
       android: androidDetails,
-      iOS: const DarwinNotificationDetails(),
+      iOS:  DarwinNotificationDetails(),
     );
 
     await _localNotifications.show(
@@ -165,7 +166,7 @@ class NotificationService {
   }
 
   void _handleNotificationTap(dynamic details) {
-    print('تم الضغط على الإشعار: $details');
+    debugPrint('تم الضغط على الإشعار: $details');
   }
 
   Future<void> subscribeToTopic(String topic) async {
@@ -183,11 +184,12 @@ class NotificationService {
     Map<String, dynamic>? data,
   }) async {
     try {
-      print('NotificationService: بدء إرسال إشعار لـ token: ${token.substring(0, 10)}...');
-      print('NotificationService: محتوى الإشعار:');
-      print('- العنوان: $title');
-      print('- المحتوى: $body');
-      print('- البيانات الإضافية: $data');
+      debugPrint(
+          'NotificationService: بدء إرسال إشعار لـ token: ${token.substring(0, 10)}...');
+      debugPrint('NotificationService: محتوى الإشعار:');
+      debugPrint('- العنوان: $title');
+      debugPrint('- المحتوى: $body');
+      debugPrint('- البيانات الإضافية: $data');
 
       final response = await http.post(
         Uri.parse('$serverUrl/send-notification'),
@@ -203,14 +205,15 @@ class NotificationService {
       );
 
       if (response.statusCode != 200) {
-        throw Exception('فشل في إرسال الإشعار. الحالة: ${response.statusCode}\nالرد: ${response.body}');
+        throw Exception(
+            'فشل في إرسال الإشعار. الحالة: ${response.statusCode}\nالرد: ${response.body}');
       }
 
-      print('NotificationService: تم إرسال الإشعار بنجاح');
+      debugPrint('NotificationService: تم إرسال الإشعار بنجاح');
     } catch (e) {
-      print('NotificationService: خطأ في إرسال الإشعار:');
-      print('NotificationService: نوع الخطأ: ${e.runtimeType}');
-      print('NotificationService: تفاصيل الخطأ: $e');
+      debugPrint('NotificationService: خطأ في إرسال الإشعار:');
+      debugPrint('NotificationService: نوع الخطأ: ${e.runtimeType}');
+      debugPrint('NotificationService: تفاصيل الخطأ: $e');
       rethrow;
     }
   }
@@ -220,14 +223,11 @@ class NotificationService {
       final userId = supabase.auth.currentUser?.id;
       if (userId == null) return;
 
-      await supabase
-          .from('user_tokens')
-          .delete()
-          .eq('user_id', userId);
-      
-      print('تم حذف التوكن بنجاح');
+      await supabase.from('user_tokens').delete().eq('user_id', userId);
+
+      debugPrint('تم حذف التوكن بنجاح');
     } catch (e) {
-      print('خطأ في حذف التوكن: $e');
+      debugPrint('خطأ في حذف التوكن: $e');
     }
   }
 
@@ -246,8 +246,10 @@ class NotificationService {
           latestTokens[userId] = token;
         } else {
           final existingToken = latestTokens[userId]!;
-          if (token['updated_at'] != null && existingToken['updated_at'] != null) {
-            final existingDateTime = DateTime.parse(existingToken['updated_at']);
+          if (token['updated_at'] != null &&
+              existingToken['updated_at'] != null) {
+            final existingDateTime =
+                DateTime.parse(existingToken['updated_at']);
             final newDateTime = DateTime.parse(token['updated_at']);
             if (newDateTime.isAfter(existingDateTime)) {
               latestTokens[userId] = token;
@@ -260,7 +262,8 @@ class NotificationService {
       for (final token in allTokens) {
         final userId = token['user_id'];
         final latestToken = latestTokens[userId];
-        if (latestToken != null && token['fcm_token'] != latestToken['fcm_token']) {
+        if (latestToken != null &&
+            token['fcm_token'] != latestToken['fcm_token']) {
           await supabase
               .from('user_tokens')
               .delete()
@@ -268,10 +271,10 @@ class NotificationService {
               .eq('fcm_token', token['fcm_token']);
         }
       }
-      
-      print('تم تنظيف التوكنات المكررة بنجاح');
+
+      debugPrint('تم تنظيف التوكنات المكررة بنجاح');
     } catch (e) {
-      print('خطأ في تنظيف التوكنات المكررة: $e');
+      debugPrint('خطأ في تنظيف التوكنات المكررة: $e');
     }
   }
-} 
+}

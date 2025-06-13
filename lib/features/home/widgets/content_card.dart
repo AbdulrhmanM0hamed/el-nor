@@ -2,8 +2,7 @@ import 'package:noor_quran/core/utils/constant/font_manger.dart';
 import 'package:noor_quran/core/utils/constant/styles_manger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:noor_quran/core/utils/constant/font_manger.dart';
-import 'package:noor_quran/core/utils/constant/styles_manger.dart';
+
 
 class ContentCard extends StatelessWidget {
   final String title;

@@ -16,21 +16,21 @@ class QuranOptimizedScreen extends StatefulWidget {
   State<QuranOptimizedScreen> createState() => _QuranOptimizedScreenState();
 }
 
-class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with WidgetsBindingObserver {
-  bool _isLoading = true;
+class _QuranOptimizedScreenState extends State<QuranOptimizedScreen>
+    with WidgetsBindingObserver {
   double _loadingProgress = 0.0;
-  
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Pre-load JSON data and ensure surahs are loaded
     _preloadData();
-    
+
     // Start showing loading animation
     _startLoadingAnimation();
-    
+
     // Navigate to actual content screen after 2.5 seconds
     // This allows Flutter to render fully and prepare memory
     Future.delayed(const Duration(milliseconds: 2500), () {
@@ -39,34 +39,35 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
       }
     });
   }
-  
+
   Future<void> _preloadData() async {
     try {
       // Use the simpler, more direct approach to load all surahs
       final surahs = await SurahList.loadAllSurahsDirectly();
       debugPrint('Preloaded ${surahs.length} surahs in optimized screen');
-      
+
       // Only try the other approaches if the direct method failed
       if (surahs.isEmpty) {
         // Try the original approach
         await SurahList.loadSurahs();
-        
+
         // If still empty, try paginated approach as a last resort
         if (SurahList.surahs.isEmpty) {
           await SurahList.loadSurahsPaginated(page: 1, pageSize: 114);
-          debugPrint('Paginated loading completed, surahs count: ${SurahList.surahs.length}');
+          debugPrint(
+              'Paginated loading completed, surahs count: ${SurahList.surahs.length}');
         }
       }
     } catch (e) {
       debugPrint('Error preloading data: $e');
     }
   }
-  
+
   void _startLoadingAnimation() {
     Future.doWhile(() async {
       await Future.delayed(const Duration(milliseconds: 100));
       if (!mounted || _loadingProgress >= 1.0) return false;
-      
+
       setState(() {
         _loadingProgress += 0.05;
         if (_loadingProgress > 1.0) {
@@ -76,20 +77,20 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
       return true;
     });
   }
-  
+
   void _navigateToContentScreen() {
     // Ensure loading progress is complete for better UX
     setState(() {
       _loadingProgress = 1.0;
     });
-    
+
     // Wait just a tiny bit more for the progress bar to fill
     Future.delayed(const Duration(milliseconds: 200), () {
       if (!mounted) return;
-      
+
       // Get the page number from route arguments if available
       final pageNumber = ModalRoute.of(context)?.settings.arguments as int?;
-      
+
       // Use replacement to prevent returning to this screen
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -119,18 +120,18 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
       );
     });
   }
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Handle app lifecycle changes if needed
   }
-  
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,15 +149,15 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
                   color: AppColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child:const Icon(
+                child: const Icon(
                   Icons.menu_book_rounded,
                   size: 70,
                   color: AppColors.primary,
                 ),
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               // Title
               Text(
                 'القرآن الكريم',
@@ -166,9 +167,9 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
                   color: AppColors.primary,
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Bismillah
               Text(
                 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
@@ -179,9 +180,9 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Custom Progress Indicator
               Container(
                 width: MediaQuery.of(context).size.width * 0.7,
@@ -198,7 +199,7 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.primary.withOpacity(0.7),
+                              AppColors.primary.withValues(alpha: 0.7),
                               AppColors.primary,
                             ],
                           ),
@@ -209,9 +210,9 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               Text(
                 'جاري تجهيز المصحف...',
                 style: getRegularStyle(
@@ -226,4 +227,4 @@ class _QuranOptimizedScreenState extends State<QuranOptimizedScreen> with Widget
       ),
     );
   }
-} 
+}

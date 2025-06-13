@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../data/models/student_model.dart';
 import '../../../../../../core/services/notification_service.dart';
@@ -155,9 +156,9 @@ class AdminRepository {
     required bool isExam,
   }) async {
     try {
-      print(
+      debugPrint(
           'AdminRepository: بدء إرسال الإشعارات للطلاب - عدد الطلاب: ${studentIds.length}');
-      print('AdminRepository: معرفات الطلاب: $studentIds');
+      debugPrint('AdminRepository: معرفات الطلاب: $studentIds');
 
       // الحصول على tokens الطلاب
       final response = await _supabaseClient
@@ -165,18 +166,18 @@ class AdminRepository {
           .select('fcm_token, user_id')
           .filter('user_id', 'in', studentIds);
 
-      print('AdminRepository: تم جلب الـ tokens - البيانات: $response');
+      debugPrint('AdminRepository: تم جلب الـ tokens - البيانات: $response');
 
       final List<String> tokens = (response as List)
           .map((item) => item['fcm_token'].toString())
           .toList();
 
       if (tokens.isEmpty) {
-        print('AdminRepository: لا يوجد tokens للطلاب المحددين');
+        debugPrint('AdminRepository: لا يوجد tokens للطلاب المحددين');
         return;
       }
 
-      print(
+      debugPrint(
           'AdminRepository: عدد الـ tokens التي تم العثور عليها: ${tokens.length}');
 
       // تحضير محتوى الإشعار
@@ -185,13 +186,13 @@ class AdminRepository {
           : 'تم إضافتك إلى حلقة تحفيظ جديدة';
       final body = 'تم إضافتك إلى حلقة: $circleName';
 
-      print('AdminRepository: محتوى الإشعار:');
-      print('- العنوان: $title');
-      print('- المحتوى: $body');
+      debugPrint('AdminRepository: محتوى الإشعار:');
+      debugPrint('- العنوان: $title');
+      debugPrint('- المحتوى: $body');
 
       // إرسال الإشعار لكل token
       for (final token in tokens) {
-        print(
+        debugPrint(
             'AdminRepository: جاري إرسال الإشعار للـ token: ${token.substring(0, 10)}...');
         try {
           await _notificationService.sendNotification(
@@ -204,19 +205,19 @@ class AdminRepository {
               'is_exam': isExam.toString(),
             },
           );
-          print(
+          debugPrint(
               'AdminRepository: تم إرسال الإشعار بنجاح للـ token: ${token.substring(0, 10)}...');
         } catch (e) {
-          print(
+          debugPrint(
               'AdminRepository: فشل في إرسال الإشعار للـ token: ${token.substring(0, 10)}... - الخطأ: $e');
         }
       }
 
-      print('AdminRepository: تم الانتهاء من إرسال الإشعارات للطلاب');
+      debugPrint('AdminRepository: تم الانتهاء من إرسال الإشعارات للطلاب');
     } catch (e) {
-      print('AdminRepository: خطأ في إرسال الإشعارات للطلاب: $e');
-      print('AdminRepository: تفاصيل الخطأ الكامل:');
-      print(e.toString());
+      debugPrint('AdminRepository: خطأ في إرسال الإشعارات للطلاب: $e');
+      debugPrint('AdminRepository: تفاصيل الخطأ الكامل:');
+      debugPrint(e.toString());
     }
   }
 

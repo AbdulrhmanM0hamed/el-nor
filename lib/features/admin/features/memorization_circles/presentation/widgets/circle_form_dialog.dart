@@ -253,7 +253,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
                 .from('students')
                 .remove(['learning_plans/$oldFileName']);
           } catch (e) {
-            print('Error deleting old file: $e');
+            debugPrint('Error deleting old file: $e');
           }
         }
 
@@ -263,7 +263,7 @@ class _CircleFormDialogState extends State<CircleFormDialog>
             .upload('learning_plans/$fileName', file);
 
         // Get the public URL after upload
-        final publicUrl = await Supabase.instance.client.storage
+        final publicUrl =  Supabase.instance.client.storage
             .from('students')
             .getPublicUrl('learning_plans/$fileName');
 

@@ -29,7 +29,7 @@ class _QuranPlayerScreenState extends State<QuranPlayerScreen> {
   late ConcatenatingAudioSource _playlist;
   QuranSurah? _currentSurah;
   bool _isLoading = true;
-  double _currentSpeed = 1.0;
+  double currentSpeed = 1.0;
   RepeatMode _repeatMode = RepeatMode.off;
 
   @override
@@ -259,7 +259,7 @@ class _QuranPlayerScreenState extends State<QuranPlayerScreen> {
                         icon: const Icon(Icons.speed),
                         onSelected: (speed) {
                           setState(() {
-                            _currentSpeed = speed;
+                            currentSpeed = speed;
                             _audioPlayer.setSpeed(speed);
                           });
                         },

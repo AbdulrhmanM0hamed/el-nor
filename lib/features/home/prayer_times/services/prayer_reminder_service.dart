@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../data/models/prayer_times_model.dart';
 import 'package:flutter/foundation.dart';
 
 @pragma('vm:entry-point')
@@ -18,7 +17,7 @@ class PrayerReminderService {
   bool _isInitialized = false;
 
   // Map prayer names to their Arabic names
-  final Map<String, Map<String, String>> _prayerInfo = {
+  final Map<String, Map<String, String>> prayerInfo = {
     'Fajr': {'name': 'الفجر', 'arabicName': 'الفجر'},
     'Dhuhr': {'name': 'الظهر', 'arabicName': 'الظهر'},
     'Asr': {'name': 'العصر', 'arabicName': 'العصر'},

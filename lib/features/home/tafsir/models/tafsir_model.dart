@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 class SurahModel {
   final int id;

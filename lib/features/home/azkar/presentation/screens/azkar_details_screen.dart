@@ -10,7 +10,7 @@ class AzkarDetailsScreen extends StatefulWidget {
   final AzkarCategory category;
 
   const AzkarDetailsScreen({Key? key, required this.category})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<AzkarDetailsScreen> createState() => _AzkarDetailsScreenState();
@@ -19,7 +19,7 @@ class AzkarDetailsScreen extends StatefulWidget {
 class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
   late PageController _pageController;
   int _currentIndex = 0;
-  Map<int, int> _counters = {};
+  Map<int, int> counters = {};
 
   @override
   void initState() {
@@ -27,18 +27,19 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
     _pageController = PageController();
     // Initialize counters for all items
     for (int i = 0; i < widget.category.items.length; i++) {
-      _counters[i] = widget.category.items[i].count;
+      counters[i] = widget.category.items[i].count;
     }
   }
 
   void _handleCount() {
-    if (_counters[_currentIndex]! > 0) {
+    if (counters[_currentIndex]! > 0) {
       setState(() {
-        _counters[_currentIndex] = _counters[_currentIndex]! - 1;
+        counters[_currentIndex] = counters[_currentIndex]! - 1;
       });
 
       // If counter reaches 0, wait a moment then go to next page
-      if (_counters[_currentIndex] == 0 && _currentIndex < widget.category.items.length - 1) {
+      if (counters[_currentIndex] == 0 &&
+          _currentIndex < widget.category.items.length - 1) {
         Future.delayed(const Duration(milliseconds: 500), () {
           _pageController.nextPage(
             duration: const Duration(milliseconds: 300),
@@ -79,9 +80,11 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -122,15 +125,14 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  onPressed:
-                      _currentIndex > 0
-                          ? () {
-                            _pageController.previousPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                          : null,
+                  onPressed: _currentIndex > 0
+                      ? () {
+                          _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(12),
@@ -139,15 +141,14 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
                   child: const Icon(Icons.arrow_back_ios),
                 ),
                 ElevatedButton(
-                  onPressed:
-                      _currentIndex < widget.category.items.length - 1
-                          ? () {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                          : null,
+                  onPressed: _currentIndex < widget.category.items.length - 1
+                      ? () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(12),
@@ -193,10 +194,10 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: Colors.grey.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -231,10 +232,10 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          color: Colors.green.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.green.withOpacity(0.2),
+                            color: Colors.green.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -275,12 +276,13 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _counters[index] == 0 
-                      ? Colors.grey.withOpacity(0.3)
+                  color: counters[index] == 0
+                      ? Colors.grey.withValues(alpha: 0.3)
                       : Theme.of(context).primaryColor,
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                      color:
+                          Theme.of(context).primaryColor.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -290,7 +292,7 @@ class _AzkarDetailsScreenState extends State<AzkarDetailsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _counters[index].toString(),
+                      counters[index].toString(),
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,

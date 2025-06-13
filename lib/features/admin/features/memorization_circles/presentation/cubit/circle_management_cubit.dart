@@ -159,17 +159,23 @@ class CircleManagementCubit extends Cubit<AdminState> {
   }
 
   Future<void> deleteCircle(String circleId) async {
+    if (isClosed) return;
+
     try {
       emit(AdminLoading());
 
       // حذف الحلقة باستخدام المستودع
       await _circleManagementRepository.deleteCircle(circleId);
 
+      if (isClosed) return;
+
       emit(AdminCircleDeleted(circleId));
 
       // إعادة تحميل قائمة الحلقات لعكس التغييرات
       await loadAllCircles();
     } catch (e) {
+      if (isClosed) return;
+
       emit(AdminError('حدث خطأ أثناء حذف حلقة التحفيظ: ${e.toString()}'));
     }
   }
@@ -219,7 +225,6 @@ class CircleManagementCubit extends Cubit<AdminState> {
         final circles = await _circleManagementRepository.getAllCircles();
         emit(AdminCirclesLoaded(circles));
       } catch (e) {
-        print('خطأ في تحديث معلم الحلقة: $e');
         throw Exception('فشل في تحديث معلم الحلقة: $e');
       }
     } catch (e) {

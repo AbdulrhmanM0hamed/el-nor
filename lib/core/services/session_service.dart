@@ -64,7 +64,7 @@ class SessionService {
     }
   }
 
-  Future<void> _deleteSecure(String key) async {
+  Future<void> deleteSecure(String key) async {
     if (_useSharedPrefs) {
       await _prefs.remove(key);
     } else {
