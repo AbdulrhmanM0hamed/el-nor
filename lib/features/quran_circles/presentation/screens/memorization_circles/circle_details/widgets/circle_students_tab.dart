@@ -1,4 +1,4 @@
-import 'package:beat_elslam/core/utils/constant/styles_manger.dart';
+import 'package:noor_quran/core/utils/constant/styles_manger.dart';
 import 'package:flutter/material.dart';
 import '../../../../../../../core/utils/theme/app_colors.dart';
 import '../../../../../data/models/student_record.dart';
@@ -149,26 +149,47 @@ class CircleStudentsTab extends StatelessWidget {
 
                       if (onEvaluationDelete != null) {
                         chip = InkWell(
-                          onLongPress: () async {
+                          onTap: () async {
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 title: const Text('حذف التقييم'),
-                                content: const Text('هل أنت متأكد من حذف هذا التقييم؟'),
+                                content: const Text(
+                                    'هل أنت متأكد من حذف هذا التقييم؟'),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.of(ctx).pop(false),
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(false),
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 12,
+                                      ),
+                                    ),
                                     child: const Text('إلغاء'),
                                   ),
-                                  TextButton(
+                                  ElevatedButton(
                                     onPressed: () => Navigator.of(ctx).pop(true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 12,
+                                      ),
+                                    ),
                                     child: const Text('حذف'),
                                   ),
                                 ],
                               ),
                             );
                             if (confirm == true) {
-                              onEvaluationDelete?.call(student.studentId, idx);
+                              final idx = student.evaluations.indexOf(eval);
+                              if (idx != -1) {
+                                onEvaluationDelete!(student.studentId, idx);
+                              }
                             }
                           },
                           child: chip,

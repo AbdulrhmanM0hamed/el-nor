@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:beat_elslam/features/auth/presentation/cubit/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:noor_quran/features/auth/presentation/cubit/auth_state.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
 

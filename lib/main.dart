@@ -1,7 +1,7 @@
-import 'package:beat_elslam/core/utils/theme/app_theme.dart';
-import 'package:beat_elslam/features/auth/presentation/screens/auth_check_screen.dart';
-import 'package:beat_elslam/core/services/service_locator.dart' as di;
-import 'package:beat_elslam/firebase_options.dart';
+import 'package:noor_quran/core/utils/theme/app_theme.dart';
+import 'package:noor_quran/features/auth/presentation/screens/auth_check_screen.dart';
+import 'package:noor_quran/core/services/service_locator.dart' as di;
+import 'package:noor_quran/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +23,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('تم استلام رسالة في الخلفية: ${message.messageId}');
 }
 
+String? _notificationError;
+
 Future<void> _initializeApp() async {
   // Initialize Firebase first since it's critical
   await Firebase.initializeApp(
@@ -38,8 +40,23 @@ Future<void> _initializeApp() async {
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Initialize notifications in parallel with other operations
-  NotificationService().initNotifications();
+  try {
+    // Initialize notifications with error handling
+    await NotificationService().initNotifications();
+  } catch (e) {
+    debugPrint('خطأ في تهيئة الإشعارات: $e');
+    // Store the error to show later
+    _notificationError = e.toString();
+  }
+
+  // Initialize timezone data for scheduling notifications
+  tz.initializeTimeZones();
+
+  // Set preferred orientations
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   // Initialize timezone data for scheduling notifications
   tz.initializeTimeZones();
@@ -67,14 +84,13 @@ void main() async {
     runApp(const MyApp());
   } catch (e) {
     debugPrint('Error in main: $e');
-    runApp(const ErrorApp(error: 'Failed to initialize app'));
+    runApp(ErrorApp(error: _notificationError ?? 'Failed to initialize app'));
   }
 }
 
 class ErrorApp extends StatelessWidget {
-  final String error;
-
-  const ErrorApp({super.key, required this.error});
+  final String? error;
+  const ErrorApp({super.key, this.error});
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +98,7 @@ class ErrorApp extends StatelessWidget {
       home: Scaffold(
         body: Center(
           child: Text(
-            'خطأ في تهيئة التطبيق\n$error',
+            error ?? 'خطأ في تهيئة التطبيق',
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 16),
           ),

@@ -1,6 +1,6 @@
-import 'package:beat_elslam/core/utils/theme/app_colors.dart';
-import 'package:beat_elslam/core/utils/user_role.dart';
-import 'package:beat_elslam/features/quran_circles/data/models/memorization_circle_model.dart';
+import 'package:noor_quran/core/utils/theme/app_colors.dart';
+import 'package:noor_quran/core/utils/user_role.dart';
+import 'package:noor_quran/features/quran_circles/data/models/memorization_circle_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';

@@ -109,6 +109,9 @@ class GlobalAuthCubit extends Cubit<AuthState> {
       // Clear permissions and session first
       await _permissionsManager.clearPermissions();
 
+      // Delete FCM token from Supabase
+      await _notificationService.deleteToken();
+
       // Then clear user data and sign out
       await _authRepository.clearUserData();
 

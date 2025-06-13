@@ -1,4 +1,4 @@
-import 'package:beat_elslam/core/utils/theme/app_colors.dart';
+import 'package:noor_quran/core/utils/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 

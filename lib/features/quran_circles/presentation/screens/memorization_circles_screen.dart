@@ -1,5 +1,5 @@
-import 'package:beat_elslam/features/quran_circles/presentation/cubit/memorization_circles_state.dart';
-import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/widgets/memorization_circle_card.dart';
+import 'package:noor_quran/features/quran_circles/presentation/cubit/memorization_circles_state.dart';
+import 'package:noor_quran/features/quran_circles/presentation/screens/memorization_circles/widgets/memorization_circle_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

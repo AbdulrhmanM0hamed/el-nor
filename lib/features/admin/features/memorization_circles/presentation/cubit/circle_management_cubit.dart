@@ -1,9 +1,9 @@
-import 'package:beat_elslam/features/admin/data/models/memorization_circle_model.dart';
-import 'package:beat_elslam/features/admin/data/models/student_model.dart';
-import 'package:beat_elslam/features/admin/data/models/surah_assignment.dart';
-import 'package:beat_elslam/features/admin/features/memorization_circles/data/circle_management_repo.dart';
-import 'package:beat_elslam/features/admin/features/memorization_circles/presentation/cubit/circle_management_state.dart';
-import 'package:beat_elslam/features/admin/features/user_management/presentation/cubit/admin_state.dart';
+import 'package:noor_quran/features/admin/data/models/memorization_circle_model.dart';
+import 'package:noor_quran/features/admin/data/models/student_model.dart';
+import 'package:noor_quran/features/admin/data/models/surah_assignment.dart';
+import 'package:noor_quran/features/admin/features/memorization_circles/data/circle_management_repo.dart';
+import 'package:noor_quran/features/admin/features/memorization_circles/presentation/cubit/circle_management_state.dart';
+import 'package:noor_quran/features/admin/features/user_management/presentation/cubit/admin_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CircleManagementCubit extends Cubit<AdminState> {
@@ -25,11 +25,13 @@ class CircleManagementCubit extends Cubit<AdminState> {
         currentTeachers = (state as AdminTeachersLoaded).teachers;
       }
 
-      if (!(state is AdminCirclesLoaded) || forceRefresh) {
+      if (!isClosed && (!(state is AdminCirclesLoaded) || forceRefresh)) {
         emit(AdminLoading());
       }
 
       final circles = await _circleManagementRepository.getAllCircles();
+
+      if (isClosed) return;
 
       if (currentTeachers.isNotEmpty) {
         final enhancedCircles = circles.map((circle) {
@@ -48,13 +50,19 @@ class CircleManagementCubit extends Cubit<AdminState> {
           return circle;
         }).toList();
 
-        emit(AdminTeachersLoaded(currentTeachers));
-        emit(AdminCirclesLoaded(enhancedCircles));
+        if (!isClosed) {
+          emit(AdminTeachersLoaded(currentTeachers));
+          emit(AdminCirclesLoaded(enhancedCircles));
+        }
       } else {
-        emit(AdminCirclesLoaded(circles));
+        if (!isClosed) {
+          emit(AdminCirclesLoaded(circles));
+        }
       }
     } catch (e) {
-      emit(AdminError('حدث خطأ أثناء تحميل حلقات التحفيظ: ${e.toString()}'));
+      if (!isClosed) {
+        emit(AdminError('حدث خطأ أثناء تحميل حلقات التحفيظ: ${e.toString()}'));
+      }
     }
   }
 

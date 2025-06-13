@@ -1,4 +1,4 @@
-import 'package:beat_elslam/features/quran_circles/data/models/surah_assignment.dart';
+import 'package:noor_quran/features/quran_circles/data/models/surah_assignment.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/memorization_circle_model.dart';
 import '../models/student_record.dart';

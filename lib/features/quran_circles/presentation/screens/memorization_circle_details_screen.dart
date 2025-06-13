@@ -1,5 +1,5 @@
-import 'package:beat_elslam/features/quran_circles/data/repositories/circle_details_repository.dart';
-import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_learning_plan_tab.dart';
+import 'package:noor_quran/features/quran_circles/data/repositories/circle_details_repository.dart';
+import 'package:noor_quran/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_learning_plan_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';

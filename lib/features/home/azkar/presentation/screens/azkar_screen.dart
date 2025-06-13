@@ -1,6 +1,6 @@
-import 'package:beat_elslam/core/utils/constant/font_manger.dart';
-import 'package:beat_elslam/core/utils/constant/styles_manger.dart';
-import 'package:beat_elslam/core/utils/theme/app_colors.dart';
+import 'package:noor_quran/core/utils/constant/font_manger.dart';
+import 'package:noor_quran/core/utils/constant/styles_manger.dart';
+import 'package:noor_quran/core/utils/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../models/azkar_model.dart';
 import '../../services/azkar_service.dart';

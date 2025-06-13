@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:beat_elslam/core/services/notification_service.dart';
+import 'package:noor_quran/core/services/notification_service.dart';
 import '../../../../admin/data/models/memorization_circle_model.dart';
 
 class CircleManagementRepository {

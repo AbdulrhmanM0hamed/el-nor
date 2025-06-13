@@ -54,16 +54,28 @@ class WaitingListDialog extends StatelessWidget {
             SizedBox(height: 20.h),
             ElevatedButton(
               onPressed: () async {
-                final Uri whatsappUrl = Uri.parse('https://wa.me/+972569009186');
+                final whatsappUrl =
+                    Uri.parse("whatsapp://send?phone=972569009186");
                 if (await canLaunchUrl(whatsappUrl)) {
                   await launchUrl(whatsappUrl);
+                } else {
+                  // جرب الرابط عبر المتصفح
+                  final fallbackUrl = Uri.parse("https://wa.me/972569009186");
+                  if (await canLaunchUrl(fallbackUrl)) {
+                    await launchUrl(fallbackUrl,
+                        mode: LaunchMode.externalApplication);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تعذر فتح الرابط')),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF25D366),
                 padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 12.h),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.r),
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
               child: Row(
@@ -92,10 +104,10 @@ class WaitingListDialog extends StatelessWidget {
                 context.read<GlobalAuthCubit>().markWaitingDialogAsSeen();
                 Navigator.of(context).pop();
               },
-              child: Text(
+              child: const Text(
                 'حسناً',
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: 16,
                   color: AppColors.logoTeal,
                 ),
               ),
@@ -105,4 +117,4 @@ class WaitingListDialog extends StatelessWidget {
       ),
     );
   }
-} 
+}

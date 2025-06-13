@@ -32,14 +32,34 @@ class NotificationService {
         provisional: false,
       );
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        debugPrint('تم منح إذن الإشعارات');
+      switch (settings.authorizationStatus) {
+        case AuthorizationStatus.authorized:
+          debugPrint('تم منح إذن الإشعارات');
+          
+          // Initialize local notifications in parallel
+          await _initLocalNotifications();
+          
+          // Setup message handlers in parallel
+          await _setupMessageHandlers();
+          
+          // Get and save FCM token
+          final fcmToken = await getFCMToken();
+          if (fcmToken != null) {
+            await saveTokenToSupabase(fcmToken);
+          }
+          break;
         
-        // Initialize local notifications in parallel
-        _initLocalNotifications();
+        case AuthorizationStatus.provisional:
+          debugPrint('تم منح إذن الإشعارات مؤقتاً');
+          break;
         
-        // Setup message handlers in parallel
-        _setupMessageHandlers();
+        case AuthorizationStatus.denied:
+          debugPrint('تم رفض إذن الإشعارات');
+          break;
+        
+        case AuthorizationStatus.notDetermined:
+          debugPrint('لم يتم تحديد حالة إذن الإشعارات');
+          break;
       }
     } catch (e) {
       debugPrint('خطأ في تهيئة الإشعارات: $e');
@@ -88,7 +108,14 @@ class NotificationService {
       final userId = supabase.auth.currentUser?.id;
       if (userId == null) return;
 
-      await supabase.from('user_tokens').upsert({
+      // Delete existing tokens for this user first
+      await supabase
+          .from('user_tokens')
+          .delete()
+          .eq('user_id', userId);
+
+      // Insert new token
+      await supabase.from('user_tokens').insert({
         'user_id': userId,
         'fcm_token': token,
         'updated_at': DateTime.now().toIso8601String(),
@@ -115,7 +142,7 @@ class NotificationService {
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    final AndroidNotificationDetails androidDetails =  AndroidNotificationDetails(
       'default_channel',
       'Default Channel',
       importance: Importance.high,
@@ -185,6 +212,66 @@ class NotificationService {
       print('NotificationService: نوع الخطأ: ${e.runtimeType}');
       print('NotificationService: تفاصيل الخطأ: $e');
       rethrow;
+    }
+  }
+
+  Future<void> deleteToken() async {
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      await supabase
+          .from('user_tokens')
+          .delete()
+          .eq('user_id', userId);
+      
+      print('تم حذف التوكن بنجاح');
+    } catch (e) {
+      print('خطأ في حذف التوكن: $e');
+    }
+  }
+
+  Future<void> cleanupDuplicateTokens() async {
+    try {
+      // Get all tokens with their user_id and updated_at
+      final allTokens = await supabase
+          .from('user_tokens')
+          .select('user_id,fcm_token,updated_at');
+
+      // Group tokens by user_id and keep only the latest one
+      final Map<String, Map<String, dynamic>> latestTokens = {};
+      for (final token in allTokens) {
+        final userId = token['user_id'];
+        if (!latestTokens.containsKey(userId)) {
+          latestTokens[userId] = token;
+        } else {
+          final existingToken = latestTokens[userId]!;
+          if (token['updated_at'] != null && existingToken['updated_at'] != null) {
+            final existingDateTime = DateTime.parse(existingToken['updated_at']);
+            final newDateTime = DateTime.parse(token['updated_at']);
+            if (newDateTime.isAfter(existingDateTime)) {
+              latestTokens[userId] = token;
+            }
+          }
+        }
+      }
+
+      // Delete all tokens that are not the latest for each user
+      for (final token in allTokens) {
+        final userId = token['user_id'];
+        final latestToken = latestTokens[userId];
+        if (latestToken != null && token['fcm_token'] != latestToken['fcm_token']) {
+          await supabase
+              .from('user_tokens')
+              .delete()
+              .eq('user_id', userId)
+              .eq('fcm_token', token['fcm_token']);
+        }
+      }
+      
+      print('تم تنظيف التوكنات المكررة بنجاح');
+    } catch (e) {
+      print('خطأ في تنظيف التوكنات المكررة: $e');
     }
   }
 } 

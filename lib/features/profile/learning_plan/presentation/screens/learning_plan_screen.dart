@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:beat_elslam/core/widgets/custom_app_bar.dart';
+import 'package:noor_quran/core/widgets/custom_app_bar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

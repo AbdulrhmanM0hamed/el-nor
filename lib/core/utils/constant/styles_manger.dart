@@ -1,4 +1,4 @@
-import 'package:beat_elslam/core/utils/constant/font_manger.dart';
+import 'package:noor_quran/core/utils/constant/font_manger.dart';
 import 'package:flutter/material.dart';
 
 TextStyle _getTextStyle(double fontSize, FontWeight fontWeight, 

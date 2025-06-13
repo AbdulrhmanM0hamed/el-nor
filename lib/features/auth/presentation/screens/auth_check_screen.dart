@@ -1,6 +1,6 @@
-import 'package:beat_elslam/features/auth/presentation/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:noor_quran/features/auth/presentation/screens/login_screen.dart';
 import '../../../../core/services/service_locator.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';

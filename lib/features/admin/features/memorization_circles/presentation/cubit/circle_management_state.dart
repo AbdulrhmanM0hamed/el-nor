@@ -1,7 +1,7 @@
 
 // حالة قائمة الحلقات المحمولة
-import 'package:beat_elslam/features/admin/data/models/memorization_circle_model.dart';
-import 'package:beat_elslam/features/admin/features/user_management/presentation/cubit/admin_state.dart';
+import 'package:noor_quran/features/admin/data/models/memorization_circle_model.dart';
+import 'package:noor_quran/features/admin/features/user_management/presentation/cubit/admin_state.dart';
 
 class AdminCirclesLoaded extends AdminState {
   final List<MemorizationCircleModel> circles;

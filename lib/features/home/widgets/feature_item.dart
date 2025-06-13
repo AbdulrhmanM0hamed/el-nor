@@ -1,8 +1,8 @@
-import 'package:beat_elslam/core/utils/constant/font_manger.dart';
-import 'package:beat_elslam/core/utils/constant/styles_manger.dart';
-import 'package:beat_elslam/features/home/asma_allah/data/repositories/allah_names_repository.dart';
-import 'package:beat_elslam/features/home/asma_allah/presentation/cubit/asma_allah_cubit.dart';
-import 'package:beat_elslam/features/home/asma_allah/presentation/screens/asma_allah_screen.dart';
+import 'package:noor_quran/core/utils/constant/font_manger.dart';
+import 'package:noor_quran/core/utils/constant/styles_manger.dart';
+import 'package:noor_quran/features/home/asma_allah/data/repositories/allah_names_repository.dart';
+import 'package:noor_quran/features/home/asma_allah/presentation/cubit/asma_allah_cubit.dart';
+import 'package:noor_quran/features/home/asma_allah/presentation/screens/asma_allah_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

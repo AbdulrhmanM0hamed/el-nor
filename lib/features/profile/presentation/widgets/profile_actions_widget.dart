@@ -1,4 +1,4 @@
-import 'package:beat_elslam/features/admin/features/user_management/presentation/screen/user_management_screen.dart';
+import 'package:noor_quran/features/admin/features/user_management/presentation/screen/user_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

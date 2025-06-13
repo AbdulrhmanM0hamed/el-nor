@@ -1,4 +1,4 @@
-import 'package:beat_elslam/features/admin/data/models/student_model.dart';
+import 'package:noor_quran/features/admin/data/models/student_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';

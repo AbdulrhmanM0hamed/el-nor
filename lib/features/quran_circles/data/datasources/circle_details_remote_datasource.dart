@@ -1,4 +1,4 @@
-import 'package:beat_elslam/core/error/exceptions.dart';
+import 'package:noor_quran/core/error/exceptions.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/student_record.dart';
 

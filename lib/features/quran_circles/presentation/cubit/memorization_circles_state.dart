@@ -1,4 +1,4 @@
-import 'package:beat_elslam/features/quran_circles/data/models/memorization_circle_model.dart';
+import 'package:noor_quran/features/quran_circles/data/models/memorization_circle_model.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class MemorizationCirclesState extends Equatable {

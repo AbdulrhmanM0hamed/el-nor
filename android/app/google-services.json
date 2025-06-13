@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:61940541937:android:a18b2a89db42c1db187c50",
+        "mobilesdk_app_id": "1:61940541937:android:900af70681991310187c50",
         "android_client_info": {
-          "package_name": "com.beat.elslam"
+          "package_name": "com.noor.quran"
         }
       },
       "oauth_client": [],

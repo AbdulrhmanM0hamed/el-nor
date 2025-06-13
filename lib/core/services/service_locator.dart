@@ -1,9 +1,9 @@
-import 'package:beat_elslam/core/services/notification_service.dart';
-import 'package:beat_elslam/features/admin/features/user_management/data/repositories/admin_repository.dart';
-import 'package:beat_elslam/features/admin/features/memorization_circles/data/circle_management_repo.dart';
-import 'package:beat_elslam/features/admin/features/memorization_circles/presentation/cubit/circle_management_cubit.dart';
-import 'package:beat_elslam/features/quran_circles/data/datasources/circle_details_remote_datasource.dart';
-import 'package:beat_elslam/features/quran_circles/data/repositories/circle_details_repository.dart';
+import 'package:noor_quran/core/services/notification_service.dart';
+import 'package:noor_quran/features/admin/features/user_management/data/repositories/admin_repository.dart';
+import 'package:noor_quran/features/admin/features/memorization_circles/data/circle_management_repo.dart';
+import 'package:noor_quran/features/admin/features/memorization_circles/presentation/cubit/circle_management_cubit.dart';
+import 'package:noor_quran/features/quran_circles/data/datasources/circle_details_remote_datasource.dart';
+import 'package:noor_quran/features/quran_circles/data/repositories/circle_details_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
