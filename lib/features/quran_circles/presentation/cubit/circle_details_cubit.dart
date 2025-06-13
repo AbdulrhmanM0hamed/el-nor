@@ -107,6 +107,49 @@ class CircleDetailsCubit extends Cubit<CircleDetailsState> {
     }
   }
 
+  // Delete evaluation
+  Future<void> deleteStudentEvaluation(String studentId, int evaluationIndex) async {
+    if (_isDisposed) return;
+
+    final currentState = state;
+    if (currentState is CircleDetailsLoaded) {
+      try {
+        final circle = currentState.circle;
+        final updatedStudents = List<StudentRecord>.from(circle.students);
+        final studentIdx = updatedStudents.indexWhere((s) => s.studentId == studentId);
+
+        if (studentIdx == -1) return;
+
+        final student = updatedStudents[studentIdx];
+        final evals = List<EvaluationRecord>.from(student.evaluations);
+        if (evaluationIndex < 0 || evaluationIndex >= evals.length) return;
+
+        evals.removeAt(evaluationIndex);
+        updatedStudents[studentIdx] = student.copyWith(evaluations: evals);
+
+        final updatedCircle = circle.copyWith(students: updatedStudents);
+        emit(currentState.copyWith(circle: updatedCircle)); // optimistic
+
+        final result = await repository.deleteStudentEvaluation(
+          circleId: circle.id,
+          studentId: studentId,
+          evaluationIndex: evaluationIndex,
+        );
+
+        result.fold(
+          (failure) async {
+            emit(CircleDetailsError(failure.message));
+            await loadCircleDetails(circle, currentState.userId, currentState.userRole);
+          },
+          (_) {},
+        );
+      } catch (_) {
+        emit(const CircleDetailsError('حدث خطأ أثناء حذف التقييم'));
+        await loadCircleDetails(currentState.circle, currentState.userId, currentState.userRole);
+      }
+    }
+  }
+
   Future<void> updateStudentAttendance(String studentId, bool isPresent) async {
     if (_isDisposed) return;
 

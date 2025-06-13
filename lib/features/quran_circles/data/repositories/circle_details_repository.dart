@@ -16,6 +16,11 @@ abstract class CircleDetailsRepository {
     required String studentId,
     required AttendanceRecord attendance,
   });
+  Future<Either<Failure, void>> deleteStudentEvaluation({
+    required String circleId,
+    required String studentId,
+    required int evaluationIndex,
+  });
 }
 
 class CircleDetailsRepositoryImpl implements CircleDetailsRepository {
@@ -85,6 +90,32 @@ class CircleDetailsRepositoryImpl implements CircleDetailsRepository {
         attendance: attendance,
       );
       
+      return const Right(null);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on NotFoundException catch (e) {
+      return Left(NotFoundFailure(e.message));
+    } on DatabaseException catch (e) {
+      return Left(DatabaseFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteStudentEvaluation({
+    required String circleId,
+    required String studentId,
+    required int evaluationIndex,
+  }) async {
+    try {
+      await remoteDataSource.deleteStudentEvaluation(
+        circleId: circleId,
+        studentId: studentId,
+        evaluationIndex: evaluationIndex,
+      );
       return const Right(null);
     } on UnauthorizedException catch (e) {
       return Left(UnauthorizedFailure(e.message));

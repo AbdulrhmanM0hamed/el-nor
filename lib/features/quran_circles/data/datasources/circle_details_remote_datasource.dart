@@ -15,6 +15,11 @@ abstract class CircleDetailsRemoteDataSource {
     required String studentId,
     required AttendanceRecord attendance,
   });
+  Future<void> deleteStudentEvaluation({
+    required String circleId,
+    required String studentId,
+    required int evaluationIndex,
+  });
 }
 
 class CircleDetailsRemoteDataSourceImpl
@@ -175,6 +180,55 @@ class CircleDetailsRemoteDataSourceImpl
         attendanceList.add(attendance.toJson());
         students[studentIndex]['attendance'] = attendanceList;
       }
+
+      await supabaseClient.from('memorization_circles').update({
+        'students': students,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', circleId);
+    } catch (e) {
+      if (e is PostgrestException) {
+        throw DatabaseException(e.message);
+      }
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteStudentEvaluation({
+    required String circleId,
+    required String studentId,
+    required int evaluationIndex,
+  }) async {
+    try {
+      final circleData = await supabaseClient
+          .from('memorization_circles')
+          .select('students')
+          .eq('id', circleId)
+          .single();
+
+      if (circleData == null) {
+        throw const NotFoundException('لم يتم العثور على الحلقة');
+      }
+
+      List<Map<String, dynamic>> students = [];
+      if (circleData['students'] != null) {
+        students = List<Map<String, dynamic>>.from(circleData['students']);
+      }
+
+      final studentIndex = students.indexWhere((s) => s['id'] == studentId);
+      if (studentIndex == -1) {
+        throw const NotFoundException('الطالب غير موجود');
+      }
+
+      List<Map<String, dynamic>> evals = List<Map<String, dynamic>>.from(
+          students[studentIndex]['evaluations'] ?? []);
+
+      if (evaluationIndex < 0 || evaluationIndex >= evals.length) {
+        throw const ServerException('مؤشر تقييم غير صالح');
+      }
+
+      evals.removeAt(evaluationIndex);
+      students[studentIndex]['evaluations'] = evals;
 
       await supabaseClient.from('memorization_circles').update({
         'students': students,

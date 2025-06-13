@@ -99,7 +99,6 @@ flutter:
   assets:
     - assets/images/
     - assets/json/
-    - assets/audio/
     - assets/pdf/
     - shorebird.yaml
 

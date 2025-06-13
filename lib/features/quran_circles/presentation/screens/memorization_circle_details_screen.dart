@@ -149,12 +149,17 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
                               CircleStudentsTab(
                                 key: const PageStorageKey<String>('students_tab'),
                                 students: state.circle.students,
-                                teacherId: state.circle.teacherId,
+                                teacherId: state.circle.teacherId ?? '',
                                 currentUserId: state.userId,
                                 onEvaluationChanged: state.canManage 
-                                    ? (studentId, evaluation) => context
+                                    ? (studentId, rating) => context
                                         .read<CircleDetailsCubit>()
-                                        .updateStudentEvaluation(studentId, evaluation)
+                                        .updateStudentEvaluation(studentId, rating)
+                                    : null,
+                                onEvaluationDelete: state.canManage
+                                    ? (studentId, idx) => context
+                                        .read<CircleDetailsCubit>()
+                                        .deleteStudentEvaluation(studentId, idx)
                                     : null,
                                 onAttendanceChanged: state.canManage
                                     ? (studentId, isPresent) => context

@@ -9,6 +9,7 @@ class CircleStudentsTab extends StatelessWidget {
   final String teacherId;
   final String currentUserId;
   final Function(String, int)? onEvaluationChanged;
+  final Function(String, int)? onEvaluationDelete;
   final Function(String, bool)? onAttendanceChanged;
   final VoidCallback? onAddStudent;
 
@@ -18,6 +19,7 @@ class CircleStudentsTab extends StatelessWidget {
     required this.teacherId,
     required this.currentUserId,
     this.onEvaluationChanged,
+    this.onEvaluationDelete,
     this.onAttendanceChanged,
     this.onAddStudent,
   }) : super(key: key);
@@ -114,7 +116,7 @@ class CircleStudentsTab extends StatelessWidget {
                       final isLast = idx == student.evaluations.length - 1;
                       final dateStr =
                           DateFormat('dd/MM/yyyy').format(eval.date);
-                      return Chip(
+                      Widget chip = Chip(
                         label: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -144,6 +146,36 @@ class CircleStudentsTab extends StatelessWidget {
                             ? _getEvaluationColor(eval.rating)
                             : Colors.grey.shade200,
                       );
+
+                      if (onEvaluationDelete != null) {
+                        chip = InkWell(
+                          onLongPress: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('حذف التقييم'),
+                                content: const Text('هل أنت متأكد من حذف هذا التقييم؟'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(false),
+                                    child: const Text('إلغاء'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(true),
+                                    child: const Text('حذف'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              onEvaluationDelete?.call(student.studentId, idx);
+                            }
+                          },
+                          child: chip,
+                        );
+                      }
+
+                      return chip;
                     }).toList(),
                   ),
                 ),
