@@ -69,6 +69,15 @@ class AdminLearningPlanDeleted extends AdminState {
   List<Object> get props => [circleId];
 }
 
+class AdminLearningPlanSaved extends AdminState {
+  final String oldUrl;
+
+  const AdminLearningPlanSaved(this.oldUrl);
+
+  @override
+  List<Object> get props => [oldUrl];
+}
+
 class AdminStudentsLoaded extends AdminState {
   final List<StudentModel> students;
 

@@ -244,27 +244,44 @@ class _CircleFormDialogState extends State<CircleFormDialog>
 
       if (result != null) {
         final file = File(result.files.single.path!);
-        // Upload to Supabase
         final fileName = path.basename(file.path);
+
+        // First delete the old file if it exists
+        if (_learningPlanUrl != null) {
+          try {
+            // Extract filename from old URL
+            final oldFileName = _learningPlanUrl!.split('/').last;
+            await Supabase.instance.client.storage
+                .from('students')
+                .remove(['learning_plans/$oldFileName']);
+          } catch (e) {
+            print('Error deleting old file: $e');
+          }
+        }
+
+        // Upload to Supabase in the correct bucket
         final uploadResponse = await Supabase.instance.client.storage
             .from('students')
             .upload('learning_plans/$fileName', file);
-        
+
         // Get the public URL after upload
         final publicUrl = await Supabase.instance.client.storage
             .from('students')
             .getPublicUrl('learning_plans/$fileName');
-        
+
         // Update the learning plan URL
         setState(() {
           _learningPlanUrl = publicUrl;
         });
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تم رفع خطة التعلم بنجاح')),
+        );
       }
     } catch (e) {
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('حدث خطأ أثناء اختيار الملف: $e')),
-        
       );
       print(e);
     }
@@ -460,38 +477,6 @@ class _CircleFormDialogState extends State<CircleFormDialog>
                           backgroundColor: AppColors.logoTeal,
                         ),
                       ),
-                      SizedBox(width: 8.w),
-                      if (_learningPlanUrl != null)
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            try {
-                              final response = await Supabase.instance.client.storage
-                                  .from('students')
-                                  .download(_learningPlanUrl!);
-                              
-                              final fileName = path.basename(_learningPlanUrl!);
-                              final directory = await getTemporaryDirectory();
-                              final filePath = path.join(directory.path, fileName);
-                              
-                              final file = File(filePath);
-                              await file.writeAsBytes(response);
-                              
-                              // Show download success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('تم تحميل الملف بنجاح')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('حدث خطأ أثناء تحميل الملف: $e')),
-                              );
-                            }
-                          },
-                          icon: const Icon(Icons.download),
-                          label: const Text('تحميل'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                          ),
-                        ),
                     ],
                   ),
                 ],
@@ -723,12 +708,58 @@ class _CircleFormDialogState extends State<CircleFormDialog>
                           if (result != null && result.files.isNotEmpty) {
                             final file = result.files.first;
                             if (file.extension == 'pdf') {
-                              // TODO: Implement PDF upload
-                              print('Selected PDF: ${file.name}');
+                              // التحقق من وجود ملف قديم
+                              if (_learningPlanUrl != null) {
+                                // عرض رسالة تأكيد لحفظ الملف القديم
+                                final shouldSaveOld = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('تحديث خطة التعلم'),
+                                    content:
+                                        const Text('هل تريد حفظ الملف القديم؟'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text('لا'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text('نعم'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                if (shouldSaveOld == true) {
+                                  // حفظ الملف القديم
+                                  await context
+                                      .read<AdminCubit>()
+                                      .saveOldLearningPlan(_learningPlanUrl!);
+                                }
+                              }
+
+                              // رفع الملف الجديد
+                              final uploadResult = await context
+                                  .read<AdminCubit>()
+                                  .uploadLearningPlan(file);
+
+                              if (uploadResult != null) {
+                                setState(() {
+                                  _learningPlanUrl = uploadResult;
+                                });
+                              }
                             }
                           }
                         } catch (e) {
                           print('Error picking file: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('حدث خطأ أثناء رفع الملف: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
                         }
                       },
                       child: Container(

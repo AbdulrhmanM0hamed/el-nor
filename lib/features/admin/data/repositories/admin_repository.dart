@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/student_model.dart';
 import '../models/memorization_circle_model.dart';
 import '../../../../core/services/notification_service.dart';
+import 'dart:io';
 
 class AdminRepository {
   final SupabaseClient _supabaseClient;
@@ -27,6 +30,76 @@ class AdminRepository {
       return userData['is_admin'] ?? false;
     } catch (e) {
       return false;
+    }
+  }
+
+  // حفظ خطة التعلم القديمة
+  Future<void> saveOldLearningPlan(String oldUrl) async {
+    try {
+      // Extract filename from URL
+      final filename = oldUrl.split('/').last;
+      
+      // First delete the existing file if it exists
+      try {
+        await _supabaseClient.storage
+            .from('learning-plans-archive')
+            .remove([filename]);
+      } catch (e) {
+        // If file doesn't exist, continue without error
+      }
+      
+      // Download the file as bytes
+      final bytes = await _supabaseClient.storage
+          .from('learning-plans')
+          .download(oldUrl);
+      
+      // Create a temporary file from bytes
+      final tempFile = await File('temp_${filename}').create();
+      await tempFile.writeAsBytes(bytes);
+      
+      // Upload the temporary file
+      await _supabaseClient.storage
+          .from('learning-plans-archive')
+          .upload(filename, tempFile);
+      
+      // Clean up the temporary file
+      await tempFile.delete();
+    } catch (e) {
+      throw Exception('فشل في حفظ خطة التعلم القديمة: $e');
+    }
+  }
+
+  // رفع خطة التعلم الجديدة
+  Future<String?> uploadLearningPlan(String fileName, List<int> bytes) async {
+    try {
+      // First delete the existing file if it exists
+      try {
+        await _supabaseClient.storage
+            .from('learning-plans')
+            .remove([fileName]);
+      } catch (e) {
+        // If file doesn't exist, continue without error
+      }
+      
+      // Create a temporary file from bytes
+      final tempFile = await File(fileName).writeAsBytes(bytes);
+      
+      // Upload the file to Supabase
+      final response = await _supabaseClient.storage
+          .from('learning-plans')
+          .upload(fileName, tempFile);
+
+      // Get the public URL of the file
+      final url = await _supabaseClient.storage
+          .from('learning-plans')
+          .getPublicUrl(fileName);
+
+      // Clean up temporary file
+      await tempFile.delete();
+
+      return url;
+    } catch (e) {
+      throw Exception('فشل في رفع خطة التعلم: $e');
     }
   }
 
@@ -345,6 +418,7 @@ class AdminRepository {
             circle.surahAssignments.map((s) => s.toJson()).toList(),
         'student_ids': circle.studentIds.isEmpty ? [] : circle.studentIds,
         'updated_at': circle.updatedAt.toIso8601String(),
+        'learning_plan_url': circle.learningPlanUrl,
       };
 
       // تحديث بيانات الحلقة

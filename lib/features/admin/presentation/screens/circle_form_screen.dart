@@ -21,17 +21,24 @@ class CircleFormScreenWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<AdminCubit>()..loadTeachers()..loadStudents(),
+      create: (context) => sl<AdminCubit>()
+        ..loadTeachers()
+        ..loadStudents(),
       child: BlocBuilder<AdminCubit, AdminState>(
         builder: (context, state) {
           // تحميل المعلمين والطلاب
-          final List<StudentModel> teachers = state is AdminTeachersLoaded ? state.teachers : [];
-          final List<StudentModel> students = context.read<AdminCubit>().state is AdminStudentsLoaded
-              ? (context.read<AdminCubit>().state as AdminStudentsLoaded).students
-              : [];
+          final List<StudentModel> teachers =
+              state is AdminTeachersLoaded ? state.teachers : [];
+          final List<StudentModel> students =
+              context.read<AdminCubit>().state is AdminStudentsLoaded
+                  ? (context.read<AdminCubit>().state as AdminStudentsLoaded)
+                      .students
+                  : [];
 
           return CircleFormScreen(
-            title: circle != null ? 'تعديل حلقة ${circle!.name}' : 'إضافة حلقة جديدة',
+            title: circle != null
+                ? 'تعديل حلقة ${circle!.name}'
+                : 'إضافة حلقة جديدة',
             initialName: circle?.name,
             initialDescription: circle?.description,
             initialDate: circle?.startDate,
@@ -42,7 +49,8 @@ class CircleFormScreenWrapper extends StatelessWidget {
             availableStudents: students,
             initialStudentIds: circle?.studentIds,
             initialIsExam: circle?.isExam,
-            onSave: (name, description, startDate, teacherId, teacherName, surahAssignments, studentIds, isExam) {
+            onSave: (name, description, startDate, teacherId, teacherName,
+                surahAssignments, studentIds, isExam) {
               final adminCubit = context.read<AdminCubit>();
               if (circle != null) {
                 // تحديث حلقة موجودة
@@ -78,7 +86,7 @@ class CircleFormScreenWrapper extends StatelessWidget {
 
 class CircleFormScreen extends StatefulWidget {
   static const String routeName = '/circle-form';
-  
+
   final String title;
   final String? initialName;
   final String? initialDescription;
@@ -121,7 +129,8 @@ class CircleFormScreen extends StatefulWidget {
   State<CircleFormScreen> createState() => _CircleFormScreenState();
 }
 
-class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerProviderStateMixin {
+class _CircleFormScreenState extends State<CircleFormScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
@@ -131,7 +140,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
   final List<SurahAssignment> _selectedSurahs = [];
   final List<String> _selectedStudentIds = [];
   bool _isExam = false;
-  
+
   // Controladores para el diálogo de asignación de suras
   final TextEditingController _surahNameController = TextEditingController();
   final TextEditingController _startVerseController = TextEditingController();
@@ -146,28 +155,31 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
     super.initState();
     // Inicializar el controlador de pestañas
     _tabController = TabController(length: 4, vsync: this);
-    
+
     // Inicializar controladores de texto
     _nameController = TextEditingController(text: widget.initialName ?? '');
-    _descriptionController = TextEditingController(text: widget.initialDescription ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.initialDescription ?? '');
     _selectedDate = widget.initialDate ?? DateTime.now();
     _isExam = widget.initialIsExam ?? false;
-    
+
     // Inicializar suras si existen
     if (widget.initialSurahAssignments != null) {
       _selectedSurahs.addAll(widget.initialSurahAssignments!);
     }
-    
+
     // Inicializar estudiantes si existen
     if (widget.initialStudentIds != null) {
       _selectedStudentIds.addAll(widget.initialStudentIds!);
     }
-    
+
     // Initialize selected teacher from the initial values
-    if (widget.initialTeacherId != null && widget.initialTeacherId!.isNotEmpty) {
+    if (widget.initialTeacherId != null &&
+        widget.initialTeacherId!.isNotEmpty) {
       _selectedTeacherId = widget.initialTeacherId;
       _selectedTeacherName = widget.initialTeacherName;
-      print('CircleFormScreen: Initialized selected teacher: $_selectedTeacherName (ID: $_selectedTeacherId)');
+      print(
+          'CircleFormScreen: Initialized selected teacher: $_selectedTeacherName (ID: $_selectedTeacherId)');
     }
   }
 
@@ -271,7 +283,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
         _selectedStudentIds,
         _isExam,
       );
-      
+
       Navigator.of(context).pop(true); // إرجاع true للإشارة إلى نجاح الحفظ
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -336,7 +348,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
                   builder: (context, child) {
                     return Theme(
                       data: Theme.of(context).copyWith(
-                        colorScheme: ColorScheme.light(
+                        colorScheme: const ColorScheme.light(
                           primary: AppColors.logoTeal,
                           onPrimary: Colors.white,
                           onSurface: Colors.black,
@@ -360,7 +372,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, color: AppColors.logoTeal),
+                    const Icon(Icons.calendar_today, color: AppColors.logoTeal),
                     SizedBox(width: 8.w),
                     Text(
                       'تاريخ البدء: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
@@ -471,7 +483,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
           width: 2,
         ),
       ),
-      color: isSelected ? AppColors.logoTeal.withOpacity(0.1) : null,
+      color: isSelected ? AppColors.logoTeal.withValues(alpha: .1) : null,
       child: InkWell(
         onTap: () {
           setState(() {
@@ -546,8 +558,8 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
               ),
               ElevatedButton.icon(
                 onPressed: _showAddSurahDialog,
-                icon: Icon(Icons.add),
-                label: Text('إضافة سورة'),
+                icon: const Icon(Icons.add),
+                label: const Text('إضافة سورة'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.logoTeal,
                   foregroundColor: Colors.white,
@@ -583,7 +595,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
                             style: TextStyle(fontSize: 14.sp),
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {
                               setState(() {
                                 _selectedSurahs.removeAt(index);
@@ -649,7 +661,8 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
                     itemCount: widget.availableStudents?.length ?? 0,
                     itemBuilder: (context, index) {
                       final student = widget.availableStudents![index];
-                      final isSelected = _selectedStudentIds.contains(student.id);
+                      final isSelected =
+                          _selectedStudentIds.contains(student.id);
                       return _buildStudentCard(student, isSelected);
                     },
                   ),
@@ -724,7 +737,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
             ),
             if (isSelected)
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.logoTeal,
                   shape: BoxShape.circle,
                 ),
@@ -748,7 +761,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
     _startVerseController.clear();
     _endVerseController.clear();
     _notesController.clear();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -821,7 +834,7 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
+            child: const Text(
               'إلغاء',
               style: TextStyle(color: Colors.grey),
             ),
@@ -831,9 +844,11 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
               if (_surahNameController.text.isNotEmpty &&
                   _startVerseController.text.isNotEmpty &&
                   _endVerseController.text.isNotEmpty) {
-                final startVerse = int.tryParse(_startVerseController.text) ?? 1;
-                final endVerse = int.tryParse(_endVerseController.text) ?? startVerse;
-                
+                final startVerse =
+                    int.tryParse(_startVerseController.text) ?? 1;
+                final endVerse =
+                    int.tryParse(_endVerseController.text) ?? startVerse;
+
                 setState(() {
                   _selectedSurahs.add(
                     SurahAssignment(
@@ -842,11 +857,13 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
                       startVerse: startVerse,
                       endVerse: endVerse,
                       assignedDate: DateTime.now(),
-                      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+                      notes: _notesController.text.isNotEmpty
+                          ? _notesController.text
+                          : null,
                     ),
                   );
                 });
-                
+
                 Navigator.of(context).pop();
               }
             },
@@ -854,10 +871,10 @@ class _CircleFormScreenState extends State<CircleFormScreen> with SingleTickerPr
               backgroundColor: AppColors.logoTeal,
               foregroundColor: Colors.white,
             ),
-            child: Text('إضافة'),
+            child: const Text('إضافة'),
           ),
         ],
       ),
     );
   }
-} 
+}

@@ -4,11 +4,28 @@ import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/surah_assignment.dart';
 import '../../data/models/student_model.dart';
 import 'admin_state.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as path;
 
 class AdminCubit extends Cubit<AdminState> {
   final AdminRepository _adminRepository;
 
   AdminCubit(this._adminRepository) : super(AdminInitial());
+
+  Future<String?> uploadLearningPlan(PlatformFile file) async {
+    try {
+      emit(AdminLoading());
+      final fileName = path.basename(file.name);
+      if (file.bytes != null) {
+        return await _adminRepository.uploadLearningPlan(fileName, file.bytes!);
+      }
+      emit(AdminError('الملف فارغ'));
+      return null;
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء رفع خطة التعلم: ${e.toString()}'));
+      return null;
+    }
+  }
 
   Future<List<StudentModel>> loadTeachers() async {
     try {
@@ -180,6 +197,17 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminError('حدث خطأ أثناء إنشاء حلقة التحفيظ: ${e.toString()}'));
     }
   }
+
+  Future<void> saveOldLearningPlan(String oldUrl) async {
+    try {
+      emit(AdminLoading());
+      await _adminRepository.saveOldLearningPlan(oldUrl);
+      emit(AdminLearningPlanSaved(oldUrl));
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء حفظ خطة التعلم القديمة: ${e.toString()}'));
+    }
+  }
+
 
   Future<void> updateCircle({
     required String id,
