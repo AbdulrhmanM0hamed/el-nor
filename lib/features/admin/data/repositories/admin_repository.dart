@@ -7,8 +7,9 @@ class AdminRepository {
   final SupabaseClient _supabaseClient;
   final NotificationService _notificationService;
 
-  AdminRepository(this._supabaseClient) : _notificationService = NotificationService();
-  
+  AdminRepository(this._supabaseClient)
+      : _notificationService = NotificationService();
+
   // التحقق من صلاحيات المشرف
   Future<bool> checkAdminPermission() async {
     try {
@@ -28,7 +29,7 @@ class AdminRepository {
       return false;
     }
   }
-  
+
   // جلب جميع المستخدمين
   Future<List<StudentModel>> getAllUsers() async {
     try {
@@ -38,7 +39,7 @@ class AdminRepository {
       throw Exception('فشل في جلب المستخدمين: $e');
     }
   }
-  
+
   // جلب جميع المعلمين
   Future<List<StudentModel>> getAllTeachers() async {
     try {
@@ -47,10 +48,7 @@ class AdminRepository {
           .select('*, profile_image_url, email, phone')
           .eq('is_teacher', true)
           .order('name');
-      
-      for (var teacher in data) {
-      }
-      
+
       return data.map((json) => StudentModel.fromJson(json)).toList();
     } catch (e) {
       throw Exception('فشل في جلب المعلمين: $e');
@@ -60,37 +58,34 @@ class AdminRepository {
   // جلب جميع حلقات التحفيظ
   Future<List<MemorizationCircleModel>> getAllCircles() async {
     try {
-      
       // جلب الحلقات
       final data = await _supabaseClient
           .from('memorization_circles')
           .select()
           .order('created_at', ascending: false);
-      
-      
+
       final List<MemorizationCircleModel> circles = [];
-      
+
       for (final json in data) {
         try {
-        
           // جلب بيانات المعلم من جدول students إذا كان موجوداً
           if (json['teacher_id'] != null) {
             try {
-              print('AdminRepository: Fetching teacher data for teacher_id: ${json['teacher_id']}');
-              
+              print(
+                  'AdminRepository: Fetching teacher data for teacher_id: ${json['teacher_id']}');
+
               final teacherData = await _supabaseClient
                   .from('students')
                   .select()
                   .eq('id', json['teacher_id'])
                   .eq('is_teacher', true)
                   .maybeSingle();
-                  
+
               if (teacherData != null) {
                 json['teacher_name'] = teacherData['name'];
                 json['teacher_email'] = teacherData['email'];
                 json['teacher_phone'] = teacherData['phone'];
                 json['teacher_image_url'] = teacherData['profile_image_url'];
-                
               } else {
                 json['teacher_name'] = null;
                 json['teacher_email'] = null;
@@ -104,47 +99,48 @@ class AdminRepository {
               json['teacher_image_url'] = null;
             }
           }
-          
+
           List<String> studentIds = [];
           if (json['student_ids'] != null) {
-            studentIds = (json['student_ids'] as List).map((id) => id.toString()).toList();
-          } else {
-          }
-          
+            studentIds = (json['student_ids'] as List)
+                .map((id) => id.toString())
+                .toList();
+          } else {}
+
           // تحميل تفاصيل الطلاب من جدول students
           List<CircleStudent> students = [];
           if (studentIds.isNotEmpty) {
             try {
-              
               final studentsData = await _supabaseClient
                   .from('students')
                   .select()
                   .filter('id', 'in', studentIds);
-                  
-              
-              students = studentsData.map((studentJson) => CircleStudent(
-                id: studentJson['id'],
-                name: studentJson['name'] ?? '',
-                profileImageUrl: studentJson['profile_image_url'],
-                attendance: [],
-                evaluations: [],
-              )).toList();
-              
+
+              students = studentsData
+                  .map((studentJson) => CircleStudent(
+                        id: studentJson['id'],
+                        name: studentJson['name'] ?? '',
+                        profileImageUrl: studentJson['profile_image_url'],
+                        attendance: [],
+                        evaluations: [],
+                      ))
+                  .toList();
             } catch (e) {
+              print('Error fetching students: $e');
             }
           }
-          
+
           final circle = MemorizationCircleModel.fromJson(json);
           final updatedCircle = circle.copyWith(
             studentIds: studentIds,
             students: students,
           );
           circles.add(updatedCircle);
-          
         } catch (e) {
+          print('Error fetching circle: $e');
         }
       }
-    
+
       return circles;
     } catch (e) {
       throw Exception('Failed to load circles: $e');
@@ -163,21 +159,19 @@ class AdminRepository {
       if (!hasPermission) {
         throw Exception('ليس لديك صلاحية لتعديل أدوار المستخدمين');
       }
-      
-      await _supabaseClient
-          .from('students')
-          .update({
-            'is_admin': isAdmin,
-            'is_teacher': isTeacher,
-          })
-          .eq('id', userId);
+
+      await _supabaseClient.from('students').update({
+        'is_admin': isAdmin,
+        'is_teacher': isTeacher,
+      }).eq('id', userId);
     } catch (e) {
       throw Exception('فشل في تحديث دور المستخدم: $e');
     }
   }
 
   // إضافة حلقة تحفيظ جديدة
-  Future<MemorizationCircleModel> addCircle(MemorizationCircleModel circle) async {
+  Future<MemorizationCircleModel> addCircle(
+      MemorizationCircleModel circle) async {
     try {
       // التحقق من وجود المعلم في جدول students قبل إضافة الحلقة
       if (circle.teacherId != null && circle.teacherId!.isNotEmpty) {
@@ -187,7 +181,7 @@ class AdminRepository {
             .eq('id', circle.teacherId!)
             .eq('is_teacher', true)
             .maybeSingle();
-            
+
         if (teacherExists == null) {
           throw Exception('المعلم غير موجود أو ليس لديه صلاحيات معلم');
         }
@@ -203,20 +197,21 @@ class AdminRepository {
         'start_date': circle.startDate.toIso8601String(),
         'end_date': circle.endDate?.toIso8601String(),
         'status': circle.status,
-        'surah_assignments': circle.surahAssignments.map((s) => s.toJson()).toList(),
+        'surah_assignments':
+            circle.surahAssignments.map((s) => s.toJson()).toList(),
         'student_ids': circle.studentIds.isEmpty ? [] : circle.studentIds,
+        'learning_plan_url': circle.learningPlanUrl ?? '',
         'created_at': circle.createdAt.toIso8601String(),
         'updated_at': circle.updatedAt.toIso8601String(),
       };
-      
-      
+
       // إضافة الحلقة في قاعدة البيانات
       final insertedData = await _supabaseClient
           .from('memorization_circles')
           .insert(circleData)
           .select()
           .single();
-      
+
       // جلب بيانات المعلم من جدول students
       if (insertedData['teacher_id'] != null) {
         final teacherData = await _supabaseClient
@@ -225,13 +220,13 @@ class AdminRepository {
             .eq('id', insertedData['teacher_id'])
             .eq('is_teacher', true)
             .single();
-            
+
         insertedData['teacher_name'] = teacherData['name'];
         insertedData['teacher_email'] = teacherData['email'];
         insertedData['teacher_phone'] = teacherData['phone'];
         insertedData['teacher_image_url'] = teacherData['profile_image_url'];
       }
-      
+
       // إرسال إشعارات للطلاب المضافين
       if (circle.studentIds.isNotEmpty) {
         await _sendNotificationToStudents(
@@ -240,8 +235,7 @@ class AdminRepository {
           isExam: circle.isExam,
         );
       }
-      
-      
+
       return MemorizationCircleModel.fromJson(insertedData);
     } catch (e) {
       print('خطأ في إضافة حلقة التحفيظ: $e');
@@ -256,9 +250,10 @@ class AdminRepository {
     required bool isExam,
   }) async {
     try {
-      print('AdminRepository: بدء إرسال الإشعارات للطلاب - عدد الطلاب: ${studentIds.length}');
+      print(
+          'AdminRepository: بدء إرسال الإشعارات للطلاب - عدد الطلاب: ${studentIds.length}');
       print('AdminRepository: معرفات الطلاب: $studentIds');
-      
+
       // الحصول على tokens الطلاب
       final response = await _supabaseClient
           .from('user_tokens')
@@ -276,10 +271,13 @@ class AdminRepository {
         return;
       }
 
-      print('AdminRepository: عدد الـ tokens التي تم العثور عليها: ${tokens.length}');
+      print(
+          'AdminRepository: عدد الـ tokens التي تم العثور عليها: ${tokens.length}');
 
       // تحضير محتوى الإشعار
-      final title = isExam ? 'تم إضافتك إلى حلقة اختبار جديدة' : 'تم إضافتك إلى حلقة تحفيظ جديدة';
+      final title = isExam
+          ? 'تم إضافتك إلى حلقة اختبار جديدة'
+          : 'تم إضافتك إلى حلقة تحفيظ جديدة';
       final body = 'تم إضافتك إلى حلقة: $circleName';
 
       print('AdminRepository: محتوى الإشعار:');
@@ -288,7 +286,8 @@ class AdminRepository {
 
       // إرسال الإشعار لكل token
       for (final token in tokens) {
-        print('AdminRepository: جاري إرسال الإشعار للـ token: ${token.substring(0, 10)}...');
+        print(
+            'AdminRepository: جاري إرسال الإشعار للـ token: ${token.substring(0, 10)}...');
         try {
           await _notificationService.sendNotification(
             token: token,
@@ -300,9 +299,11 @@ class AdminRepository {
               'is_exam': isExam.toString(),
             },
           );
-          print('AdminRepository: تم إرسال الإشعار بنجاح للـ token: ${token.substring(0, 10)}...');
+          print(
+              'AdminRepository: تم إرسال الإشعار بنجاح للـ token: ${token.substring(0, 10)}...');
         } catch (e) {
-          print('AdminRepository: فشل في إرسال الإشعار للـ token: ${token.substring(0, 10)}... - الخطأ: $e');
+          print(
+              'AdminRepository: فشل في إرسال الإشعار للـ token: ${token.substring(0, 10)}... - الخطأ: $e');
         }
       }
 
@@ -315,7 +316,8 @@ class AdminRepository {
   }
 
   // تحديث بيانات حلقة تحفيظ
-  Future<MemorizationCircleModel> updateCircle(MemorizationCircleModel circle) async {
+  Future<MemorizationCircleModel> updateCircle(
+      MemorizationCircleModel circle) async {
     try {
       // التحقق من وجود المعلم في جدول students قبل التحديث
       if (circle.teacherId != null && circle.teacherId!.isNotEmpty) {
@@ -325,7 +327,7 @@ class AdminRepository {
             .eq('id', circle.teacherId!)
             .eq('is_teacher', true)
             .maybeSingle();
-            
+
         if (teacherExists == null) {
           throw Exception('المعلم غير موجود أو ليس لديه صلاحيات معلم');
         }
@@ -339,11 +341,12 @@ class AdminRepository {
         'start_date': circle.startDate.toIso8601String(),
         'end_date': circle.endDate?.toIso8601String(),
         'status': circle.status,
-        'surah_assignments': circle.surahAssignments.map((s) => s.toJson()).toList(),
+        'surah_assignments':
+            circle.surahAssignments.map((s) => s.toJson()).toList(),
         'student_ids': circle.studentIds.isEmpty ? [] : circle.studentIds,
         'updated_at': circle.updatedAt.toIso8601String(),
       };
-      
+
       // تحديث بيانات الحلقة
       final updatedData = await _supabaseClient
           .from('memorization_circles')
@@ -351,7 +354,7 @@ class AdminRepository {
           .eq('id', circle.id)
           .select()
           .single();
-      
+
       // جلب بيانات المعلم من جدول students
       if (updatedData['teacher_id'] != null) {
         final teacherData = await _supabaseClient
@@ -360,31 +363,26 @@ class AdminRepository {
             .eq('id', updatedData['teacher_id'])
             .eq('is_teacher', true)
             .single();
-            
+
         updatedData['teacher_name'] = teacherData['name'];
         updatedData['teacher_email'] = teacherData['email'];
         updatedData['teacher_phone'] = teacherData['phone'];
         updatedData['teacher_image_url'] = teacherData['profile_image_url'];
       }
-      
+
       return MemorizationCircleModel.fromJson(updatedData);
     } catch (e) {
       throw Exception('فشل في تحديث بيانات حلقة التحفيظ: $e');
     }
   }
-  
+
   // تحديث معلم الحلقة فقط
   Future<void> updateCircleTeacher(String circleId, String teacherId) async {
     try {
-      
-      await _supabaseClient
-          .from('memorization_circles')
-          .update({
-            'teacher_id': teacherId,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', circleId);
-      
+      await _supabaseClient.from('memorization_circles').update({
+        'teacher_id': teacherId,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', circleId);
     } catch (e) {
       throw Exception('فشل في تحديث معلم الحلقة: $e');
     }
@@ -429,7 +427,8 @@ class AdminRepository {
       // تحديث بيانات الطالب
       final student = circle.students[studentIndex];
       List<AttendanceRecord> updatedAttendance = List.from(student.attendance);
-      List<EvaluationRecord> updatedEvaluations = List.from(student.evaluations);
+      List<EvaluationRecord> updatedEvaluations =
+          List.from(student.evaluations);
 
       // إضافة سجل الحضور الجديد إذا وجد
       if (attendance != null) {
@@ -452,21 +451,18 @@ class AdminRepository {
       updatedStudents[studentIndex] = updatedStudent;
 
       // تحديث الحلقة في قاعدة البيانات
-      await _supabaseClient
-          .from('memorization_circles')
-          .update({
-            'students': updatedStudents.map((s) => s.toJson()).toList(),
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', circleId);
-
+      await _supabaseClient.from('memorization_circles').update({
+        'students': updatedStudents.map((s) => s.toJson()).toList(),
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', circleId);
     } catch (e) {
       throw Exception('فشل في تحديث حضور وتقييم الطالب: $e');
     }
   }
 
   // الحصول على سجلات حضور وتقييم طالب في حلقة معينة
-  Future<CircleStudent> getStudentRecords(String circleId, String studentId) async {
+  Future<CircleStudent> getStudentRecords(
+      String circleId, String studentId) async {
     try {
       final circleData = await _supabaseClient
           .from('memorization_circles')

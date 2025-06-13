@@ -223,6 +223,7 @@ class MemorizationCirclesRepository {
       studentIds: (json['student_ids'] as List?)?.cast<String>() ?? [],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      learningPlanUrl: json['learning_plan_url'] ?? '',
     );
   }
 

@@ -105,7 +105,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         availableTeachers: teachers,
         availableStudents: students,
         onSave: (name, description, startDate, teacherId, teacherName, surahs,
-            studentIds, isExam) {
+            studentIds, isExam, learningPlanUrl) {
           adminCubit.createCircle(
             name: name,
             description: description,
@@ -115,6 +115,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
             surahs: surahs,
             studentIds: studentIds,
             isExam: isExam,
+            learningPlanUrl: learningPlanUrl,
           );
         },
       ),
@@ -152,10 +153,11 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         initialSurahAssignments: circle.surahAssignments,
         initialStudentIds: circle.studentIds,
         initialIsExam: circle.isExam,
+        initialLearningPlanUrl: circle.learningPlanUrl,
         availableTeachers: teachers,
         availableStudents: students,
         onSave: (name, description, startDate, teacherId, teacherName, surahs,
-            studentIds, isExam) {
+            studentIds, isExam, learningPlanUrl) {
           adminCubit.updateCircle(
             id: circle.id,
             name: name,
@@ -166,6 +168,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
             surahs: surahs,
             studentIds: studentIds,
             isExam: isExam,
+            learningPlanUrl: learningPlanUrl,
           );
         },
       ),

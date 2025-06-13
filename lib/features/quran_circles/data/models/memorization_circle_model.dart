@@ -53,6 +53,8 @@ class MemorizationCircle extends Equatable {
   final List<String> studentIds;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String learningPlanUrl;
+
 
   const MemorizationCircle({
     required this.id,
@@ -69,6 +71,7 @@ class MemorizationCircle extends Equatable {
     this.studentIds = const [],
     required this.createdAt,
     required this.updatedAt,
+    required this.learningPlanUrl,
   });
 
   factory MemorizationCircle.fromJson(Map<String, dynamic> json) {
@@ -95,6 +98,7 @@ class MemorizationCircle extends Equatable {
           .toList() ?? [],
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      learningPlanUrl: json['learning_plan_url'] as String? ?? '',
     );
   }
 
@@ -113,6 +117,7 @@ class MemorizationCircle extends Equatable {
       'student_ids': studentIds,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'learning_plan_url': learningPlanUrl,
     };
   }
 
@@ -132,6 +137,7 @@ class MemorizationCircle extends Equatable {
     studentIds,
     createdAt,
     updatedAt,
+    learningPlanUrl
   ];
 
   MemorizationCircle copyWith({
@@ -149,6 +155,8 @@ class MemorizationCircle extends Equatable {
     List<String>? studentIds,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? learningPlanUrl,
+    
   }) {
     return MemorizationCircle(
       id: id ?? this.id,
@@ -165,6 +173,7 @@ class MemorizationCircle extends Equatable {
       studentIds: studentIds ?? this.studentIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      learningPlanUrl: learningPlanUrl ?? this.learningPlanUrl,
     );
   }
 

@@ -19,6 +19,7 @@ class MemorizationCircleModel {
   final List<String> studentIds; // IDs de los estudiantes para facilitar la selección
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String learningPlanUrl; // URL to the learning plan PDF
 
   MemorizationCircleModel({
     required this.id,
@@ -38,6 +39,7 @@ class MemorizationCircleModel {
     required this.studentIds,
     required this.createdAt,
     required this.updatedAt,
+    required this.learningPlanUrl,
   });
 
   factory MemorizationCircleModel.fromJson(Map<String, dynamic> json) {
@@ -86,6 +88,7 @@ class MemorizationCircleModel {
       studentIds: studentIds,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      learningPlanUrl: json['learning_plan_url'] ?? '',
     );
   }
 
@@ -109,6 +112,7 @@ class MemorizationCircleModel {
       // Esto debe manejarse en una tabla de relación separada
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'learning_plan_url': learningPlanUrl,
     };
   }
 
@@ -126,6 +130,7 @@ class MemorizationCircleModel {
     DateTime? endDate,
     List<SurahAssignment>? surahs,
     List<String>? studentIds,
+    String? learningPlanUrl,
   }) {
     final now = DateTime.now();
     return MemorizationCircleModel(
@@ -146,10 +151,11 @@ class MemorizationCircleModel {
       studentIds: studentIds ?? [],
       createdAt: now,
       updatedAt: now,
+      learningPlanUrl: learningPlanUrl ?? '',
     );
   }
 
-  MemorizationCircleModel copyWith({
+   MemorizationCircleModel copyWith({
     String? id,
     String? name,
     String? description,
@@ -167,6 +173,7 @@ class MemorizationCircleModel {
     List<String>? studentIds,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? learningPlanUrl,
   }) {
     return MemorizationCircleModel(
       id: id ?? this.id,
@@ -186,6 +193,7 @@ class MemorizationCircleModel {
       studentIds: studentIds ?? this.studentIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      learningPlanUrl: learningPlanUrl ?? this.learningPlanUrl,
     );
   }
 }

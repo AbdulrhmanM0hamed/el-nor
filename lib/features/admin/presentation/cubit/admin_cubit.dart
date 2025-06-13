@@ -143,10 +143,14 @@ class AdminCubit extends Cubit<AdminState> {
     List<SurahAssignment>? surahs,
     List<String>? studentIds,
     bool isExam = false,
+    String? learningPlanUrl,
   }) async {
     try {
       emit(AdminLoading());
 
+      // Debug logging for learning plan URL
+      print('AdminCubit: Received learningPlanUrl: $learningPlanUrl');
+      
       // إنشاء كائن حلقة تحفيظ جديد
       final newCircle = MemorizationCircleModel.create(
         name: name,
@@ -157,7 +161,11 @@ class AdminCubit extends Cubit<AdminState> {
         startDate: startDate,
         surahs: surahs,
         studentIds: studentIds,
+        learningPlanUrl: learningPlanUrl,
       );
+      
+      // Debug logging after creating circle model
+      print('AdminCubit: Created circle with learningPlanUrl: ${newCircle.learningPlanUrl}');
 
       // إضافة الحلقة باستخدام المستودع
       final createdCircle = await _adminRepository.addCircle(newCircle);
@@ -183,6 +191,7 @@ class AdminCubit extends Cubit<AdminState> {
     List<SurahAssignment>? surahs,
     List<String>? studentIds,
     bool isExam = false,
+    String? learningPlanUrl,
   }) async {
     try {
       emit(AdminLoading());
@@ -203,6 +212,7 @@ class AdminCubit extends Cubit<AdminState> {
         surahAssignments: surahs,
         studentIds: studentIds,
         isExam: isExam,
+        learningPlanUrl: learningPlanUrl,
         updatedAt: DateTime.now(),
       );
 

@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
 
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/services/service_locator.dart';
@@ -23,7 +28,17 @@ class CircleFormDialog extends StatefulWidget {
   final List<StudentModel>? availableStudents;
   final List<String>? initialStudentIds;
   final bool? initialIsExam;
-  final Function(String name, String description, DateTime startDate, String? teacherId, String? teacherName, List<SurahAssignment> surahAssignments, List<String> studentIds, bool isExam) onSave;
+  final String? initialLearningPlanUrl;
+  final Function(
+      String name,
+      String description,
+      DateTime startDate,
+      String? teacherId,
+      String? teacherName,
+      List<SurahAssignment> surahAssignments,
+      List<String> studentIds,
+      bool isExam,
+      String? learningPlanUrl) onSave;
 
   const CircleFormDialog({
     Key? key,
@@ -38,6 +53,7 @@ class CircleFormDialog extends StatefulWidget {
     this.availableStudents,
     this.initialStudentIds,
     this.initialIsExam,
+    this.initialLearningPlanUrl = '',
     required this.onSave,
   }) : super(key: key);
 
@@ -45,7 +61,8 @@ class CircleFormDialog extends StatefulWidget {
   State<CircleFormDialog> createState() => _CircleFormDialogState();
 }
 
-class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerProviderStateMixin {
+class _CircleFormDialogState extends State<CircleFormDialog>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
@@ -55,7 +72,8 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
   bool _isExam = false;
   final List<SurahAssignment> _selectedSurahs = [];
   final List<String> _selectedStudentIds = [];
-  
+  String? _learningPlanUrl;
+
   // Controladores para el diálogo de asignación de suras
   final TextEditingController _surahNameController = TextEditingController();
   final TextEditingController _startVerseController = TextEditingController();
@@ -70,28 +88,33 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
     super.initState();
     // Inicializar el controlador de pestañas
     _tabController = TabController(length: 4, vsync: this);
-    
+
     // Inicializar controladores de texto
     _nameController = TextEditingController(text: widget.initialName ?? '');
-    _descriptionController = TextEditingController(text: widget.initialDescription ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.initialDescription ?? '');
     _selectedDate = widget.initialDate ?? DateTime.now();
     _isExam = widget.initialIsExam ?? false;
-    
+
     // Inicializar suras si existen
     if (widget.initialSurahAssignments != null) {
       _selectedSurahs.addAll(widget.initialSurahAssignments!);
     }
-    
+
     // Inicializar estudiantes si existen
     if (widget.initialStudentIds != null) {
       _selectedStudentIds.addAll(widget.initialStudentIds!);
     }
-    
+
     // Initialize selected teacher from the initial values
-    if (widget.initialTeacherId != null && widget.initialTeacherId!.isNotEmpty) {
+    if (widget.initialTeacherId != null &&
+        widget.initialTeacherId!.isNotEmpty) {
       _selectedTeacherId = widget.initialTeacherId;
       _selectedTeacherName = widget.initialTeacherName;
     }
+
+    // Initialize learning plan URL
+    _learningPlanUrl = widget.initialLearningPlanUrl;
   }
 
   @override
@@ -111,10 +134,12 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
     return BlocProvider(
       create: (context) => sl<AdminCubit>(),
       child: Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.9,
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -139,26 +164,26 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                   ),
                 ),
               ),
-              
+
               // Pestañas de navegación
               TabBar(
                 controller: _tabController,
                 labelColor: AppColors.logoTeal,
                 unselectedLabelColor: Colors.grey,
                 indicatorColor: AppColors.logoTeal,
-                tabs:const [
+                tabs: const [
                   Tab(text: 'معلومات أساسية', icon: Icon(Icons.info_outline)),
                   Tab(text: 'المعلم', icon: Icon(Icons.person)),
                   Tab(text: 'السور', icon: Icon(Icons.menu_book)),
                   Tab(text: 'الطلاب', icon: Icon(Icons.people)),
                 ],
               ),
-              
+
               // Contenido de las pestañas
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
-                  physics:const NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _buildBasicInfoTab(),
                     _buildTeacherTab(),
@@ -167,7 +192,7 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                   ],
                 ),
               ),
-              
+
               // Botones de acción
               Padding(
                 padding: EdgeInsets.all(16.r),
@@ -210,14 +235,50 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
   }
 
   // Método para guardar el círculo
+  Future<void> _selectPdfFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+
+      if (result != null) {
+        final file = File(result.files.single.path!);
+        // Upload to Supabase
+        final fileName = path.basename(file.path);
+        final uploadResponse = await Supabase.instance.client.storage
+            .from('students')
+            .upload('learning_plans/$fileName', file);
+        
+        // Get the public URL after upload
+        final publicUrl = await Supabase.instance.client.storage
+            .from('students')
+            .getPublicUrl('learning_plans/$fileName');
+        
+        // Update the learning plan URL
+        setState(() {
+          _learningPlanUrl = publicUrl;
+        });
+      }
+    } catch (e) {
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('حدث خطأ أثناء اختيار الملف: $e')),
+        
+      );
+      print(e);
+    }
+  }
+
   void _saveCircle() {
     // Primero seleccionar la pestaña de información básica para asegurar que el formulario esté en el árbol
-    _tabController.animateTo(0); // Cambiar a la primera pestaña donde está el formulario
-    
+    _tabController
+        .animateTo(0); // Cambiar a la primera pestaña donde está el formulario
+
     // Dar tiempo para que se actualice la UI
     Future.delayed(const Duration(milliseconds: 100), () {
       // Verificar si el estado del formulario existe antes de validar
-      if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+      if (_formKey.currentState!.validate()) {
         widget.onSave(
           _nameController.text,
           _descriptionController.text,
@@ -227,14 +288,13 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
           _selectedSurahs,
           _selectedStudentIds,
           _isExam,
+          _learningPlanUrl,
         );
-        
-        // Close the dialog and refresh circles
-        Navigator.of(context).pop(true); // Return true to indicate successful save
+        Navigator.pop(context);
       } else {
         // Si el formulario no es válido o no existe, mostrar un mensaje
         ScaffoldMessenger.of(context).showSnackBar(
-      const    SnackBar(content: Text('يرجى التأكد من صحة البيانات المدخلة')),
+          const SnackBar(content: Text('يرجى التأكد من صحة البيانات المدخلة')),
         );
       }
     });
@@ -359,6 +419,84 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                 ],
               ),
             ),
+            SizedBox(height: 16.h),
+            // PDF Learning Plan Section
+            Container(
+              padding: EdgeInsets.all(16.r),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.description, color: AppColors.logoTeal),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'خطة التعلم',
+                        style: TextStyle(fontSize: 16.sp),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  if (_learningPlanUrl != null)
+                    Text(
+                      path.basename(_learningPlanUrl!),
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  SizedBox(height: 8.h),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _selectPdfFile,
+                        icon: const Icon(Icons.upload_file),
+                        label: const Text('اختيار ملف PDF'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.logoTeal,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      if (_learningPlanUrl != null)
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            try {
+                              final response = await Supabase.instance.client.storage
+                                  .from('students')
+                                  .download(_learningPlanUrl!);
+                              
+                              final fileName = path.basename(_learningPlanUrl!);
+                              final directory = await getTemporaryDirectory();
+                              final filePath = path.join(directory.path, fileName);
+                              
+                              final file = File(filePath);
+                              await file.writeAsBytes(response);
+                              
+                              // Show download success message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('تم تحميل الملف بنجاح')),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('حدث خطأ أثناء تحميل الملف: $e')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.download),
+                          label: const Text('تحميل'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -393,7 +531,8 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                             itemCount: state.teachers.length,
                             itemBuilder: (context, index) {
                               final teacher = state.teachers[index];
-                              final isSelected = _selectedTeacherId == teacher.id;
+                              final isSelected =
+                                  _selectedTeacherId == teacher.id;
                               return _buildTeacherCard(teacher, isSelected);
                             },
                           );
@@ -557,6 +696,69 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // خطة التعلم
+            if (_learningPlanUrl != null)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'خطة التعلم',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    InkWell(
+                      onTap: () async {
+                        try {
+                          final result = await FilePicker.platform.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['pdf'],
+                            dialogTitle: 'اختر خطة التعلم',
+                          );
+
+                          if (result != null && result.files.isNotEmpty) {
+                            final file = result.files.first;
+                            if (file.extension == 'pdf') {
+                              // TODO: Implement PDF upload
+                              print('Selected PDF: ${file.name}');
+                            }
+                          }
+                        } catch (e) {
+                          print('Error picking file: $e');
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 12.h),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.primary),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.description, color: AppColors.primary),
+                            SizedBox(width: 8.w),
+                            Text(
+                              _learningPlanUrl != null
+                                  ? 'تم تحميل خطة التعلم'
+                                  : 'اختر خطة التعلم...',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             Text(
               'اختر الطلاب',
               style: TextStyle(
@@ -572,12 +774,15 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                   : BlocBuilder<AdminCubit, AdminState>(
                       builder: (context, state) {
                         if (state is AdminStudentsLoaded) {
-                          final students = state.students.where((s) => !s.isTeacher && !s.isAdmin).toList();
+                          final students = state.students
+                              .where((s) => !s.isTeacher && !s.isAdmin)
+                              .toList();
                           return ListView.builder(
                             itemCount: students.length,
                             itemBuilder: (context, index) {
                               final student = students[index];
-                              final isSelected = _selectedStudentIds.contains(student.id);
+                              final isSelected =
+                                  _selectedStudentIds.contains(student.id);
                               return _buildStudentCard(student, isSelected);
                             },
                           );
@@ -681,7 +886,7 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
     _startVerseController.clear();
     _endVerseController.clear();
     _notesController.clear();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -764,9 +969,11 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
               if (_surahNameController.text.isNotEmpty &&
                   _startVerseController.text.isNotEmpty &&
                   _endVerseController.text.isNotEmpty) {
-                final startVerse = int.tryParse(_startVerseController.text) ?? 1;
-                final endVerse = int.tryParse(_endVerseController.text) ?? startVerse;
-                
+                final startVerse =
+                    int.tryParse(_startVerseController.text) ?? 1;
+                final endVerse =
+                    int.tryParse(_endVerseController.text) ?? startVerse;
+
                 setState(() {
                   _selectedSurahs.add(
                     SurahAssignment(
@@ -775,11 +982,13 @@ class _CircleFormDialogState extends State<CircleFormDialog> with SingleTickerPr
                       startVerse: startVerse,
                       endVerse: endVerse,
                       assignedDate: DateTime.now(),
-                      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+                      notes: _notesController.text.isNotEmpty
+                          ? _notesController.text
+                          : null,
                     ),
                   );
                 });
-                
+
                 Navigator.of(context).pop();
               }
             },

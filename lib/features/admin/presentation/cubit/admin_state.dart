@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:equatable/equatable.dart';
 import '../../data/models/memorization_circle_model.dart';
 import '../../data/models/student_model.dart';
@@ -46,7 +47,26 @@ class AdminCirclesLoaded extends AdminState {
   const AdminCirclesLoaded(this.circles);
 
   @override
-  List<Object?> get props => [circles];
+  List<Object> get props => [circles];
+}
+
+class AdminLearningPlanUploaded extends AdminState {
+  final String circleId;
+  final String? url;
+
+  const AdminLearningPlanUploaded(this.circleId, this.url);
+
+  @override
+  List<Object?> get props => [circleId, url];
+}
+
+class AdminLearningPlanDeleted extends AdminState {
+  final String circleId;
+
+  const AdminLearningPlanDeleted(this.circleId);
+
+  @override
+  List<Object> get props => [circleId];
 }
 
 class AdminStudentsLoaded extends AdminState {

@@ -1,4 +1,5 @@
 import 'package:beat_elslam/features/quran_circles/data/repositories/circle_details_repository.dart';
+import 'package:beat_elslam/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_learning_plan_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
@@ -80,7 +81,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -126,6 +127,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
                 tabs: const [
                   Tab(text: 'السور المقررة'),
                   Tab(text: 'الطلاب'),
+                  Tab(text: 'خطة التعلم'),
                 ],
               ),
             ),
@@ -136,6 +138,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
                     : state is CircleDetailsLoaded
                         ? TabBarView(
                             controller: _tabController,
+                            physics: const NeverScrollableScrollPhysics(), // منع التنقل بالسحب
                             children: [
                               // تبويب السور المقررة
                               CircleAssignmentsTab(
@@ -167,6 +170,10 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
                                         .updateStudentAttendance(studentId, isPresent)
                                     : null,
                                 onAddStudent: null,
+                              ),
+                                CircleLearningPlanTab(
+                                key: const PageStorageKey<String>('learning_plan_tab'),
+                                learningPlanUrl: state.circle.learningPlanUrl,
                               ),
                             ],
                           )
