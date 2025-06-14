@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../../../core/utils/theme/app_colors.dart';
 import '../../../../data/models/memorization_circle_model.dart';
@@ -27,17 +26,20 @@ class CirclesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    double responsive(double size) => size * screenWidth / 375;
+
     if (isLoading) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const CircularProgressIndicator(color: AppColors.logoTeal),
-            SizedBox(height: 16.h),
+            SizedBox(height: responsive(16)),
             Text(
               'جاري تحميل الحلقات...',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: responsive(16),
                 color: Colors.grey.shade700,
               ),
             ),
@@ -51,30 +53,30 @@ class CirclesList extends StatelessWidget {
           children: [
             Icon(
               Icons.error_outline,
-              size: 64.sp,
+              size: responsive(64),
               color: Colors.red,
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: responsive(16)),
             Text(
               errorMessage!,
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: responsive(18),
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: responsive(24)),
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.logoTeal,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(
-                  horizontal: 24.w,
-                  vertical: 12.h,
+                  horizontal: responsive(24),
+                  vertical: responsive(12),
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(responsive(8)),
                 ),
               ),
               child: const Text('إعادة المحاولة'),
@@ -89,24 +91,24 @@ class CirclesList extends StatelessWidget {
           children: [
             Icon(
               Icons.circle_outlined,
-              size: 64.sp,
+              size: responsive(64),
               color: Colors.grey.shade400,
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: responsive(16)),
             Text(
               'لا توجد حلقات تحفيظ حالياً',
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: responsive(18),
                 fontWeight: FontWeight.bold,
                 color: Colors.grey.shade700,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: responsive(8)),
             Text(
               'اضغط على زر الإضافة لإنشاء حلقة جديدة',
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: responsive(14),
                 color: Colors.grey.shade600,
               ),
               textAlign: TextAlign.center,
@@ -116,9 +118,9 @@ class CirclesList extends StatelessWidget {
       );
     } else {
       return ListView.separated(
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(responsive(16)),
         itemCount: circles.length,
-        separatorBuilder: (context, index) => SizedBox(height: 12.h),
+        separatorBuilder: (context, index) => SizedBox(height: responsive(12)),
         itemBuilder: (context, index) {
           final circle = circles[index];
           return CircleCard(

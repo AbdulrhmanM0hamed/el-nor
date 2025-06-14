@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../../../core/utils/theme/app_colors.dart';
@@ -22,36 +21,39 @@ class CircleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(responsive(12)),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(responsive(12)),
         child: Padding(
-          padding: EdgeInsets.all(16.r),
+          padding: EdgeInsets.all(responsive(16)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
-              Divider(height: 16.h),
-              _buildCircleDetails(),
+              _buildHeader(context, responsive),
+              Divider(height: responsive(16)),
+              _buildCircleDetails(context, responsive),
               if (circle.description != null && circle.description!.isNotEmpty) ...[
-                SizedBox(height: 8.h),
+                SizedBox(height: responsive(8)),
                 Text(
                   circle.description!,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: responsive(12),
                     color: Colors.grey.shade600,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              SizedBox(height: 12.h),
-              _buildFooter(),
+              SizedBox(height: responsive(12)),
+              _buildFooter(context, responsive),
             ],
           ),
         ),
@@ -59,7 +61,7 @@ class CircleCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, Function(double) responsive) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -67,7 +69,7 @@ class CircleCard extends StatelessWidget {
           child: Text(
             circle.name,
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: responsive(16),
               fontWeight: FontWeight.bold,
               color: AppColors.logoTeal,
             ),
@@ -82,28 +84,28 @@ class CircleCard extends StatelessWidget {
               icon: Icon(
                 Icons.edit,
                 color: AppColors.logoTeal,
-                size: 20.sp,
+                size: responsive(20),
               ),
               constraints: BoxConstraints(
-                minWidth: 36.w,
-                minHeight: 36.h,
+                minWidth: responsive(36),
+                minHeight: responsive(36),
               ),
               padding: EdgeInsets.zero,
-              splashRadius: 24.r,
+              splashRadius: responsive(24),
             ),
             IconButton(
               onPressed: onDelete,
               icon: Icon(
                 Icons.delete,
                 color: Colors.red,
-                size: 20.sp,
+                size: responsive(20),
               ),
               constraints: BoxConstraints(
-                minWidth: 36.w,
-                minHeight: 36.h,
+                minWidth: responsive(36),
+                minHeight: responsive(36),
               ),
               padding: EdgeInsets.zero,
-              splashRadius: 24.r,
+              splashRadius: responsive(24),
             ),
           ],
         ),
@@ -111,7 +113,7 @@ class CircleCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCircleDetails() {
+  Widget _buildCircleDetails(BuildContext context, Function(double) responsive) {
     return Row(
       children: [
         if (circle.teacherId != null && circle.teacherId!.isNotEmpty) ...[
@@ -119,10 +121,10 @@ class CircleCard extends StatelessWidget {
             imageUrl: circle.teacherImageUrl,
             name: circle.teacherName ?? 'معلم',
             color: AppColors.logoTeal,
-            size: 40.0,
+            size: responsive(40.0),
             showDebugLogs: false,
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: responsive(12)),
         ],
         Expanded(
           child: Column(
@@ -132,28 +134,28 @@ class CircleCard extends StatelessWidget {
                 Text(
                   'المعلم: ${circle.teacherName}',
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: responsive(14),
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: responsive(4)),
               ] else ...[
                 Text(
                   'لم يتم تعيين معلم بعد',
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: responsive(14),
                     fontStyle: FontStyle.italic,
                     color: Colors.grey.shade600,
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: responsive(4)),
               ],
               Text(
                 'تاريخ البدء: ${_formatDate(circle.startDate)}',
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: responsive(12),
                   color: Colors.grey.shade600,
                 ),
               ),
@@ -164,18 +166,18 @@ class CircleCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context, Function(double) responsive) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(
           padding: EdgeInsets.symmetric(
-            horizontal: 8.w,
-            vertical: 4.h,
+            horizontal: responsive(8),
+            vertical: responsive(4),
           ),
           decoration: BoxDecoration(
             color: AppColors.logoOrange.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(responsive(12)),
             border: Border.all(
               color: AppColors.logoOrange.withOpacity(0.3),
               width: 1,
@@ -185,14 +187,14 @@ class CircleCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.people,
-                size: 14.sp,
+                size: responsive(14),
                 color: AppColors.logoOrange,
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: responsive(4)),
               Text(
                 '${circle.studentIds.length} طالب',
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: responsive(12),
                   fontWeight: FontWeight.w500,
                   color: AppColors.logoOrange,
                 ),
@@ -202,15 +204,14 @@ class CircleCard extends StatelessWidget {
         ),
         Icon(
           Icons.arrow_forward_ios,
-          size: 16.sp,
+          size: responsive(16),
           color: Colors.grey.shade400,
         ),
       ],
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'غير محدد';
-    return DateFormat('dd/MM/yyyy').format(date);
+  String _formatDate(DateTime date) {
+    return DateFormat('d MMMM yyyy', 'ar').format(date);
   }
 }

@@ -285,6 +285,40 @@ class _CircleFormDialogState extends State<CircleFormDialog>
     }
   }
 
+  // حذف خطة التعلم بعد التأكيد
+  Future<void> _deleteLearningPlan() async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('حذف خطة التعلم'),
+        content: const Text('هل أنت متأكد من رغبتك في حذف خطة التعلم؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      if (_learningPlanUrl != null) {
+        // حذف الملف من التخزين
+        await sl<AdminCubit>().saveOldLearningPlan(_learningPlanUrl!);
+      }
+      setState(() {
+        _learningPlanUrl = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم حذف خطة التعلم')),
+      );
+    }
+  }
+
   void _saveCircle() {
     // Primero seleccionar la pestaña de información básica para asegurar que el formulario esté en el árbol
     _tabController
@@ -457,12 +491,24 @@ class _CircleFormDialogState extends State<CircleFormDialog>
                   ),
                   SizedBox(height: 8.h),
                   if (_learningPlanUrl != null)
-                    Text(
-                      path.basename(_learningPlanUrl!),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.blue,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            path.basename(_learningPlanUrl!),
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.blue,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.red),
+                          tooltip: 'حذف',
+                          onPressed: _deleteLearningPlan,
+                        ),
+                      ],
                     ),
                   SizedBox(height: 8.h),
                   Row(
@@ -772,15 +818,25 @@ class _CircleFormDialogState extends State<CircleFormDialog>
                             const Icon(Icons.description,
                                 color: AppColors.primary),
                             SizedBox(width: 8.w),
-                            Text(
-                              _learningPlanUrl != null
-                                  ? 'تم تحميل خطة التعلم'
-                                  : 'اختر خطة التعلم...',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 14.sp,
+                            Expanded(
+                              child: Text(
+                                _learningPlanUrl != null
+                                    ? 'تم تحميل خطة التعلم'
+                                    : 'اختر خطة التعلم...',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 14.sp,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            if (_learningPlanUrl != null)
+                              IconButton(
+                                icon: const Icon(Icons.close, color: Colors.red),
+                                tooltip: 'حذف',
+                                onPressed: _deleteLearningPlan,
+                              ),
                           ],
                         ),
                       ),

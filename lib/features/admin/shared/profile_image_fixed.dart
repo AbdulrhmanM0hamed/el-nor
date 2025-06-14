@@ -22,7 +22,6 @@ class ProfileImage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Debug print to see what image URL we're receiving
     if (showDebugLogs) {
-      print('ProfileImage: Attempting to load image from URL: $imageUrl');
     }
     
     // Process the image URL to ensure it's valid
@@ -38,7 +37,6 @@ class ProfileImage extends StatelessWidget {
           if (!processedImageUrl.startsWith('http')) {
             processedImageUrl = 'https://$processedImageUrl';
             if (showDebugLogs) {
-              print('ProfileImage: Added https:// prefix: $processedImageUrl');
             }
           }
           
@@ -46,7 +44,6 @@ class ProfileImage extends StatelessWidget {
           if (!processedImageUrl.contains('/storage/v1/object/public/')) {
             // This might not be a complete storage URL, log it but don't modify
             if (showDebugLogs) {
-              print('ProfileImage: URL might not be a complete Supabase storage URL: $processedImageUrl');
             }
           }
         }
@@ -55,7 +52,6 @@ class ProfileImage extends StatelessWidget {
         final uri = Uri.parse(processedImageUrl);
         if (!uri.hasScheme) {
           if (showDebugLogs) {
-            print('ProfileImage: URL missing scheme, adding https://: $processedImageUrl');
           }
           processedImageUrl = 'https://$processedImageUrl';
         }
@@ -64,30 +60,25 @@ class ProfileImage extends StatelessWidget {
         hasValidUrl = true;
         
         if (showDebugLogs) {
-          print('ProfileImage: Final processed URL: $processedImageUrl');
         }
       } catch (e) {
         if (showDebugLogs) {
-          print('ProfileImage: Error parsing URL: $e');
         }
         processedImageUrl = null;
         hasValidUrl = false;
       }
     } else {
-      if (showDebugLogs) {
-        print('ProfileImage: No valid image URL provided');
-      }
-      hasValidUrl = false;
+        hasValidUrl = false;
     }
     
     return Container(
       width: size.w,
       height: size.w,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
         border: Border.all(
-          color: color.withOpacity(0.5),
+          color: color.withValues(alpha: 0.5),
           width: 2,
         ),
       ),
@@ -104,9 +95,6 @@ class ProfileImage extends StatelessWidget {
                   ),
                 ),
                 errorWidget: (context, url, error) {
-                  if (showDebugLogs) {
-                    print('ProfileImage: Error loading image: $error, URL: $url');
-                  }
                   return _buildNameInitial();
                 },
                 // Add key caching parameters to avoid stale images

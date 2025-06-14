@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../../../core/utils/theme/app_colors.dart';
@@ -92,6 +91,9 @@ class _TeacherSectionState extends State<TeacherSection> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    double responsive(double size) => size * screenWidth / 375;
+
     return BlocListener<AdminCubit, AdminState>(
       listener: (context, state) {
         if (state is AdminTeacherAssigned) {
@@ -119,11 +121,12 @@ class _TeacherSectionState extends State<TeacherSection> {
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(responsive(12)),
         ),
-        margin: EdgeInsets.symmetric(horizontal: 0.w, vertical: 8.h),
+        margin: EdgeInsets.symmetric(
+            horizontal: responsive(0), vertical: responsive(8)),
         child: Padding(
-          padding: EdgeInsets.all(16.r),
+          padding: EdgeInsets.all(responsive(16)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -133,26 +136,26 @@ class _TeacherSectionState extends State<TeacherSection> {
                   Text(
                     'المعلم',
                     style: TextStyle(
-                      fontSize: 18.sp,
+                      fontSize: responsive(18),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-              Divider(height: 16.h),
+              Divider(height: responsive(16)),
               if (_isLoading)
                 Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20.h),
+                    padding: EdgeInsets.symmetric(vertical: responsive(20)),
                     child: Column(
                       children: [
                         const CircularProgressIndicator(
                           color: AppColors.logoTeal,
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: responsive(8)),
                         Text(
                           'جاري تحميل بيانات المعلم...',
-                          style: TextStyle(fontSize: 14.sp),
+                          style: TextStyle(fontSize: responsive(14)),
                         ),
                       ],
                     ),
@@ -168,14 +171,17 @@ class _TeacherSectionState extends State<TeacherSection> {
   }
 
   Widget _buildTeacherCard(StudentModel teacher) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    double responsive(double size) => size * screenWidth / 375;
+
     // التأكد من أن عنوان URL الصورة صالح قبل استخدامه
     final hasValidImage =
         teacher.profileImageUrl != null && teacher.profileImageUrl!.isNotEmpty;
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(responsive(16)),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(responsive(8)),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
@@ -188,7 +194,7 @@ class _TeacherSectionState extends State<TeacherSection> {
                 name: teacher.name,
                 showDebugLogs: true,
               ),
-              SizedBox(width: 16.w),
+              SizedBox(width: responsive(16)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,17 +202,17 @@ class _TeacherSectionState extends State<TeacherSection> {
                     Text(
                       teacher.name,
                       style: TextStyle(
-                        fontSize: 16.sp,
+                        fontSize: responsive(16),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     if (teacher.isTeacher)
                       Padding(
-                        padding: EdgeInsets.only(top: 4.h),
+                        padding: EdgeInsets.only(top: responsive(4)),
                         child: Text(
                           'معلم',
                           style: TextStyle(
-                            fontSize: 12.sp,
+                            fontSize: responsive(12),
                             color: AppColors.logoTeal,
                           ),
                         ),
@@ -217,19 +223,20 @@ class _TeacherSectionState extends State<TeacherSection> {
             ],
           ),
           if (teacher.email.isNotEmpty || teacher.phoneNumber != null)
-            SizedBox(height: 16.h),
+            SizedBox(height: responsive(16)),
           if (teacher.email.isNotEmpty)
             Padding(
-              padding: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.only(bottom: responsive(8)),
               child: Row(
                 children: [
-                  Icon(Icons.email, size: 16.sp, color: Colors.grey.shade600),
-                  SizedBox(width: 8.w),
+                  Icon(Icons.email,
+                      size: responsive(16), color: Colors.grey.shade600),
+                  SizedBox(width: responsive(8)),
                   Expanded(
                     child: Text(
                       teacher.email,
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize: responsive(14),
                         color: Colors.grey.shade700,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -241,12 +248,13 @@ class _TeacherSectionState extends State<TeacherSection> {
           if (teacher.phoneNumber != null && teacher.phoneNumber!.isNotEmpty)
             Row(
               children: [
-                Icon(Icons.phone, size: 16.sp, color: Colors.grey.shade600),
-                SizedBox(width: 8.w),
+                Icon(Icons.phone,
+                    size: responsive(16), color: Colors.grey.shade600),
+                SizedBox(width: responsive(8)),
                 Text(
                   teacher.phoneNumber!,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: responsive(14),
                     color: Colors.grey.shade700,
                   ),
                 ),

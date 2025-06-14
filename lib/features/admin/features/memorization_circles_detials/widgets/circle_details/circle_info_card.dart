@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../../../../../../core/utils/theme/app_colors.dart';
 import '../../../../data/models/memorization_circle_model.dart';
@@ -14,55 +13,58 @@ class CircleInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    double responsive(double size) => size * screenWidth / 375;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(responsive(12)),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(responsive(16)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'معلومات الحلقة',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: responsive(16),
                 fontWeight: FontWeight.bold,
                 color: AppColors.logoTeal,
               ),
             ),
-            Divider(height: 16.h),
-            _buildInfoRow('اسم الحلقة:', circle.name),
-            _buildInfoRow('تاريخ البدء:', _formatDate(circle.startDate)),
-            _buildInfoRow('عدد الطلاب:', '${circle.studentIds.length}'),
+            Divider(height: responsive(16)),
+            _buildInfoRow('اسم الحلقة:', circle.name, responsive),
+            _buildInfoRow('تاريخ البدء:', _formatDate(circle.startDate), responsive),
+            _buildInfoRow('عدد الطلاب:', '${circle.studentIds.length}', responsive),
             if (circle.description != null && circle.description!.isNotEmpty)
-              _buildInfoRow('الوصف:', circle.description!),
+              _buildInfoRow('الوصف:', circle.description!, responsive),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, double Function(double) responsive) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
+      padding: EdgeInsets.symmetric(vertical: responsive(4)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: responsive(14),
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: responsive(8)),
           Expanded(
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: responsive(14),
               ),
               textAlign: TextAlign.start,
             ),
