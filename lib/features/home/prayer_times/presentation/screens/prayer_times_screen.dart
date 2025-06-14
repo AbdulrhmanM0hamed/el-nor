@@ -106,6 +106,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: BlocBuilder<PrayerTimesCubit, PrayerTimesState>(
@@ -126,64 +127,64 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   if (isNoInternet) ...[
                     Image.asset(
                       'assets/images/internet_disconnect.png',
-                      width: 90,
-                      height: 90,
+                      width: screenWidth * 0.25,
+                      height: screenWidth * 0.25,
                       fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 18),
+                    SizedBox(height: screenWidth * 0.045),
                     Text(
                       'الاتصال بالإنترنت مطلوب لعرض مواقيت الصلاة',
                       style: getBoldStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: FontSize.size16,
+                        fontSize: screenWidth * 0.04,
                         color: AppColors.textPrimary,
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ] else ...[
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
                       color: Colors.red,
-                      size: 60,
+                      size: screenWidth * 0.15,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: screenWidth * 0.04),
                     Text(
                       'حدث خطأ أثناء تحميل مواقيت الصلاة',
                       style: getBoldStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: FontSize.size16,
+                        fontSize: screenWidth * 0.04,
                         color: Colors.red,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: screenWidth * 0.02),
                     Text(
                       state.message,
                       style: getRegularStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: FontSize.size14,
+                        fontSize: screenWidth * 0.035,
                         color: AppColors.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  SizedBox(height: screenWidth * 0.06),
                   ElevatedButton(
                     onPressed: _loadPrayerTimes,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 12,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.08,
+                        vertical: screenWidth * 0.03,
                       ),
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(screenWidth * 0.05),
                       ),
                     ),
                     child: Text(
                       'إعادة المحاولة',
                       style: getBoldStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: FontSize.size14,
+                        fontSize: screenWidth * 0.035,
                         color: Colors.white,
                       ),
                     ),
@@ -213,7 +214,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               slivers: [
                 // App Bar
                 SliverAppBar(
-                  expandedHeight: 330,
+                  expandedHeight: screenWidth * 0.85,
                   floating: false,
                   pinned: true,
                   backgroundColor: AppColors.logoTeal,
@@ -230,20 +231,20 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
                 // Prayer Times List
                 SliverPadding(
-                  padding: const EdgeInsets.only(top: 16, bottom: 80),
+                  padding: EdgeInsets.only(top: screenWidth * 0.04, bottom: screenWidth * 0.2),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       // Today's prayer times title
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.05,
+                          vertical: screenWidth * 0.04,
                         ),
                         child: Text(
                           'مواقيت اليوم',
                           style: getBoldStyle(
                             fontFamily: FontConstant.cairo,
-                            fontSize: FontSize.size18,
+                            fontSize: screenWidth * 0.045,
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -303,47 +304,47 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.access_time,
-                  size: 70,
+                  size: screenWidth * 0.18,
                   color: AppColors.primary,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: screenWidth * 0.04),
                 Text(
                   'مواقيت الصلاة',
                   style: getBoldStyle(
                     fontFamily: FontConstant.cairo,
-                    fontSize: FontSize.size20,
+                    fontSize: screenWidth * 0.05,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: screenWidth * 0.02),
                 Text(
                   'جاري تحميل المواقيت...',
                   style: getRegularStyle(
                     fontFamily: FontConstant.cairo,
-                    fontSize: FontSize.size16,
+                    fontSize: screenWidth * 0.04,
                     color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: screenWidth * 0.04),
                 ElevatedButton(
                   onPressed: _loadPrayerTimes,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 12,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.08,
+                      vertical: screenWidth * 0.03,
                     ),
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(screenWidth * 0.05),
                     ),
                   ),
                   child: Text(
                     'تحميل المواقيت',
                     style: getBoldStyle(
                       fontFamily: FontConstant.cairo,
-                      fontSize: FontSize.size14,
+                      fontSize: screenWidth * 0.035,
                       color: Colors.white,
                     ),
                   ),

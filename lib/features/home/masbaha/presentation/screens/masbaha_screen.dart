@@ -3,27 +3,34 @@ import 'package:noor_quran/core/utils/constant/styles_manger.dart';
 import 'package:noor_quran/core/utils/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../cubit/masbaha_cubit.dart';
 import '../cubit/masbaha_state.dart';
 
-class CustomAppBar extends AppBar {
-  CustomAppBar({Key? key, required String title})
-      : super(
-          key: key,
-          title: Text(
-            title,
-            style: getBoldStyle(
-              fontFamily: FontConstant.cairo,
-              fontSize: 18.sp,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: AppColors.primary,
-          elevation: 0,
-          centerTitle: true,
-        );
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String title;
+  const CustomAppBar({Key? key, required this.title}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return AppBar(
+      title: Text(
+        title,
+        style: getBoldStyle(
+          fontFamily: FontConstant.cairo,
+          fontSize: screenWidth * 0.045,
+          color: Colors.white,
+        ),
+      ),
+      backgroundColor: AppColors.primary,
+      elevation: 0,
+      centerTitle: true,
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class MasbahaScreen extends StatelessWidget {
@@ -31,10 +38,13 @@ class MasbahaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return BlocProvider(
       create: (context) => MasbahaCubit(),
       child: Scaffold(
-        appBar: CustomAppBar(title: 'المسبحة الإلكترونية'),
+        appBar: const CustomAppBar(title: 'المسبحة الإلكترونية'),
         body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -49,7 +59,7 @@ class MasbahaScreen extends StatelessWidget {
           child: BlocBuilder<MasbahaCubit, MasbahaState>(
             builder: (context, state) {
               final isMaxCount = state.counter >= MasbahaCubit.maxCount;
-              
+
               return Stack(
                 alignment: Alignment.center,
                 children: [
@@ -57,7 +67,7 @@ class MasbahaScreen extends StatelessWidget {
                   Column(
                     children: [
                       // Counter display
-                      SizedBox(height: 40.h),
+                      SizedBox(height: screenHeight * 0.05),
                       Expanded(
                         flex: 3,
                         child: Center(
@@ -68,23 +78,26 @@ class MasbahaScreen extends StatelessWidget {
                                 '${state.counter}',
                                 style: getBoldStyle(
                                   fontFamily: FontConstant.cairo,
-                                  fontSize: 90.sp,
+                                  fontSize: screenWidth * 0.23,
                                   color: AppColors.primary,
-                                )
+                                ),
                               ),
-                              SizedBox(height: 30.h),
+                              SizedBox(height: screenHeight * 0.04),
                               if (isMaxCount)
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: screenWidth * 0.04,
+                                      vertical: screenHeight * 0.01),
                                   decoration: BoxDecoration(
                                     color: Colors.red.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(16.r),
+                                    borderRadius: BorderRadius.circular(
+                                        screenWidth * 0.04),
                                   ),
                                   child: Text(
                                     'وصلت للحد الأقصى (1000)',
                                     style: getBoldStyle(
                                       fontFamily: FontConstant.cairo,
-                                      fontSize: 16.sp,
+                                      fontSize: screenWidth * 0.04,
                                       color: Colors.red,
                                     ),
                                   ),
@@ -93,12 +106,12 @@ class MasbahaScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      
+
                       // Action buttons at bottom
                       Expanded(
                         flex: 2,
                         child: Padding(
-                          padding: EdgeInsets.all(16.r),
+                          padding: EdgeInsets.all(screenWidth * 0.04),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -106,58 +119,67 @@ class MasbahaScreen extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: _buildActionButton(
-                                      onTap: () => context.read<MasbahaCubit>().reset(),
+                                      onTap: () =>
+                                          context.read<MasbahaCubit>().reset(),
                                       label: 'تصفير',
                                       icon: Icons.refresh,
                                       color: Colors.red,
+                                      screenWidth: screenWidth,
+                                      screenHeight: screenHeight,
                                     ),
                                   ),
-                                  SizedBox(width: 12.w),
+                                  SizedBox(width: screenWidth * 0.03),
                                   Expanded(
                                     child: _buildActionButton(
-                                      onTap: () => context.read<MasbahaCubit>().setToOne(),
+                                      onTap: () => context
+                                          .read<MasbahaCubit>()
+                                          .setToOne(),
                                       label: 'البدء',
                                       icon: Icons.looks_one,
-                                      color: state.counter == 0 ? Colors.green : Colors.grey,
+                                      color: state.counter == 0
+                                          ? Colors.green
+                                          : Colors.grey,
+                                      screenWidth: screenWidth,
+                                      screenHeight: screenHeight,
                                     ),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 20.h),
+                              SizedBox(height: screenHeight * 0.025),
                             ],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  
+
                   // Circular Tasbih button
                   Positioned(
-                    bottom: MediaQuery.of(context).size.height * 0.3,
+                    bottom: screenHeight * 0.22,
                     child: Material(
                       color: Colors.transparent,
                       shape: const CircleBorder(),
                       clipBehavior: Clip.hardEdge,
                       child: InkWell(
-                        onTap: isMaxCount 
-                          ? null 
-                          : () => context.read<MasbahaCubit>().increment(),
+                        onTap: isMaxCount
+                            ? null
+                            : () => context.read<MasbahaCubit>().increment(),
                         splashColor: Colors.white.withOpacity(0.3),
                         highlightColor: Colors.white.withOpacity(0.1),
                         child: Ink(
-                          height: 150.h,
-                          width: 150.w,
+                          height: screenWidth * 0.38,
+                          width: screenWidth * 0.38,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isMaxCount 
-                              ? AppColors.primary.withOpacity(0.5) 
-                              : AppColors.primary,
+                            color: isMaxCount
+                                ? AppColors.primary.withOpacity(0.5)
+                                : AppColors.primary,
                             boxShadow: [
                               BoxShadow(
                                 color: AppColors.primary.withOpacity(0.3),
-                                blurRadius: 15.r,
+                                blurRadius: screenWidth * 0.04,
                                 spreadRadius: 2,
-                                offset: Offset(0, 5.h),
+                                offset: Offset(0, screenHeight * 0.006),
                               ),
                             ],
                           ),
@@ -166,7 +188,7 @@ class MasbahaScreen extends StatelessWidget {
                               'تسبيح',
                               style: getSemiBoldStyle(
                                 fontFamily: FontConstant.cairo,
-                                fontSize: 22.sp,
+                                fontSize: screenWidth * 0.055,
                                 color: Colors.white,
                               ),
                             ),
@@ -189,39 +211,39 @@ class MasbahaScreen extends StatelessWidget {
     required String label,
     required IconData icon,
     required Color color,
+    required double screenWidth,
+    required double screenHeight,
   }) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: BorderRadius.circular(screenWidth * 0.04),
       clipBehavior: Clip.hardEdge,
       child: InkWell(
         onTap: onTap,
         splashColor: color.withOpacity(0.3),
         highlightColor: color.withOpacity(0.1),
         child: Ink(
-          height: 56.h,
+          height: screenHeight * 0.07,
           decoration: BoxDecoration(
             color: color.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(screenWidth * 0.04),
             border: Border.all(color: color, width: 1.5),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: color, size: 24.sp),
-              SizedBox(width: 8.w),
-              Text(
-                label,
-                style: getSemiBoldStyle(
-                  fontFamily: FontConstant.cairo,
-                  fontSize: 16.sp,
-                  color: color,
-                )
-              ),
+              Icon(icon, color: color, size: screenWidth * 0.06),
+              SizedBox(width: screenWidth * 0.02),
+              Text(label,
+                  style: getSemiBoldStyle(
+                    fontFamily: FontConstant.cairo,
+                    fontSize: screenWidth * 0.04,
+                    color: color,
+                  )),
             ],
           ),
         ),
       ),
     );
   }
-} 
+}

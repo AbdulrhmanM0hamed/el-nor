@@ -21,10 +21,11 @@ class PrayerTimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final cardColor = color ?? AppColors.primary;
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.02),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -34,57 +35,57 @@ class PrayerTimeCard extends StatelessWidget {
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(screenWidth * 0.04),
         boxShadow: [
           BoxShadow(
             color: cardColor.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: screenWidth * 0.025,
+            offset: Offset(0, screenWidth * 0.01),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(screenWidth * 0.04),
         child: Stack(
           children: [
             // Decorative elements
             Positioned(
-              top: -20,
-              right: -20,
+              top: -screenWidth * 0.05,
+              right: -screenWidth * 0.05,
               child: CircleAvatar(
-                radius: 40,
+                radius: screenWidth * 0.1,
                 backgroundColor: Colors.white.withOpacity(0.1),
               ),
             ),
             Positioned(
-              bottom: -10,
-              left: -10,
+              bottom: -screenWidth * 0.025,
+              left: -screenWidth * 0.025,
               child: CircleAvatar(
-                radius: 25,
+                radius: screenWidth * 0.06,
                 backgroundColor: Colors.white.withOpacity(0.1),
               ),
             ),
             
             // Main content
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(screenWidth * 0.04),
               child: Row(
                 children: [
                   // Prayer icon
                   Container(
-                    width: 50,
-                    height: 50,
+                    width: screenWidth * 0.13,
+                    height: screenWidth * 0.13,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(screenWidth * 0.065),
                     ),
                     child: Icon(
                       icon,
                       color: Colors.white,
-                      size: 28,
+                      size: screenWidth * 0.07,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: screenWidth * 0.04),
                   
                   // Prayer info
                   Expanded(
@@ -95,16 +96,16 @@ class PrayerTimeCard extends StatelessWidget {
                           title,
                           style: getBoldStyle(
                             fontFamily: FontConstant.cairo,
-                            fontSize: FontSize.size16,
+                            fontSize: screenWidth * 0.04, // Replaces FontSize.size16
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: screenWidth * 0.01),
                         Text(
                           time,
-                          style:const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontConstant.cairo,
-                            fontSize: FontSize.size22,
+                            fontSize: screenWidth * 0.055, // Replaces FontSize.size22
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -116,19 +117,19 @@ class PrayerTimeCard extends StatelessWidget {
                   // Next prayer indicator
                   if (isNext)
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.03,
+                        vertical: screenWidth * 0.015,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(screenWidth * 0.05),
                       ),
                       child: Text(
                         'الصلاة التالية',
                         style: getMediumStyle(
                           fontFamily: FontConstant.cairo,
-                          fontSize: FontSize.size12,
+                          fontSize: screenWidth * 0.03, // Replaces FontSize.size12
                           color: Colors.white,
                         ),
                       ),

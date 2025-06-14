@@ -101,26 +101,27 @@ class _PrayerTimesHeaderState extends State<PrayerTimesHeader> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 80, 20, 20),
+      padding: EdgeInsets.fromLTRB(screenWidth * 0.05, screenWidth * 0.2, screenWidth * 0.05, screenWidth * 0.05),
       decoration: BoxDecoration(
         color: AppColors.logoTeal,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(screenWidth * 0.08),
+          bottomRight: Radius.circular(screenWidth * 0.08),
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.logoTeal.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: screenWidth * 0.025,
+            offset: Offset(0, screenWidth * 0.01),
           ),
         ],
       ),
       child: Column(
         children: [
           // Location
-          const SizedBox(height: 24),
+          SizedBox(height: screenWidth * 0.06),
 
           // Title
           Align(
@@ -129,19 +130,19 @@ class _PrayerTimesHeaderState extends State<PrayerTimesHeader> {
               '  مواقيت الصلاة  ',
               style: getBoldStyle(
                 fontFamily: FontConstant.cairo,
-                fontSize: FontSize.size24,
+                fontSize: screenWidth * 0.06, // Replaces FontSize.size24
                 color: Colors.white,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: screenWidth * 0.04),
           
           // Countdown Timer
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03, horizontal: screenWidth * 0.04),
             decoration: BoxDecoration(
               color: AppColors.logoOrange.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(screenWidth * 0.03),
               border: Border.all(color: AppColors.logoYellow.withOpacity(0.3), width: 1),
             ),
             child: Column(
@@ -151,24 +152,24 @@ class _PrayerTimesHeaderState extends State<PrayerTimesHeader> {
                   'الوقت المتبقي لصلاة $_nextPrayerName',
                   style: getMediumStyle(
                     fontFamily: FontConstant.cairo,
-                    fontSize: FontSize.size14,
+                    fontSize: screenWidth * 0.035, // Replaces FontSize.size14
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: screenWidth * 0.02),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.02),
                   decoration: BoxDecoration(
                     color: AppColors.logoTeal.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
                     border: Border.all(color: AppColors.logoYellow.withOpacity(0.3), width: 1),
                   ),
                   child: Text(
                     _remainingTime,
                     style: getBoldStyle(
                       fontFamily: FontConstant.cairo,
-                      fontSize: FontSize.size18,
+                      fontSize: screenWidth * 0.045, // Replaces FontSize.size18
                       color: AppColors.logoYellow,
                     ),
                   ),
@@ -176,14 +177,14 @@ class _PrayerTimesHeaderState extends State<PrayerTimesHeader> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: screenWidth * 0.04),
 
           // Dates container
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(screenWidth * 0.04),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(screenWidth * 0.04),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,16 +197,16 @@ class _PrayerTimesHeaderState extends State<PrayerTimesHeader> {
                       'التاريخ الميلادي',
                       style: getMediumStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: FontSize.size12,
+                        fontSize: screenWidth * 0.03, // Replaces FontSize.size12
                         color: Colors.white70,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: screenWidth * 0.01),
                     Text(
                       widget.dateInfo.dateEn,
                       style: getBoldStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: FontSize.size16,
+                        fontSize: screenWidth * 0.04, // Replaces FontSize.size16
                         color: Colors.white,
                       ),
                     ),
@@ -214,7 +215,7 @@ class _PrayerTimesHeaderState extends State<PrayerTimesHeader> {
 
                 // Divider
                 Container(
-                  height: 40,
+                  height: screenWidth * 0.1,
                   width: 1,
                   color: Colors.white.withOpacity(0.3),
                 ),
@@ -227,27 +228,27 @@ class _PrayerTimesHeaderState extends State<PrayerTimesHeader> {
                       'التاريخ الهجري',
                       style: getMediumStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: FontSize.size12,
+                        fontSize: screenWidth * 0.03, // Replaces FontSize.size12
                         color: Colors.white70,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: screenWidth * 0.01),
                     Row(
                       children: [
                         Text(
                           widget.dateInfo.dateHijri.date,
                           style: getBoldStyle(
                             fontFamily: FontConstant.cairo,
-                            fontSize: FontSize.size16,
+                            fontSize: screenWidth * 0.04, // Replaces FontSize.size16
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: screenWidth * 0.02),
                         Text(
                           widget.dateInfo.dateHijri.weekday.ar,
                           style: getMediumStyle(
                             fontFamily: FontConstant.cairo,
-                            fontSize: FontSize.size14,
+                            fontSize: screenWidth * 0.035, // Replaces FontSize.size14
                             color: Colors.white,
                           ),
                         ),
