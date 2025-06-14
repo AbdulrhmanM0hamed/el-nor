@@ -68,16 +68,6 @@ class InputValidator {
     if (value.length < 8) {
       return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
     }
-    // Require: upper, lower, digit, special
-    final bool hasUpper = value.contains(RegExp(r'[A-Z]'));
-    final bool hasLower = value.contains(RegExp(r'[a-z]'));
-    final bool hasDigit = value.contains(RegExp(r'\d'));
-    final bool hasSpecial = value.contains(RegExp(r'[!@#\$&*~%^]'));
-
-    if (!hasUpper || !hasLower || !hasDigit || !hasSpecial) {
-      return 'كلمة المرور يجب أن تحتوي على حرف كبير وصغير، رقم، ورمز خاص';
-    }
-
     return null;
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../features/auth/presentation/cubit/global_auth_cubit.dart';
 
@@ -52,12 +53,40 @@ class WaitingListDialog extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20.h),
+            SelectableText(
+              '+972 56 900 9186',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 12.h),
+            OutlinedButton(
+              onPressed: () async {
+                await Clipboard.setData(const ClipboardData(text: '+972569009186'));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تم نسخ الرقم')),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.logoTeal,
+                side: const BorderSide(color: AppColors.logoTeal),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+              ),
+              child: const Text('انسخ الرقم'),
+            ),
+            SizedBox(height: 12.h),
             ElevatedButton(
               onPressed: () async {
                 final whatsappUrl =
                     Uri.parse("whatsapp://send?phone=972569009186");
                 if (await canLaunchUrl(whatsappUrl)) {
-                  await launchUrl(whatsappUrl);
+                  await launchUrl(
+                    whatsappUrl,
+                    mode: LaunchMode.externalApplication,
+                  );
                 } else {
                   // جرب الرابط عبر المتصفح
                   final fallbackUrl = Uri.parse("https://wa.me/972569009186");
