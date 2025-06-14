@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/utils/theme/app_colors.dart';
@@ -19,50 +19,51 @@ class WaitingListDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
+        borderRadius: BorderRadius.circular(screenWidth * 0.05),
       ),
       child: Container(
-        padding: EdgeInsets.all(20.sp),
+        padding: EdgeInsets.all(screenWidth * 0.05),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
               'assets/images/whatsapp.png',
-              height: 80.h,
-              width: 80.w,
+              height: screenWidth * 0.2,
+              width: screenWidth * 0.2,
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: screenWidth * 0.05),
             Text(
               'أنت الآن على قائمة الانتظار',
               style: TextStyle(
-                fontSize: 20.sp,
+                fontSize: screenWidth * 0.05,
                 fontWeight: FontWeight.bold,
                 color: AppColors.logoTeal,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: screenWidth * 0.025),
             Text(
               'برجاء التواصل مع المسؤول ليتم إضافتك إلى حلقات الحفظ',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: screenWidth * 0.04,
                 color: Colors.grey[700],
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: screenWidth * 0.05),
             SelectableText(
               '+972 56 900 9186',
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: screenWidth * 0.045,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: screenWidth * 0.03),
             OutlinedButton(
               onPressed: () async {
                 await Clipboard.setData(const ClipboardData(text: '+972569009186'));
@@ -73,11 +74,12 @@ class WaitingListDialog extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.logoTeal,
                 side: const BorderSide(color: AppColors.logoTeal),
-                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+                padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.06, vertical: screenWidth * 0.025),
               ),
               child: const Text('انسخ الرقم'),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: screenWidth * 0.03),
             ElevatedButton(
               onPressed: () async {
                 final whatsappUrl =
@@ -101,43 +103,37 @@ class WaitingListDialog extends StatelessWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF25D366),
-                padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 12.h),
+                backgroundColor: AppColors.logoTeal,
+                padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.075, vertical: screenWidth * 0.03),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(screenWidth * 0.075),
                 ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    'assets/images/whatsapp.png',
-                    height: 20.h,
-                    width: 20.w,
-                  ),
-                  SizedBox(width: 8.w),
+                  const Icon(Icons.send, color: Colors.white),
+                  SizedBox(width: screenWidth * 0.02),
                   Text(
-                    'تواصل معنا',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'افتح واتساب',
+                    style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.white),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: screenWidth * 0.025),
             TextButton(
               onPressed: () {
                 context.read<GlobalAuthCubit>().markWaitingDialogAsSeen();
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'حسناً',
+              child: Text(
+                'تخطي',
                 style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.logoTeal,
+                  fontSize: screenWidth * 0.035,
+                  color: Colors.grey[600],
+                  decoration: TextDecoration.underline,
                 ),
               ),
             ),

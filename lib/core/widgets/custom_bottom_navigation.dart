@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../utils/theme/app_colors.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
@@ -14,16 +14,17 @@ class CustomBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final double bottomInset = MediaQuery.of(context).padding.bottom;
     return Container(
-      height: 70.h + bottomInset,
+      height: screenWidth * 0.18 + bottomInset,
       padding: EdgeInsets.only(bottom: bottomInset),
       child: Stack(
         children: [
           // منحنى في الخلفية
           CustomPaint(
-            size: Size(MediaQuery.of(context).size.width, 70.h),
-            painter: NavBarPainter(context),
+            size: Size(screenWidth, screenWidth * 0.18),
+            painter: NavBarPainter(context, screenWidth),
           ),
 
           // أزرار التنقل
@@ -31,13 +32,13 @@ class CustomBottomNavigation extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               // الرئيسية - الصفحة الأولى (index 0)
-              _buildNavItem(0, Icons.home_rounded, 'الرئيسية'),
+              _buildNavItem(0, Icons.home_rounded, 'الرئيسية', screenWidth),
 
               // حلقات الحفظ - الصفحة الثانية (index 1)
-              _buildCenterButton(),
+              _buildCenterButton(screenWidth),
 
               // الملف الشخصي - الصفحة الثالثة (index 2)
-              _buildNavItem(2, Icons.person_rounded, 'الملف'),
+              _buildNavItem(2, Icons.person_rounded, 'الملف', screenWidth),
             ],
           ),
         ],
@@ -46,27 +47,28 @@ class CustomBottomNavigation extends StatelessWidget {
   }
 
   // بناء زر عادي في شريط التنقل
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(int index, IconData icon, String label, double screenWidth) {
     // التحقق مما إذا كان هذا الزر هو المحدد حاليًا
     final bool isSelected = currentIndex == index;
 
     return GestureDetector(
       onTap: () => onTap(index),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.02, vertical: screenWidth * 0.02),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              size: isSelected ? 28.sp : 24.sp,
+              size: isSelected ? screenWidth * 0.07 : screenWidth * 0.06,
               color: isSelected ? AppColors.logoOrange : Colors.grey,
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: screenWidth * 0.01),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: screenWidth * 0.03,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected ? AppColors.logoOrange : Colors.grey,
               ),
@@ -78,16 +80,16 @@ class CustomBottomNavigation extends StatelessWidget {
   }
 
   // بناء زر الوسط المميز (حلقات الحفظ)
-  Widget _buildCenterButton() {
+  Widget _buildCenterButton(double screenWidth) {
     // التحقق مما إذا كان زر الحلقات هو المحدد حاليًا (index 1)
     final bool isSelected = currentIndex == 1;
 
     return GestureDetector(
       onTap: () => onTap(1), // دائمًا يذهب إلى الصفحة الثانية (index 1)
       child: Container(
-        width: 60.w,
-        height: 60.h,
-        margin: EdgeInsets.only(bottom: 20.h),
+        width: screenWidth * 0.22,
+        height: screenWidth * 0.22,
+        margin: EdgeInsets.only(bottom: screenWidth * 0.05),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isSelected
@@ -99,8 +101,9 @@ class CustomBottomNavigation extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.logoTeal.withOpacity(0.3),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: screenWidth * 0.025,
               offset: const Offset(0, 5),
             ),
           ],
@@ -108,18 +111,10 @@ class CustomBottomNavigation extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.groups_rounded,
-              color: Colors.white,
-              size: 26.sp,
-            ),
+            Icon(Icons.groups_rounded, size: screenWidth * 0.075, color: Colors.white),
             Text(
-              'حلقات',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 10.sp,
-                fontWeight: FontWeight.bold,
-              ),
+              'الحلقات',
+              style: TextStyle(fontSize: screenWidth * 0.03, color: Colors.white),
             ),
           ],
         ),
@@ -131,27 +126,32 @@ class CustomBottomNavigation extends StatelessWidget {
 // رسم المنحنى في الخلفية
 class NavBarPainter extends CustomPainter {
   final BuildContext context;
+  final double screenWidth;
 
-  NavBarPainter(this.context);
+  NavBarPainter(this.context, this.screenWidth);
 
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = Theme.of(context).brightness == Brightness.dark
-          ? Colors.black
-          : Colors.white
+    final Paint paint = Paint()
+      ..color = Theme.of(context).cardColor
       ..style = PaintingStyle.fill;
 
-    Path path = Path()
-      ..moveTo(0, 0)
+    final double curveHeight = screenWidth * 0.05;
+
+    final Path path = Path()
+      ..moveTo(0, curveHeight) // بداية المنحنى
+      ..quadraticBezierTo(size.width * 0.05, 0, size.width * 0.15, 0)
       ..lineTo(size.width * 0.35, 0)
-      ..quadraticBezierTo(
-        size.width * 0.5,
-        0,
-        size.width * 0.65,
-        0,
+      // المنحنى للزر الأوسط
+      ..quadraticBezierTo(size.width * 0.4, 0, size.width * 0.4, curveHeight)
+      ..arcToPoint(
+        Offset(size.width * 0.6, curveHeight),
+        radius: Radius.circular(screenWidth * 0.1),
+        clockwise: false,
       )
-      ..lineTo(size.width, 0)
+      ..quadraticBezierTo(size.width * 0.6, 0, size.width * 0.65, 0)
+      ..lineTo(size.width * 0.85, 0)
+      ..quadraticBezierTo(size.width * 0.95, 0, size.width, curveHeight)
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
@@ -160,7 +160,5 @@ class NavBarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

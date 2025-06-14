@@ -20,40 +20,42 @@ class BookmarkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final formattedDate = _formatBookmarkDate(bookmark.timestamp);
-    
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: EdgeInsets.only(bottom: screenWidth * 0.03),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(screenWidth * 0.03)),
       color: AppColors.white,
       elevation: 4,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(screenWidth * 0.03),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(screenWidth * 0.04),
           child: Row(
             children: [
               // Page indicator
               Container(
-                width: 50,
-                height: 50,
+                width: screenWidth * 0.13,
+                height: screenWidth * 0.13,
                 decoration: BoxDecoration(
                   color: AppColors.logoTeal.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(screenWidth * 0.02),
                 ),
                 child: Center(
                   child: Text(
                     '${bookmark.pageNumber}',
                     style: getBoldStyle(
                       fontFamily: FontConstant.cairo,
-                      fontSize: 18,
+                      fontSize: screenWidth * 0.048,
                       color: AppColors.logoTeal,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: screenWidth * 0.04),
               // Bookmark details
               Expanded(
                 child: Column(
@@ -63,16 +65,17 @@ class BookmarkCard extends StatelessWidget {
                       bookmark.title,
                       style: getBoldStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: 16,
+                        fontSize: screenWidth * 0.042,
                         color: AppColors.textPrimary,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: screenWidth * 0.01),
                     Text(
                       formattedDate,
                       style: getRegularStyle(
                         fontFamily: FontConstant.cairo,
-                        fontSize: 14,
+                        fontSize: screenWidth * 0.037,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -80,9 +83,9 @@ class BookmarkCard extends StatelessWidget {
                 ),
               ),
               // Navigate icon
-              const Icon(
+              Icon(
                 Icons.arrow_forward_ios,
-                size: 16,
+                size: screenWidth * 0.04,
                 color: AppColors.logoOrange,
               ),
             ],

@@ -22,6 +22,9 @@ class QuranAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final iconSize = screenWidth * 0.065;
+
     return BlocBuilder<QuranCubit, QuranState>(
       builder: (context, state) {
         return AppBar(
@@ -31,23 +34,26 @@ class QuranAppBar extends StatelessWidget implements PreferredSizeWidget {
             'القرآن الكريم - صفحة ${state.currentPage}',
             style: getBoldStyle(
               fontFamily: FontConstant.cairo,
-              fontSize: 18,
+              fontSize: screenWidth * 0.045,
               color: AppColors.white,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
           leading: IconButton(
             icon: const Icon(Icons.menu_book, color: AppColors.logoYellow),
+            iconSize: iconSize,
             onPressed: () {
               context.read<QuranCubit>().toggleTableOfContents();
             },
           ),
           actions: [
             // Bookmark button
-            _buildBookmarkButton(context),
-            
+            _buildBookmarkButton(context, iconSize),
+
             // Bookmarks list button
             IconButton(
               icon: const Icon(Icons.bookmarks, color: AppColors.logoYellow),
+              iconSize: iconSize,
               onPressed: onBookmarksListPressed,
               tooltip: 'الإشارات المرجعية',
             ),
@@ -58,21 +64,21 @@ class QuranAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
   
   /// Bookmark button for the app bar
-  Widget _buildBookmarkButton(BuildContext context) {
+  Widget _buildBookmarkButton(BuildContext context, double iconSize) {
     return BlocBuilder<QuranCubit, QuranState>(
-      buildWhen: (previous, current) => 
-        previous.bookmarks != current.bookmarks || 
-        previous.currentPage != current.currentPage,
+      buildWhen: (previous, current) =>
+          previous.bookmarks != current.bookmarks ||
+          previous.currentPage != current.currentPage,
       builder: (context, state) {
-        final isBookmarked = state.bookmarks.any(
-          (bookmark) => bookmark.pageNumber == state.currentPage
-        );
-        
+        final isBookmarked =
+            state.bookmarks.any((bookmark) => bookmark.pageNumber == state.currentPage);
+
         return IconButton(
           icon: Icon(
             isBookmarked ? Icons.bookmark : Icons.bookmark_add_outlined,
             color: Colors.white,
           ),
+          iconSize: iconSize,
           onPressed: onBookmarkPressed,
           tooltip: isBookmarked ? 'تعديل الإشارة المرجعية' : 'إضافة إشارة مرجعية',
         );
