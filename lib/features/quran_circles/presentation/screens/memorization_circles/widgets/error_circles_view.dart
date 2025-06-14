@@ -13,34 +13,52 @@ class ErrorCirclesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsiveSize = screenWidth / 375;
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.bold,
+      child: Padding(
+        padding: EdgeInsets.all(16.0 * responsiveSize),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64 * responsiveSize,
+              color: AppColors.error,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onRetry,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.logoTeal,
+            SizedBox(height: 16 * responsiveSize),
+            Text(
+              message,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontSize: 16 * responsiveSize,
+                    color: Colors.grey[700],
+                  ),
+              textAlign: TextAlign.center,
             ),
-            child: const Text('إعادة المحاولة'),
-          ),
-        ],
+            SizedBox(height: 16 * responsiveSize),
+            ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.logoTeal,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 32 * responsiveSize,
+                  vertical: 12 * responsiveSize,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8 * responsiveSize),
+                ),
+              ),
+              child: Text(
+                'إعادة المحاولة',
+                style: TextStyle(
+                  fontSize: 14 * responsiveSize,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

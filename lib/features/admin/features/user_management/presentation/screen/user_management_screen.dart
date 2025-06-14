@@ -3,7 +3,6 @@ import 'package:noor_quran/features/admin/features/user_management/presentation/
 import 'package:noor_quran/features/admin/features/user_management/presentation/widgets/user_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../../core/services/service_locator.dart';
 import '../../../../data/models/student_model.dart';
 import '../cubit/admin_cubit.dart';
@@ -107,12 +106,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'إدارة المستخدمين',
           style: TextStyle(
-            fontSize: 18.sp,
+            fontSize: responsive(18),
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -121,7 +123,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         centerTitle: true,
         actions: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            padding: EdgeInsets.symmetric(horizontal: responsive(8)),
             child: TextButton(
               onPressed: () {
                 setState(() {
@@ -133,7 +135,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 backgroundColor: _showRecentUsers ? Colors.green : Colors.white,
                 foregroundColor: _showRecentUsers ? Colors.white : Colors.green,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(responsive(20)),
                   side:const BorderSide(color: Colors.green),
                 ),
               ),
@@ -185,9 +187,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     ),
                   );
                 } else if (state is AdminUsersLoaded) {
-                  return _buildUsersList(_filteredUsers);
+                  return _buildUsersList(context, responsive, _filteredUsers);
                 } else if (state is AdminError) {
-                  return _buildErrorState(state.message);
+                  return _buildErrorState(context, responsive, state.message);
                 }
                 
                 if (state is AdminInitial) {
@@ -207,7 +209,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildUsersList(List<StudentModel> users) {
+  Widget _buildUsersList(BuildContext context, Function(double) responsive, List<StudentModel> users) {
     if (users.isEmpty) {
       return Center(
         child: Column(
@@ -215,14 +217,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           children: [
             Icon(
               Icons.search_off,
-              size: 64.sp,
+              size: responsive(64),
               color: Theme.of(context).disabledColor,
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: responsive(16)),
             Text(
               'لا يوجد مستخدمين مطابقين للبحث',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: responsive(16),
                 color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
               textAlign: TextAlign.center,
@@ -233,7 +235,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(responsive(16)),
       itemCount: users.length,
       itemBuilder: (context, index) {
         final user = users[index];
@@ -245,26 +247,26 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildErrorState(String message) {
+  Widget _buildErrorState(BuildContext context, Function(double) responsive, String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.error_outline,
-            size: 64.sp,
+            size: responsive(64),
             color: Theme.of(context).colorScheme.error,
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: responsive(16)),
           Text(
             message,
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: responsive(16),
               color: Theme.of(context).colorScheme.error,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: responsive(24)),
           ElevatedButton(
             onPressed: () {
               context.read<AdminCubit>().loadAllUsers();
@@ -279,4 +281,4 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
     );
   }
-} 
+}

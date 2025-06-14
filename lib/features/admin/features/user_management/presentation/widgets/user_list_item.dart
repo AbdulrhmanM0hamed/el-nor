@@ -1,6 +1,5 @@
 import 'package:noor_quran/features/admin/data/models/student_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'user_role_chip.dart';
 import 'user_info_chip.dart';
@@ -17,11 +16,14 @@ class UserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Container(
-      margin: EdgeInsets.only(bottom: 16.r),
+      margin: EdgeInsets.only(bottom: responsive(16)),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(responsive(16)),
         boxShadow: [
           BoxShadow(
             color: Theme.of(context).shadowColor.withOpacity(0.1),
@@ -32,7 +34,7 @@ class UserListItem extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(responsive(16)),
         child: Stack(
           children: [
             Positioned(
@@ -40,18 +42,18 @@ class UserListItem extends StatelessWidget {
               top: 0,
               bottom: 0,
               child: Container(
-                width: 4.w,
+                width: responsive(4),
                 color: _getRoleColor(user),
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(16.r),
+              padding: EdgeInsets.all(responsive(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildUserHeader(context),
-                  SizedBox(height: 12.h),
-                  _buildUserChips(),
+                  _buildUserHeader(context, responsive),
+                  SizedBox(height: responsive(12)),
+                  _buildUserChips(responsive),
                 ],
               ),
             ),
@@ -61,11 +63,11 @@ class UserListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildUserHeader(BuildContext context) {
+  Widget _buildUserHeader(BuildContext context, Function(double) responsive) {
     return Row(
       children: [
-        _buildUserAvatar(context),
-        SizedBox(width: 16.w),
+        _buildUserAvatar(context, responsive),
+        SizedBox(width: responsive(16)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,37 +78,37 @@ class UserListItem extends StatelessWidget {
                     child: Text(
                       user.name,
                       style: TextStyle(
-                        fontSize: 18.sp,
+                        fontSize: responsive(18),
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).textTheme.titleLarge?.color,
                       ),
                     ),
                   ),
-                  _buildEditButton(context),
+                  _buildEditButton(context, responsive),
                 ],
               ),
-              SizedBox(height: 4.h),
+              SizedBox(height: responsive(4)),
               Text(
                 user.email,
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: responsive(14),
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
               if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) ...[
-                SizedBox(height: 4.h),
+                SizedBox(height: responsive(4)),
                 Row(
                   children: [
                     Icon(
                       Icons.phone_outlined,
-                      size: 14.r,
+                      size: responsive(14),
                       color: Colors.grey.shade600,
                     ),
-                    SizedBox(width: 4.w),
+                    SizedBox(width: responsive(4)),
                     Text(
                       user.phoneNumber!,
                       style: TextStyle(
-                        fontSize: 13.sp,
+                        fontSize: responsive(13),
                         color: Colors.grey.shade700,
                       ),
                     ),
@@ -120,19 +122,19 @@ class UserListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildUserAvatar(BuildContext context) {
+  Widget _buildUserAvatar(BuildContext context, Function(double) responsive) {
     return Container(
-      width: 65.r,
-      height: 65.r,
+      width: responsive(65),
+      height: responsive(65),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: _getRoleColor(user).withValues(alpha: 0.3),
+          color: _getRoleColor(user).withOpacity(0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
+            color: Theme.of(context).shadowColor.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 2),
@@ -140,7 +142,7 @@ class UserListItem extends StatelessWidget {
         ],
       ),
       child: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
         backgroundImage: user.profileImageUrl != null
             ? NetworkImage(user.profileImageUrl!)
             : null,
@@ -150,7 +152,7 @@ class UserListItem extends StatelessWidget {
                 style: TextStyle(
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 24.sp,
+                  fontSize: responsive(24),
                 ),
               )
             : null,
@@ -158,32 +160,32 @@ class UserListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildEditButton(BuildContext context) {
+  Widget _buildEditButton(BuildContext context, Function(double) responsive) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onEditRole,
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(responsive(8)),
         child: Container(
-          padding: EdgeInsets.all(8.r),
+          padding: EdgeInsets.all(responsive(8)),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8.r),
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(responsive(8)),
           ),
           child: Icon(
             Icons.edit_outlined,
             color: Theme.of(context).primaryColor,
-            size: 20.r,
+            size: responsive(20),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildUserChips() {
+  Widget _buildUserChips(Function(double) responsive) {
     return Wrap(
-      spacing: 8.w,
-      runSpacing: 4.h,
+      spacing: responsive(8),
+      runSpacing: responsive(4),
       children: [
         UserRoleChip(
           text: _getUserRoleText(),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UserInfoChip extends StatelessWidget {
   final String text;
@@ -15,16 +14,19 @@ class UserInfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 12.w,
-        vertical: 6.h,
+        horizontal: responsive(12),
+        vertical: responsive(6),
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha:  0.1),
-        borderRadius: BorderRadius.circular(20.r),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(responsive(20)),
         border: Border.all(
-          color: color.withValues(alpha:  0.3),
+          color: color.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -33,15 +35,15 @@ class UserInfoChip extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 16.r,
+            size: responsive(16),
             color: color,
           ),
-          SizedBox(width: 6.w),
+          SizedBox(width: responsive(6)),
           Text(
             text,
             style: TextStyle(
               color: color,
-              fontSize: 12.sp,
+              fontSize: responsive(12),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -49,4 +51,4 @@ class UserInfoChip extends StatelessWidget {
       ),
     );
   }
-} 
+}

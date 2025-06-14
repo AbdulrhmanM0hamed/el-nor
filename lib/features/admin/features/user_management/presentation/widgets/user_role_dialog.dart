@@ -1,6 +1,5 @@
 import 'package:noor_quran/features/admin/data/models/student_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UserRoleDialog extends StatefulWidget {
   final StudentModel user;
@@ -30,14 +29,17 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(responsive(15)),
       ),
       backgroundColor: Theme.of(context).dialogBackgroundColor,
       child: Container(
-        width: 320.w,
-        padding: EdgeInsets.all(16.r),
+        width: responsive(320),
+        padding: EdgeInsets.all(responsive(16)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -45,13 +47,13 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
             Text(
               'اختر الدور:',
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: responsive(18),
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).textTheme.titleLarge?.color,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: responsive(20)),
             if (isUpdating)
               Center(
                 child: CircularProgressIndicator(
@@ -63,6 +65,7 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
                 children: [
                   _buildRoleOption(
                     context,
+                    responsive,
                     title: 'مشرف',
                     subtitle: 'صلاحيات كاملة للنظام وإدارة المنصة',
                     icon: Icons.admin_panel_settings,
@@ -77,9 +80,10 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
                       }
                     },
                   ),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: responsive(12)),
                   _buildRoleOption(
                     context,
+                    responsive,
                     title: 'معلم',
                     subtitle: 'يمكنه إدارة الحلقات وتقييم الطلاب',
                     icon: Icons.school,
@@ -94,9 +98,10 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
                       }
                     },
                   ),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: responsive(12)),
                   _buildRoleOption(
                     context,
+                    responsive,
                     title: 'طالب',
                     subtitle: 'مستخدم عادي بدون صلاحيات خاصة',
                     icon: Icons.person,
@@ -113,7 +118,7 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
                   ),
                 ],
               ),
-            SizedBox(height: 24.h),
+            SizedBox(height: responsive(24)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -125,7 +130,7 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
                     'إلغاء',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
-                      fontSize: 16.sp,
+                      fontSize: responsive(16),
                     ),
                   ),
                 ),
@@ -146,15 +151,15 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(horizontal: responsive(24), vertical: responsive(12)),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.r),
+                      borderRadius: BorderRadius.circular(responsive(8)),
                     ),
                   ),
                   child: Text(
                     'حفظ',
                     style: TextStyle(
-                      fontSize: 16.sp,
+                      fontSize: responsive(16),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -168,7 +173,8 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
   }
 
   Widget _buildRoleOption(
-    BuildContext context, {
+    BuildContext context,
+    Function(double) responsive, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -178,32 +184,32 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12.r),
+      borderRadius: BorderRadius.circular(responsive(12)),
       child: Container(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(responsive(12)),
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
             width: 2,
           ),
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(responsive(12)),
           color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Theme.of(context).cardColor,
         ),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.all(responsive(8)),
               decoration: BoxDecoration(
                 color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(responsive(8)),
               ),
               child: Icon(
                 icon,
                 color: iconColor,
-                size: 24.r,
+                size: responsive(24),
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: responsive(12)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,16 +217,16 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16.sp,
+                      fontSize: responsive(16),
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.titleMedium?.color,
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: responsive(4)),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: responsive(12),
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
@@ -238,4 +244,4 @@ class _UserRoleDialogState extends State<UserRoleDialog> {
       ),
     );
   }
-} 
+}

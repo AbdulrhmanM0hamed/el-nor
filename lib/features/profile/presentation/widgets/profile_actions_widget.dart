@@ -1,7 +1,6 @@
-import 'package:noor_quran/features/admin/features/user_management/presentation/screen/user_management_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:noor_quran/features/admin/features/user_management/presentation/screen/user_management_screen.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/cubit/global_auth_cubit.dart';
@@ -19,8 +18,11 @@ class ProfileActionsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Container(
-      margin: EdgeInsets.all(16.w),
+      margin: EdgeInsets.all(responsive(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,7 +40,7 @@ class ProfileActionsWidget extends StatelessWidget {
               ),
               color: AppColors.logoTeal,
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: responsive(12)),
             _buildActionButton(
               context,
               'إدارة حلقات التحفيظ',
@@ -51,17 +53,16 @@ class ProfileActionsWidget extends StatelessWidget {
               ),
               color: Colors.amber,
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: responsive(12)),
             _buildActionButton(
               context,
-              'خطة التعلم',
+              'عن الملتقى ',
               Icons.picture_as_pdf,
               () => Navigator.pushNamed(context, '/learning-plan', arguments: user),
               color: Colors.orange,
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: responsive(24)),
           ],
-
           _buildSectionTitle(context, 'إعدادات الحساب'),
           _buildActionButton(
             context,
@@ -73,7 +74,7 @@ class ProfileActionsWidget extends StatelessWidget {
               arguments: user,
             ),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: responsive(12)),
           _buildActionButton(
             context,
             'تغيير كلمة المرور',
@@ -83,14 +84,14 @@ class ProfileActionsWidget extends StatelessWidget {
               ChangePasswordScreen.routeName,
             ),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: responsive(12)),
           _buildActionButton(
             context,
-            'خطة التعلم',
+            'عن الملتقى ',
             Icons.picture_as_pdf,
             () => Navigator.pushNamed(context, '/learning-plan', arguments: user),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: responsive(12)),
           _buildActionButton(
             context,
             'تسجيل الخروج',
@@ -104,33 +105,42 @@ class ProfileActionsWidget extends StatelessWidget {
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
           style: TextStyle(
-            fontSize: 18.sp,
+            fontSize: responsive(18),
             fontWeight: FontWeight.bold,
             color: Theme.of(context).primaryColor,
           ),
         ),
         Divider(
-          height: 16.h,
+          height: responsive(16),
           color: Theme.of(context).dividerColor,
         ),
       ],
     );
   }
 
-  Widget _buildActionButton(BuildContext context, String label, IconData icon, VoidCallback onTap, {Color? color}) {
+  Widget _buildActionButton(
+      BuildContext context, String label, IconData icon, VoidCallback onTap,
+      {Color? color}) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
+        padding: EdgeInsets.symmetric(
+            vertical: responsive(16), horizontal: responsive(16)),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(responsive(12)),
           boxShadow: [
             BoxShadow(
               color: Theme.of(context).shadowColor.withOpacity(0.1),
@@ -143,14 +153,14 @@ class ProfileActionsWidget extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 24.sp,
+              size: responsive(24),
               color: color ?? Theme.of(context).primaryColor,
             ),
-            SizedBox(width: 16.w),
+            SizedBox(width: responsive(16)),
             Text(
               label,
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: responsive(16),
                 fontWeight: FontWeight.w500,
                 color: color ?? Theme.of(context).textTheme.bodyLarge?.color,
               ),
@@ -158,7 +168,7 @@ class ProfileActionsWidget extends StatelessWidget {
             const Spacer(),
             Icon(
               Icons.arrow_forward_ios,
-              size: 16.sp,
+              size: responsive(16),
               color: Theme.of(context).textTheme.bodySmall?.color,
             ),
           ],

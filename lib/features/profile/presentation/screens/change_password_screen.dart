@@ -1,7 +1,7 @@
-import 'package:noor_quran/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:noor_quran/core/widgets/custom_app_bar.dart';
+import '../../../auth/presentation/widgets/custom_button.dart';
 import '../cubit/change_password_cubit.dart';
 import '../widgets/profile_form/profile_text_field.dart';
 
@@ -32,15 +32,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   void _showSnackBar(String message, bool isError) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
           backgroundColor: isError ? Colors.red : Colors.green,
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(16.w),
+          margin: EdgeInsets.all(responsive(16)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(responsive(8)),
           ),
         ),
       );
@@ -63,6 +66,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return BlocConsumer<ChangePasswordCubit, ChangePasswordState>(
       listener: (context, state) {
         if (state is ChangePasswordSuccess) {
@@ -76,11 +82,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         return Scaffold(
           appBar: const CustomAppBar(title: 'تغيير كلمة المرور'),
           body: SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(responsive(16)),
             child: Form(
               key: _formKey,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   ProfileTextField(
                     controller: _currentPasswordController,
@@ -105,7 +111,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: responsive(16)),
                   ProfileTextField(
                     controller: _newPasswordController,
                     label: 'كلمة المرور الجديدة',
@@ -132,7 +138,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: responsive(16)),
                   ProfileTextField(
                     controller: _confirmPasswordController,
                     label: 'تأكيد كلمة المرور الجديدة',
@@ -156,28 +162,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 32.h),
-                  ElevatedButton(
-                    onPressed: state is ChangePasswordLoading
-                        ? null
-                        : _handleChangePassword,
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      backgroundColor: Theme.of(context).primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                    child: state is ChangePasswordLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            'تغيير كلمة المرور',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                  SizedBox(height: responsive(32)),
+                  CustomButton(
+                    text: 'تغيير كلمة المرور',
+                    onPressed: _handleChangePassword,
+                    isLoading: state is ChangePasswordLoading,
                   ),
                 ],
               ),

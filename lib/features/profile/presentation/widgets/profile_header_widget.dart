@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../auth/data/models/user_model.dart';
 
@@ -13,18 +12,24 @@ class ProfileHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Container(
       width: double.infinity,
-      height: 220.h,
+      height: responsive(220),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.7)],
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withOpacity(0.7)
+          ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30.r),
-          bottomRight: Radius.circular(30.r),
+          bottomLeft: Radius.circular(responsive(30)),
+          bottomRight: Radius.circular(responsive(30)),
         ),
       ),
       child: Column(
@@ -34,30 +39,33 @@ class ProfileHeaderWidget extends StatelessWidget {
             alignment: Alignment.bottomRight,
             children: [
               CircleAvatar(
-                radius: 50.r,
+                radius: responsive(50),
                 backgroundColor: Theme.of(context).cardColor,
-                backgroundImage: user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                backgroundImage: user.profileImageUrl != null &&
+                        user.profileImageUrl!.isNotEmpty
                     ? NetworkImage(user.profileImageUrl!)
                     : null,
-                child: user.profileImageUrl == null || user.profileImageUrl!.isEmpty
+                child: user.profileImageUrl == null ||
+                        user.profileImageUrl!.isEmpty
                     ? Icon(
                         Icons.person,
-                        size: 50.sp,
+                        size: responsive(50),
                         color: Theme.of(context).primaryColor,
                       )
                     : null,
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                padding: EdgeInsets.symmetric(
+                    horizontal: responsive(8), vertical: responsive(4)),
                 decoration: BoxDecoration(
                   color: _getRoleBadgeColor(),
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(responsive(12)),
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: Text(
                   _getRoleText(),
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: responsive(12),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -65,20 +73,20 @@ class ProfileHeaderWidget extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: responsive(16)),
           Text(
             user.name,
             style: TextStyle(
-              fontSize: 24.sp,
+              fontSize: responsive(24),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: responsive(8)),
           Text(
             user.email,
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: responsive(16),
               color: Colors.white.withOpacity(0.8),
             ),
           ),
@@ -106,4 +114,4 @@ class ProfileHeaderWidget extends StatelessWidget {
       return Colors.green;
     }
   }
-} 
+}

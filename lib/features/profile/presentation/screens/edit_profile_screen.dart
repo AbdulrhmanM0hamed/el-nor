@@ -1,9 +1,7 @@
 import 'dart:io';
-import 'package:noor_quran/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:noor_quran/core/widgets/custom_app_bar.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/cubit/global_auth_cubit.dart';
 import '../widgets/profile_form/profile_image_picker.dart';
@@ -57,13 +55,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final updatedUser = widget.user.copyWith(
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
-        age: int.parse(_ageController.text.trim()),
+        age: int.tryParse(_ageController.text.trim()),
       );
 
       await context.read<GlobalAuthCubit>().updateProfile(
-        user: updatedUser,
-        profileImage: _profileImage,
-      );
+            user: updatedUser,
+            profileImage: _profileImage,
+          );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -92,12 +90,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Scaffold(
       appBar: const CustomAppBar(title: 'تعديل الملف الشخصي'),
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(responsive(16)),
             child: Form(
               key: _formKey,
               child: Column(
@@ -114,7 +115,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       });
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: responsive(24)),
                   ProfileTextField(
                     controller: _nameController,
                     label: 'الاسم',
@@ -127,7 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: responsive(16)),
                   ProfileTextField(
                     controller: _phoneController,
                     label: 'رقم الهاتف',
@@ -141,7 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: responsive(16)),
                   ProfileTextField(
                     controller: _ageController,
                     label: 'العمر',
@@ -158,16 +159,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 32.h),
+                  SizedBox(height: responsive(32)),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _updateProfile,
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                        padding: EdgeInsets.symmetric(vertical: responsive(12)),
                         backgroundColor: Theme.of(context).primaryColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
+                          borderRadius: BorderRadius.circular(responsive(8)),
                         ),
                       ),
                       child: _isLoading
@@ -175,7 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           : Text(
                               'حفظ التغييرات',
                               style: TextStyle(
-                                fontSize: 16.sp,
+                                fontSize: responsive(16),
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -190,4 +191,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
-} 
+}

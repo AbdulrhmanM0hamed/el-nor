@@ -21,10 +21,13 @@ class CirclesListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsiveSize = screenWidth / 375;
+
     return RefreshIndicator(
       onRefresh: () async => onRefresh(),
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: 16 * responsiveSize),
         itemCount: circles.length,
         itemBuilder: (context, index) {
           return MemorizationCircleCard(

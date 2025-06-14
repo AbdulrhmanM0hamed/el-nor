@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/utils/theme/app_colors.dart';
 
@@ -39,13 +38,21 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
+    final imageSize = responsive(120);
+    final iconContainerSize = responsive(36);
+    final iconSize = responsive(20);
+    final personIconSize = responsive(60);
+
     return GestureDetector(
       onTap: _pickImage,
       child: Stack(
         children: [
           Container(
-            width: 120.w,
-            height: 120.h,
+            width: imageSize,
+            height: imageSize,
             decoration: BoxDecoration(
               color: Colors.grey[200],
               shape: BoxShape.circle,
@@ -62,8 +69,8 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                     return Image.file(
                       _selectedImage!,
                       fit: BoxFit.cover,
-                      width: 120.w,
-                      height: 120.h,
+                      width: imageSize,
+                      height: imageSize,
                     );
                   }
                   // إذا كان هناك صورة من الإنترنت
@@ -71,12 +78,12 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                     return Image.network(
                       widget.initialImageUrl!,
                       fit: BoxFit.cover,
-                      width: 120.w,
-                      height: 120.h,
+                      width: imageSize,
+                      height: imageSize,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
                           Icons.person,
-                          size: 60.sp,
+                          size: personIconSize,
                           color: Colors.grey[400],
                         );
                       },
@@ -85,7 +92,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
                   // إذا لم تكن هناك صورة
                   return Icon(
                     Icons.person,
-                    size: 60.sp,
+                    size: personIconSize,
                     color: Colors.grey[400],
                   );
                 },
@@ -96,20 +103,20 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
             bottom: 0,
             right: 0,
             child: Container(
-              width: 36.w,
-              height: 36.h,
+              width: iconContainerSize,
+              height: iconContainerSize,
               decoration: BoxDecoration(
                 color: AppColors.logoOrange,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: Colors.white,
-                  width: 2.w,
+                  width: responsive(2),
                 ),
               ),
               child: Icon(
                 Icons.camera_alt,
                 color: Colors.white,
-                size: 20.sp,
+                size: iconSize,
               ),
             ),
           ),
@@ -117,4 +124,4 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
       ),
     );
   }
-} 
+}

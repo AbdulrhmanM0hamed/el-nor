@@ -1,7 +1,6 @@
 import 'package:noor_quran/features/quran_circles/presentation/cubit/memorization_circles_state.dart';
 import 'package:noor_quran/features/quran_circles/presentation/screens/memorization_circles/widgets/memorization_circle_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/theme/app_colors.dart';
@@ -103,11 +102,11 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
           appBar: AppBar(
             title: Text(
               _getScreenTitle(permissions['role']),
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 18 * (MediaQuery.of(context).size.width / 375),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
             ),
             backgroundColor: Theme.of(context).primaryColor,
             centerTitle: true,
@@ -117,8 +116,10 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
             children: [
               if (permissions['role'] == UserRole.admin) ...[
                 Container(
-                  padding:
-                      EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                  padding: EdgeInsets.symmetric(
+                      vertical: 12 * (MediaQuery.of(context).size.width / 375),
+                      horizontal:
+                          16 * (MediaQuery.of(context).size.width / 375)),
                   color: Theme.of(context).cardColor,
                   child: Row(
                     children: [
@@ -129,7 +130,8 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
                           _isExamOnly = false;
                         });
                       }),
-                      SizedBox(width: 8.w),
+                      SizedBox(
+                          width: 8 * (MediaQuery.of(context).size.width / 375)),
                       _buildFilterChip('حلقات الحفظ', _isMemorizationOnly, () {
                         setState(() {
                           _isAllCircles = false;
@@ -137,7 +139,8 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
                           _isExamOnly = false;
                         });
                       }),
-                      SizedBox(width: 8.w),
+                      SizedBox(
+                          width: 8 * (MediaQuery.of(context).size.width / 375)),
                       _buildFilterChip('امتحانات', _isExamOnly, () {
                         setState(() {
                           _isAllCircles = false;
@@ -175,7 +178,9 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
                         child: ListView.builder(
                           key:
                               const PageStorageKey<String>('circles_list_view'),
-                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          padding: EdgeInsets.symmetric(
+                              vertical:
+                                  16 * (MediaQuery.of(context).size.width / 375)),
                           itemCount: circles.length,
                           itemBuilder: (context, index) {
                             return MemorizationCircleCard(
@@ -237,27 +242,30 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
   }
 
   Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap) {
+    final responsiveSize = MediaQuery.of(context).size.width / 375;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(
+            horizontal: 12 * responsiveSize, vertical: 6 * responsiveSize),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.logoTeal : Colors.grey[100],
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(20 * responsiveSize),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[700],
-            fontSize: 12.sp,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: isSelected ? Colors.white : Colors.grey[700],
+                fontSize: 12 * responsiveSize,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState(UserRole role) {
+    final responsiveSize = MediaQuery.of(context).size.width / 375;
     String message;
     String submessage;
 
@@ -285,25 +293,23 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
         children: [
           Icon(
             Icons.menu_book,
-            size: 64.sp,
+            size: 64 * responsiveSize,
             color: Theme.of(context).disabledColor,
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: 16 * responsiveSize),
           Text(
             message,
-            style: TextStyle(
-              fontSize: 18.sp,
-              color: Theme.of(context).textTheme.titleLarge?.color,
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 18 * responsiveSize,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 8 * responsiveSize),
           Text(
             submessage,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 14 * responsiveSize,
+                ),
           ),
         ],
       ),
@@ -322,18 +328,18 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
   }
 
   Widget _buildLoadingState() {
+    final responsiveSize = MediaQuery.of(context).size.width / 375;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(color: Theme.of(context).primaryColor),
-          SizedBox(height: 16.h),
+          SizedBox(height: 16 * responsiveSize),
           Text(
             'جاري تحميل حلقات الحفظ...',
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontSize: 16 * responsiveSize,
+                ),
           ),
         ],
       ),
@@ -341,34 +347,45 @@ class _MemorizationCirclesScreenState extends State<MemorizationCirclesScreen>
   }
 
   Widget _buildErrorState(String message) {
+    final responsiveSize = MediaQuery.of(context).size.width / 375;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64.sp,
-            color: AppColors.error,
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.bold,
+      child: Padding(
+        padding: EdgeInsets.all(16 * responsiveSize),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64 * responsiveSize,
+              color: AppColors.error,
             ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16.h),
-          ElevatedButton(
-            onPressed: _loadCircles,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.logoTeal,
+            SizedBox(height: 16 * responsiveSize),
+            Text(
+              message,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontSize: 16 * responsiveSize,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: TextAlign.center,
             ),
-            child: const Text('إعادة المحاولة'),
-          ),
-        ],
+            SizedBox(height: 16 * responsiveSize),
+            ElevatedButton(
+              onPressed: _loadCircles,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.logoTeal,
+                padding: EdgeInsets.symmetric(
+                    horizontal: 32 * responsiveSize,
+                    vertical: 12 * responsiveSize),
+                textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontSize: 14 * responsiveSize,
+                      color: Colors.white,
+                    ),
+              ),
+              child: const Text('إعادة المحاولة'),
+            ),
+          ],
+        ),
       ),
     );
   }

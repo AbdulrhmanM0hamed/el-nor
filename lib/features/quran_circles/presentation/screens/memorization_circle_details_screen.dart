@@ -1,7 +1,6 @@
 import 'package:noor_quran/features/quran_circles/data/repositories/circle_details_repository.dart';
 import 'package:noor_quran/features/quran_circles/presentation/screens/memorization_circles/circle_details/widgets/circle_learning_plan_tab.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../../../../core/utils/user_role.dart' as core;
 import '../../../../core/services/service_locator.dart';
@@ -94,16 +93,15 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
   Widget build(BuildContext context) {
     super.build(context);
 
-    return WillPopScope(
-      onWillPop: () async {
-        // Return updated circle (with optimistic updates) when popping so parent screen can refresh immediately
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
         final cubitState = context.read<CircleDetailsCubit>().state;
-        if (cubitState is CircleDetailsLoaded) {
-          Navigator.of(context).pop(cubitState.circle);
-        } else {
-          Navigator.of(context).pop(widget.circle);
-        }
-        return false;
+        final result = (cubitState is CircleDetailsLoaded)
+            ? cubitState.circle
+            : widget.circle;
+        Navigator.of(context).pop(result);
       },
       child: BlocBuilder<CircleDetailsCubit, CircleDetailsState>(
         builder: (context, state) {
@@ -111,11 +109,11 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
             appBar: AppBar(
               title: Text(
                 state is CircleDetailsLoaded ? state.circle.name : widget.circle.name,
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontSize: 18 * (MediaQuery.of(context).size.width / 375),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
               ),
               backgroundColor: AppColors.logoTeal,
               centerTitle: true,
@@ -124,6 +122,14 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white70,
                 indicatorColor: Colors.white,
+                labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontSize: 14 * (MediaQuery.of(context).size.width / 375),
+                      fontWeight: FontWeight.bold,
+                    ),
+                unselectedLabelStyle:
+                    Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 14 * (MediaQuery.of(context).size.width / 375),
+                        ),
                 tabs: const [
                   Tab(text: 'السور المقررة'),
                   Tab(text: 'الطلاب'),

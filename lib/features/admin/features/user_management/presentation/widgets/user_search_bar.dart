@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UserSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -13,8 +12,11 @@ class UserSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsive = (double size) => size * screenWidth / 375;
+
     return Padding(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(responsive(16)),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
@@ -22,11 +24,11 @@ class UserSearchBar extends StatelessWidget {
           hintText: 'البحث عن مستخدم...',
           prefixIcon: Icon(Icons.search, color: Theme.of(context).primaryColor),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(responsive(12)),
             borderSide: BorderSide(color: Theme.of(context).primaryColor),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(responsive(12)),
             borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
           ),
           filled: true,
@@ -35,4 +37,4 @@ class UserSearchBar extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -6,18 +6,21 @@ class LoadingCirclesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final responsiveSize = screenWidth / 375;
+
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          CircularProgressIndicator(color: AppColors.logoTeal),
-          SizedBox(height: 16),
+        children: [
+          const CircularProgressIndicator(color: AppColors.logoTeal),
+          SizedBox(height: 16 * responsiveSize),
           Text(
             'جاري تحميل حلقات الحفظ...',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 16 * responsiveSize,
+                  color: Colors.grey,
+                ),
           ),
         ],
       ),
