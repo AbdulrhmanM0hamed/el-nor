@@ -14,8 +14,10 @@ class CustomBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double bottomInset = MediaQuery.of(context).padding.bottom;
     return Container(
-      height: 70.h,
+      height: 70.h + bottomInset,
+      padding: EdgeInsets.only(bottom: bottomInset),
       child: Stack(
         children: [
           // منحنى في الخلفية
