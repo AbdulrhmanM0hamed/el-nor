@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/auth/presentation/cubit/global_auth_cubit.dart';
@@ -16,11 +18,9 @@ import 'core/services/notification_service.dart';
 import 'features/home/quran/data/models/surah_model.dart';
 import 'features/home/asma_allah/models/allah_name_model.dart';
 
-// معالج الرسائل في الخلفية
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print('تم استلام رسالة في الخلفية: ${message.messageId}');
 }
 
 String? _notificationError;
@@ -120,19 +120,23 @@ class MyApp extends StatelessWidget {
         minTextAdapt: true,
         splitScreenMode: true,
         builder: (context, child) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'النور',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            supportedLocales: const [Locale('ar')],
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            onGenerateRoute: onGenratedRoutes,
-            initialRoute: AuthCheckScreen.routeName,
+          return DevicePreview(
+            enabled: !kReleaseMode,
+            builder: (context) => MaterialApp(
+              useInheritedMediaQuery: true,
+              debugShowCheckedModeBanner: false,
+              title: 'النور',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              supportedLocales: const [Locale('ar')],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              onGenerateRoute: onGenratedRoutes,
+              initialRoute: AuthCheckScreen.routeName,
+            ),
           );
         },
       ),

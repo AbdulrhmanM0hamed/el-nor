@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/utils/constant/assets_manager.dart';
 import 'feature_item.dart';
 
@@ -8,12 +7,18 @@ class HomeFeaturesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Container(
-      height: 130.h,
-      padding: EdgeInsets.only(top: 10.h, left: 12.w, right: 12.w),
-      margin: EdgeInsets.symmetric(vertical: 10.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.03,
+        vertical: screenHeight * 0.01,
+      ),
+      margin: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FeatureItem(
             icon: AssetsManager.pngtreeImage,

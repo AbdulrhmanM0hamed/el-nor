@@ -9,26 +9,27 @@ class HomeViewBody extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
+    final screenHeight = MediaQuery.of(context).size.height;
+    return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children:  [
-          SizedBox(height: 8),
+          SizedBox(height: screenHeight * 0.01),
 
           // Islamic features section
-          HomeFeaturesGrid(),
+          const HomeFeaturesGrid(),
 
           // Quran section
-          LastReadCard(),
+          const LastReadCard(),
 
           // Quran Audio Preview
-          QuranAudioPreviewCard(),
+          const QuranAudioPreviewCard(),
 
           // Islamic content section
-          IslamicContentGrid(),
+          const IslamicContentGrid(),
 
           // Bottom spacing
-          SizedBox(height: 16),
+          SizedBox(height: screenHeight * 0.02),
         ],
       ),
     );

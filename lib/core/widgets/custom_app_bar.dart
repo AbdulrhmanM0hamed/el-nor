@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
     required this.title,
+    this.fallbackRoute,
   });
   final String title;
+  final String? fallbackRoute;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -19,14 +20,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back_ios,
-          size: 24.sp,
+          size: MediaQuery.of(context).size.width * 0.06,
         ),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else if (fallbackRoute != null) {
+            Navigator.pushReplacementNamed(context, fallbackRoute!);
+          }
+        },
       ),
       title: Text(
         title,
         style: TextStyle(
-          fontSize: 20.sp,
+          fontSize: MediaQuery.of(context).size.width * 0.05,
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.onSurface,
         ),

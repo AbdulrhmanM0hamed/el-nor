@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:noor_quran/core/widgets/custom_app_bar.dart';
 import '../../../../core/utils/theme/app_colors.dart';
@@ -14,11 +13,12 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/profile_image_picker.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatelessWidget {
   static const String routeName = '/register';
 
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class RegisterScreen extends StatelessWidget {
 }
 
 class _RegisterScreenContent extends StatefulWidget {
-  const _RegisterScreenContent({Key? key}) : super(key: key);
+  const _RegisterScreenContent();
 
   @override
   State<_RegisterScreenContent> createState() => _RegisterScreenContentState();
@@ -110,6 +110,9 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthError) {
@@ -134,21 +137,25 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: const CustomAppBar(title: 'إنشاء حساب جديد'),
+          appBar: const CustomAppBar(
+            title: 'إنشاء حساب جديد',
+            fallbackRoute: LoginScreen.routeName,
+          ),
           body: LoadingOverlay(
             isLoading: state is AuthLoading,
             child: AuthBackground(
               child: SafeArea(
                 child: SingleChildScrollView(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.06,
+                    vertical: screenHeight * 0.02,
+                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 20.h),
+                      SizedBox(height: screenHeight * 0.02),
                       _buildProfileImage(),
-                      SizedBox(height: 24.h),
-                      _buildRegistrationForm(),
+                      SizedBox(height: screenHeight * 0.03),
+                      _buildRegistrationForm(context),
                     ],
                   ),
                 ),
@@ -169,7 +176,9 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
     );
   }
 
-  Widget _buildRegistrationForm() {
+  Widget _buildRegistrationForm(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -191,14 +200,14 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
             validator: InputValidator.email,
           ),
           Padding(
-            padding: EdgeInsets.only(bottom: 16.h),
+            padding: EdgeInsets.only(bottom: screenHeight * 0.02),
             child: IntlPhoneField(
               controller: _phoneController,
               decoration: InputDecoration(
                 labelText: 'رقم الهاتف',
                 hintText: 'أدخل رقم هاتفك',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
               initialCountryCode: 'EG',
@@ -235,14 +244,14 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
             toggleVisibility: _toggleConfirmPasswordVisibility,
             validator: (v) => InputValidator.confirmPassword(v, _passwordController.text),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: screenHeight * 0.02),
           CustomButton(
             text: 'إنشاء حساب',
             onPressed: _register,
             icon: Icons.person_add,
           ),
-          SizedBox(height: 16.h),
-          _buildLoginLink(),
+          SizedBox(height: screenHeight * 0.01),
+          _buildLoginLink(context),
         ],
       ),
     );
@@ -257,7 +266,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02),
       child: CustomTextField(
         label: label,
         hint: hint,
@@ -278,7 +287,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
     required String? Function(String?) validator,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02),
       child: CustomTextField(
         label: label,
         hint: hint,
@@ -299,24 +308,25 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
     );
   }
 
-  Widget _buildLoginLink() {
+  Widget _buildLoginLink(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'لديك حساب بالفعل؟',
-          style: TextStyle(
-            fontSize: 14.sp,
-          ),
+          style: TextStyle(fontSize: screenWidth * 0.04),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+          },
           child: Text(
             'تسجيل الدخول',
             style: TextStyle(
-              fontSize: 14.sp,
               color: AppColors.logoOrange,
               fontWeight: FontWeight.bold,
+              fontSize: screenWidth * 0.04,
             ),
           ),
         ),

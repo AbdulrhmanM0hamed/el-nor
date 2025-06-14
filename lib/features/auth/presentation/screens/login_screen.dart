@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/theme/app_colors.dart';
 import '../cubit/global_auth_cubit.dart';
 import '../cubit/auth_state.dart';
@@ -14,7 +13,7 @@ import 'forget_password_screen.dart';
 class LoginScreen extends StatelessWidget {
   static const String routeName = '/login';
 
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +25,7 @@ class LoginScreen extends StatelessWidget {
 }
 
 class _LoginScreenContent extends StatefulWidget {
-  const _LoginScreenContent({Key? key}) : super(key: key);
+  const _LoginScreenContent();
 
   @override
   State<_LoginScreenContent> createState() => _LoginScreenContentState();
@@ -60,8 +59,32 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
     }
   }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'الرجاء إدخال البريد الإلكتروني';
+    }
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(value)) {
+      return 'الرجاء إدخال بريد إلكتروني صحيح';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'الرجاء إدخال كلمة المرور';
+    }
+    if (value.length < 6) {
+      return 'يجب أن تكون كلمة المرور 6 أحرف على الأقل';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return BlocConsumer<GlobalAuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthError) {
@@ -86,15 +109,20 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
             child: AuthBackground(
               child: SafeArea(
                 child: SingleChildScrollView(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.06,
+                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(height: 120.h),
+                      SizedBox(height: screenHeight * 0.1),
                       _buildHeader(),
-                      SizedBox(height: 30.h),
+                      SizedBox(height: screenHeight * 0.05),
                       _buildLoginForm(),
+                      SizedBox(height: screenHeight * 0.05),
+                      _buildRegisterLink(),
+                      SizedBox(height: screenHeight * 0.1),
                     ],
                   ),
                 ),
@@ -107,27 +135,26 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
   }
 
   Widget _buildHeader() {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Column(
       children: [
-        Center(
-          child: Text(
-            'ملتقى النّور القرآني ',
-            style: TextStyle(
-              fontSize: 26.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.logoTeal,
-            ),
+        Text(
+          'ملتقى النّور القرآني',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: screenWidth * 0.075,
+            fontWeight: FontWeight.bold,
+            color: AppColors.logoTeal,
           ),
         ),
-        SizedBox(height: 16.h),
-        Center(
-          child: Text(
-            'تسجيل الدخول',
-            style: TextStyle(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.logoOrange,
-            ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+        Text(
+          'تسجيل الدخول',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: screenWidth * 0.065,
+            fontWeight: FontWeight.bold,
+            color: AppColors.logoOrange,
           ),
         ),
       ],
@@ -135,32 +162,27 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
   }
 
   Widget _buildLoginForm() {
+    final screenHeight = MediaQuery.of(context).size.height;
     return Form(
       key: _formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           CustomTextField(
             label: 'البريد الإلكتروني',
             hint: 'أدخل بريدك الإلكتروني',
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            prefixIcon: const Icon(
-              Icons.email_outlined,
-              color: AppColors.logoTeal,
-            ),
+            prefixIcon: const Icon(Icons.email_outlined, color: AppColors.logoTeal),
             validator: _validateEmail,
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: screenHeight * 0.025),
           CustomTextField(
             label: 'كلمة المرور',
             hint: 'أدخل كلمة المرور',
             controller: _passwordController,
             obscureText: _obscurePassword,
-            prefixIcon: const Icon(
-              Icons.lock_outline,
-              color: AppColors.logoTeal,
-            ),
+            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.logoTeal),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword
@@ -172,29 +194,24 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
             ),
             validator: _validatePassword,
           ),
-          SizedBox(height: 16.h),
           _buildForgotPasswordButton(),
-          SizedBox(height: 16.h),
+          SizedBox(height: screenHeight * 0.01),
           CustomButton(
             text: 'تسجيل الدخول',
             onPressed: _login,
+            widthFactor: 0.9,
             icon: Icons.login,
           ),
-          SizedBox(height: 16.h),
-
-          SizedBox(height: 2.h),
-          _buildRegisterLink(),
-          // Guest login button
-          Center(
-            child: CustomButton(
-              text: 'الدخول كزائر',
-              onPressed: () {
-                context.read<GlobalAuthCubit>().enterAsGuest();
-              },
-              icon: Icons.person_outline,
-            ),
+          SizedBox(height: screenHeight * 0.02),
+          CustomButton(
+            text: 'الدخول كزائر',
+            onPressed: () {
+              context.read<GlobalAuthCubit>().enterAsGuest();
+            },
+            widthFactor: 0.9,
+            isOutlined: true,
+            icon: Icons.person_outline,
           ),
-          SizedBox(height: 20.h),
         ],
       ),
     );
@@ -202,17 +219,17 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
 
   Widget _buildForgotPasswordButton() {
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerEnd,
       child: TextButton(
         onPressed: () {
-          Navigator.pushNamed(context, ForgetPasswordScreen.routeName);
+          Navigator.of(context).pushNamed(ForgetPasswordScreen.routeName);
         },
         child: Text(
           'نسيت كلمة المرور؟',
           style: TextStyle(
-            fontSize: 14.sp,
-            color: Theme.of(context).primaryColor,
-            fontWeight: FontWeight.bold,
+            color: AppColors.logoTeal,
+            fontSize: MediaQuery.of(context).size.width * 0.035,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -225,47 +242,22 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
       children: [
         Text(
           'ليس لديك حساب؟',
-          style: TextStyle(
-            fontSize: 14.sp,
-          ),
+          style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
         ),
         TextButton(
           onPressed: () {
-            Navigator.pushNamed(
-              context,
-              RegisterScreen.routeName,
-            );
+            Navigator.of(context).pushReplacementNamed(RegisterScreen.routeName);
           },
           child: Text(
-            'إنشاء حساب جديد',
+            'أنشئ حساباً',
             style: TextStyle(
-              fontSize: 14.sp,
               color: AppColors.logoOrange,
               fontWeight: FontWeight.bold,
+              fontSize: MediaQuery.of(context).size.width * 0.04,
             ),
           ),
         ),
       ],
     );
-  }
-
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء إدخال البريد الإلكتروني';
-    }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      return 'الرجاء إدخال بريد إلكتروني صحيح';
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'الرجاء إدخال كلمة المرور';
-    }
-    if (value.length < 6) {
-      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-    }
-    return null;
   }
 }

@@ -1,12 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 import 'package:noor_quran/core/utils/constant/font_manger.dart';
 import 'package:noor_quran/core/utils/constant/styles_manger.dart';
 import 'package:noor_quran/features/home/asma_allah/data/repositories/allah_names_repository.dart';
 import 'package:noor_quran/features/home/asma_allah/presentation/cubit/asma_allah_cubit.dart';
 import 'package:noor_quran/features/home/asma_allah/presentation/screens/asma_allah_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:logger/logger.dart';
 
 class FeatureItem extends StatelessWidget {
   final String icon;
@@ -25,6 +24,10 @@ class FeatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final itemWidth = screenWidth * 0.22;
+    final itemHeight = itemWidth * 1.3;
+
     return GestureDetector(
       onTap: () {
         _logger.i('Tapped on feature: $title with route: $routeName');
@@ -49,12 +52,12 @@ class FeatureItem extends StatelessWidget {
         }
       },
       child: Container(
-        width: 80.w,
-        height: 110.h,
+        width: itemWidth,
+        height: itemHeight,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(color: color.withValues(alpha: 0.15), width: 1.5),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(itemWidth * 0.25),
+          border: Border.all(color: color.withOpacity(0.15), width: 1.5),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -63,25 +66,27 @@ class FeatureItem extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(30.r),
+                  borderRadius: BorderRadius.circular(itemWidth * 0.3),
                   child: Image.asset(
                     icon,
-                    width: 50.w,
-                    height: 50.h,
+                    width: itemWidth * 0.6,
+                    height: itemWidth * 0.6,
                     fit: BoxFit.contain,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: itemHeight * 0.08),
             Text(
               title,
               textAlign: TextAlign.center,
               style: getBoldStyle(
                 fontFamily: FontConstant.cairo,
-                fontSize: FontSize.size12.sp,
-                color: color.withValues(alpha: 0.8),
+                fontSize: itemWidth * 0.15,
+                color: color.withOpacity(0.8),
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

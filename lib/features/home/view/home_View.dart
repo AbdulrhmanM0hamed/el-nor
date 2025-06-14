@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../features/auth/presentation/cubit/global_auth_cubit.dart';
@@ -38,6 +37,7 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return BlocListener<GlobalAuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
@@ -54,7 +54,7 @@ class _HomeViewState extends State<HomeView> {
           title: Text(
             'النور',
             style: TextStyle(
-              fontSize: 24.sp,
+              fontSize: screenWidth * 0.06,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -74,7 +74,7 @@ class _HomeViewState extends State<HomeView> {
             children: [
               Positioned(
                 top: 0,
-                right: 30.w,
+                right: screenWidth * 0.08,
                 child: Opacity(
                   opacity: 0.3,
                   child: SvgPicture.asset(
@@ -85,7 +85,7 @@ class _HomeViewState extends State<HomeView> {
               ),
               Positioned(
                 bottom: 0,
-                left: 30.w,
+                left: screenWidth * 0.08,
                 child: Opacity(
                   opacity: 0.3,
                   child: SvgPicture.asset(

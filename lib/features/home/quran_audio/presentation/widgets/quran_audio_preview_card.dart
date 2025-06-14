@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/utils/theme/app_colors.dart';
 import '../screens/quran_reciters_screen.dart';
 
@@ -8,11 +7,16 @@ class QuranAudioPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      margin: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.04,
+        vertical: screenWidth * 0.02,
+      ),
       elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.r),
+        borderRadius: BorderRadius.circular(screenWidth * 0.04),
       ),
       child: InkWell(
         onTap: () {
@@ -22,25 +26,25 @@ class QuranAudioPreviewCard extends StatelessWidget {
             QuranRecitersScreen.routeName,
           );
         },
-        borderRadius: BorderRadius.circular(15.r),
+        borderRadius: BorderRadius.circular(screenWidth * 0.04),
         child: Container(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(screenWidth * 0.04),
           child: Row(
             children: [
               Container(
-                width: 60.w,
-                height: 60.w,
+                width: screenWidth * 0.15,
+                height: screenWidth * 0.15,
                 decoration: BoxDecoration(
                   color: AppColors.logoTeal.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(15.r),
+                  borderRadius: BorderRadius.circular(screenWidth * 0.04),
                 ),
                 child: Icon(
                   Icons.headphones_rounded,
-                  size: 32.sp,
+                  size: screenWidth * 0.08,
                   color: AppColors.logoTeal,
                 ),
               ),
-              SizedBox(width: 16.w),
+              SizedBox(width: screenWidth * 0.04),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,15 +52,15 @@ class QuranAudioPreviewCard extends StatelessWidget {
                     Text(
                       'أصوات القرآن الكريم',
                       style: TextStyle(
-                        fontSize: 18.sp,
+                        fontSize: screenWidth * 0.045,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4.h),
+                    SizedBox(height: screenWidth * 0.01),
                     Text(
                       'استمع إلى تلاوات القراء المختلفة',
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize: screenWidth * 0.035,
                         color: Colors.grey[600],
                       ),
                     ),
@@ -65,7 +69,7 @@ class QuranAudioPreviewCard extends StatelessWidget {
               ),
               Icon(
                 Icons.arrow_forward_ios_rounded,
-                size: 24.sp,
+                size: screenWidth * 0.06,
                 color: AppColors.logoTeal,
               ),
             ],

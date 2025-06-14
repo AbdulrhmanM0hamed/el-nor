@@ -1,7 +1,6 @@
 import 'package:noor_quran/core/utils/constant/font_manger.dart';
 import 'package:noor_quran/core/utils/constant/styles_manger.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 
 class ContentCard extends StatelessWidget {
@@ -20,16 +19,19 @@ class ContentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardSize = screenWidth * 0.4;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.all(8.r),
+        margin: EdgeInsets.all(screenWidth * 0.02),
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.circular(24.r),
+          borderRadius: BorderRadius.circular(screenWidth * 0.06),
           boxShadow: [
             BoxShadow(
-              color: cardColor.withValues(alpha: 0.9),
+              color: cardColor.withOpacity(0.9),
             ),
           ],
         ),
@@ -42,38 +44,38 @@ class ContentCard extends StatelessWidget {
               right: 0,
               child: ClipRRect(
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24.r),
-                  bottomRight: Radius.circular(24.r),
+                  bottomLeft: Radius.circular(screenWidth * 0.06),
+                  bottomRight: Radius.circular(screenWidth * 0.06),
                 ),
                 child: Image.asset(
                   'assets/images/splash_background.png',
                   color: Colors.white.withOpacity(0.1),
                   fit: BoxFit.cover,
-                  height: 100.h,
+                  height: cardSize * 0.5,
                 ),
               ),
             ),
 
             // Content
             Padding(
-              padding: EdgeInsets.all(16.r),
+              padding: EdgeInsets.all(cardSize * 0.1),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Icon with background
                   Container(
-                    width: 80.w,
-                    height: 80.h,
-                    padding: EdgeInsets.all(12.r),
+                    width: cardSize * 0.5,
+                    height: cardSize * 0.5,
+                    padding: EdgeInsets.all(cardSize * 0.075),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Image.asset(
                       iconPath,
-                      width: 60.w,
-                      height: 60.h,
+                      width: cardSize * 0.375,
+                      height: cardSize * 0.375,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -86,7 +88,7 @@ class ContentCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: getBoldStyle(
                       fontFamily: FontConstant.cairo,
-                      fontSize: FontSize.size18.sp,
+                      fontSize: cardSize * 0.1,
                       color: Colors.white,
                     ),
                   ),

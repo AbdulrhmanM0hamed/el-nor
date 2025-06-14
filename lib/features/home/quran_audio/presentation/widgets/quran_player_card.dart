@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../../data/models/quran_reciter_model.dart';
@@ -126,22 +125,24 @@ class _QuranPlayerCardState extends State<QuranPlayerCard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.02),
       child: Column(
         children: [
           ListTile(
             title: Text(
               widget.collection.title,
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: screenWidth * 0.04,
                 fontWeight: FontWeight.bold,
               ),
             ),
             subtitle: Text(
               _currentSurah?.formattedName ?? 'اختر سورة للاستماع',
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: screenWidth * 0.035,
                 color: Colors.grey[600],
               ),
             ),
@@ -157,7 +158,7 @@ class _QuranPlayerCardState extends State<QuranPlayerCard> {
                     icon: Icon(
                       _isPlaying ? Icons.pause_circle : Icons.play_circle,
                       color: AppColors.logoTeal,
-                      size: 32.sp,
+                      size: screenWidth * 0.08,
                     ),
                     onPressed: _togglePlayPause,
                   ),
@@ -165,7 +166,7 @@ class _QuranPlayerCardState extends State<QuranPlayerCard> {
                   icon: Icon(
                     Icons.skip_next,
                     color: AppColors.logoTeal,
-                    size: 24.sp,
+                    size: screenWidth * 0.06,
                   ),
                   onPressed: _playNextSurah,
                 ),
@@ -175,7 +176,7 @@ class _QuranPlayerCardState extends State<QuranPlayerCard> {
           if (_currentSurah != null) ...[
             const Divider(),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenWidth * 0.02),
               child: StreamBuilder<Duration>(
                 stream: _audioPlayer.positionStream,
                 builder: (context, snapshot) {
@@ -193,21 +194,21 @@ class _QuranPlayerCardState extends State<QuranPlayerCard> {
                           AppColors.logoTeal,
                         ),
                       ),
-                      SizedBox(height: 4.h),
+                      SizedBox(height: screenWidth * 0.01),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             _formatDuration(position),
                             style: TextStyle(
-                              fontSize: 12.sp,
+                              fontSize: screenWidth * 0.03,
                               color: Colors.grey[600],
                             ),
                           ),
                           Text(
                             _formatDuration(duration),
                             style: TextStyle(
-                              fontSize: 12.sp,
+                              fontSize: screenWidth * 0.03,
                               color: Colors.grey[600],
                             ),
                           ),

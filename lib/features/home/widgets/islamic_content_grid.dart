@@ -1,6 +1,6 @@
 import 'package:noor_quran/core/utils/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'content_card.dart';
 
 class IslamicContentGrid extends StatelessWidget {
@@ -8,13 +8,18 @@ class IslamicContentGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.02,
+        vertical: screenWidth * 0.03,
+      ),
       child: GridView.count(
         crossAxisCount: 2,
         shrinkWrap: true,
-        mainAxisSpacing: 12.h,
-        crossAxisSpacing: 12.w,
+        mainAxisSpacing: screenWidth * 0.03,
+        crossAxisSpacing: screenWidth * 0.03,
         childAspectRatio: 0.8, // Make cards slightly taller than wide
         physics: const NeverScrollableScrollPhysics(),
         children: [
@@ -22,7 +27,7 @@ class IslamicContentGrid extends StatelessWidget {
           ContentCard(
             title: 'القرآن الكريم',
             iconPath: 'assets/images/mushaf_1.png',
-            cardColor: AppColors.logoTeal.withValues(alpha: .2),
+            cardColor: AppColors.logoTeal.withOpacity(0.2),
             onTap: () {
               Navigator.pushNamed(context, '/quran');
             },
