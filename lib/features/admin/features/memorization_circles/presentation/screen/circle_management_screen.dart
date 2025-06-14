@@ -189,6 +189,7 @@ class _CircleManagementScreenState extends State<CircleManagementScreen> {
         initialStudentIds: circle.studentIds,
         initialIsExam: circle.isExam,
         initialLearningPlanUrl: circle.learningPlanUrl,
+        circleId: circle.id,
         availableTeachers: teachers,
         availableStudents: students,
         onSave: (name, description, startDate, teacherId, teacherName, surahs,

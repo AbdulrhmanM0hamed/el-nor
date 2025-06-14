@@ -16,21 +16,19 @@ class CircleLearningPlanTab extends StatefulWidget {
 }
 
 class _CircleLearningPlanTabState extends State<CircleLearningPlanTab> {
-  late Future<Uint8List> _pdfFuture;
+  Future<Uint8List>? _pdfFuture;
 
   @override
   void initState() {
     super.initState();
-    _pdfFuture = _fetchPdf();
+    final trimmedUrl = widget.learningPlanUrl.trim();
+    if (trimmedUrl.isNotEmpty) {
+      _pdfFuture = _fetchPdf(trimmedUrl);
+    }
   }
 
-  Future<Uint8List> _fetchPdf() async {
-    final trimmedUrl = widget.learningPlanUrl.trim();
-    if (trimmedUrl.isEmpty) {
-      throw Exception('URL is empty.');
-    }
-
-    final uri = Uri.parse(trimmedUrl);
+  Future<Uint8List> _fetchPdf(String url) async {
+    final uri = Uri.parse(url);
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {

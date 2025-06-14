@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
 import '../../data/repositories/admin_repository.dart';
 
 import '../../../../data/models/student_model.dart';
@@ -108,6 +109,20 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminLearningPlanSaved(oldUrl));
     } catch (e) {
       emit(AdminError('حدث خطأ أثناء حفظ خطة التعلم القديمة: ${e.toString()}'));
+    }
+  }
+
+  Future<void> deleteLearningPlan({
+    required String circleId,
+    required String fileUrl,
+  }) async {
+    debugPrint('[AdminCubit] deleteLearningPlan called with circleId=$circleId fileUrl=$fileUrl');
+    try {
+      emit(AdminLoading());
+      await _adminRepository.deleteLearningPlan(circleId: circleId, fileUrl: fileUrl);
+      emit(AdminLearningPlanDeleted(circleId));
+    } catch (e) {
+      emit(AdminError('حدث خطأ أثناء حذف خطة التعلم: ${e.toString()}'));
     }
   }
 

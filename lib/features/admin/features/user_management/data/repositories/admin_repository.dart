@@ -43,6 +43,34 @@ class AdminRepository {
     }
   }
 
+  // حذف خطة التعلم لِحلقة معيّنة من التخزين وتصفير العمود
+  Future<void> deleteLearningPlan({
+    required String circleId,
+    required String fileUrl,
+  }) async {
+    debugPrint('[AdminRepository] deleteLearningPlan start circleId=$circleId fileUrl=$fileUrl');
+    try {
+      // 1) حذف الملف من الباكيت إن وُجد
+      final filename = fileUrl.split('/').last;
+      debugPrint('[AdminRepository] Removing file $filename from storage');
+      try {
+        await _supabaseClient.storage.from('learningplans').remove([filename]);
+      } catch (_) {
+        // تجاهل الخطأ إذا لم يكن الملف موجوداً
+      }
+
+      // 2) تحديث العمود فى جدول memorization_circles إلى NULL
+      debugPrint('[AdminRepository] Setting learning_plan_url to NULL in DB');
+      await _supabaseClient
+          .from('memorization_circles')
+          .update({'learning_plan_url': null})
+          .eq('id', circleId);
+    } catch (e) {
+      throw Exception('فشل في حذف خطة التعلم: $e');
+    }
+  }
+
+
   // رفع خطة التعلم الجديدة (مع استبدال الملف إذا كان موجوداً)
   Future<String?> uploadLearningPlan(String fileName, Uint8List bytes) async {
     try {

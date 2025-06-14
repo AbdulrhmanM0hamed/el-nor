@@ -26,6 +26,7 @@ class CircleFormDialog extends StatefulWidget {
   final List<String>? initialStudentIds;
   final bool? initialIsExam;
   final String? initialLearningPlanUrl;
+  final String? circleId;
   final Function(
       String name,
       String description,
@@ -51,6 +52,7 @@ class CircleFormDialog extends StatefulWidget {
     this.initialStudentIds,
     this.initialIsExam,
     this.initialLearningPlanUrl = '',
+    this.circleId,
     required this.onSave,
   }) : super(key: key);
 
@@ -287,6 +289,8 @@ class _CircleFormDialogState extends State<CircleFormDialog>
 
   // حذف خطة التعلم بعد التأكيد
   Future<void> _deleteLearningPlan() async {
+    debugPrint('[CircleFormDialog] _deleteLearningPlan invoked. currentUrl=$_learningPlanUrl circleId=${widget.circleId}');
+    final adminCubit = sl<AdminCubit>();
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -306,9 +310,24 @@ class _CircleFormDialogState extends State<CircleFormDialog>
     );
 
     if (shouldDelete == true) {
+      debugPrint('[CircleFormDialog] User confirmed deletion');
       if (_learningPlanUrl != null) {
-        // حذف الملف من التخزين
-        await sl<AdminCubit>().saveOldLearningPlan(_learningPlanUrl!);
+        try {
+          if (widget.circleId != null) {
+            // حلقة موجودة بالفعل – احذف من التخزين وصفر العمود
+            debugPrint('[CircleFormDialog] Calling adminCubit.deleteLearningPlan');
+            await adminCubit.deleteLearningPlan(
+              circleId: widget.circleId!,
+              fileUrl: _learningPlanUrl!,
+            );
+          } else {
+            // أثناء إنشاء حلقة جديدة – احذف فقط من التخزين
+            debugPrint('[CircleFormDialog] Calling adminCubit.saveOldLearningPlan');
+            await adminCubit.saveOldLearningPlan(_learningPlanUrl!);
+          }
+        } catch (e) {
+          debugPrint('Error deleting learning plan: $e');
+        }
       }
       setState(() {
         _learningPlanUrl = null;
