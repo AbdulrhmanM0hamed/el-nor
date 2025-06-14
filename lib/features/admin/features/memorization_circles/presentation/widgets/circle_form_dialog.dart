@@ -4,8 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:io';
+
 import '../../../../../../core/utils/theme/app_colors.dart';
 import '../../../../../../core/services/service_locator.dart';
 import '../../../../data/models/student_model.dart';
@@ -232,50 +231,51 @@ class _CircleFormDialogState extends State<CircleFormDialog>
     );
   }
 
-  // Método para guardar el círculo
+  // اختيار ملف الـ PDF ورفعه عبر AdminCubit بحيث يتم حذف الملف القديم تلقائيًا
   Future<void> _selectPdfFile() async {
+    // احصل على AdminCubit من خدمة GetIt لتفادى مشاكل ProviderNotFound
+    final adminCubit = sl<AdminCubit>();
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
+        withData: true, // حتى نحصل على bytes داخل PlatformFile
       );
 
-      if (result != null) {
-        final file = File(result.files.single.path!);
-        final fileName = path.basename(file.path);
+      if (result != null && result.files.isNotEmpty) {
+        final pickedFile = result.files.first; // PlatformFile
+        debugPrint('[CircleFormDialog] Picked file: ${pickedFile.name} (${pickedFile.size} bytes, bytes null? ${pickedFile.bytes == null})');
 
-        // First delete the old file if it exists
-        if (_learningPlanUrl != null) {
+        // احفظ الملف القديم فى الأرشيف إذا كان باسم مختلف
+        if (_learningPlanUrl != null &&
+            _learningPlanUrl!.split('/').last != pickedFile.name) {
+          debugPrint('[CircleFormDialog] Archiving old plan: \\$_learningPlanUrl');
           try {
-            // Extract filename from old URL
-            final oldFileName = _learningPlanUrl!.split('/').last;
-            await Supabase.instance.client.storage
-                .from('students')
-                .remove(['learning_plans/$oldFileName']);
+            await adminCubit.saveOldLearningPlan(_learningPlanUrl!);
+            debugPrint('[CircleFormDialog] Old plan archived');
           } catch (e) {
-            debugPrint('Error deleting old file: $e');
+            debugPrint('[CircleFormDialog] Error archiving old plan: $e');
           }
         }
 
-        // Upload to Supabase in the correct bucket
-        final uploadResponse = await Supabase.instance.client.storage
-            .from('students')
-            .upload('learning_plans/$fileName', file);
+        debugPrint('[CircleFormDialog] Uploading new plan ...');
+        final newUrl = await adminCubit.uploadLearningPlan(pickedFile);
+        debugPrint('[CircleFormDialog] Upload result: \\$newUrl');
 
-        // Get the public URL after upload
-        final publicUrl =  Supabase.instance.client.storage
-            .from('students')
-            .getPublicUrl('learning_plans/$fileName');
+        if (!mounted) return;
+        if (newUrl != null) {
+          setState(() {
+            _learningPlanUrl = newUrl;
+          });
 
-        // Update the learning plan URL
-        setState(() {
-          _learningPlanUrl = publicUrl;
-        });
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم رفع خطة التعلم بنجاح')),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم رفع خطة التعلم بنجاح')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('فشل رفع خطة التعلم')),
+          );
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

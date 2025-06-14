@@ -1,6 +1,8 @@
-import 'dart:io';
+
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:typed_data';
 import '../../../../data/models/student_model.dart';
 import '../../../../../../core/services/notification_service.dart';
 
@@ -31,67 +33,28 @@ class AdminRepository {
     }
   }
 
-  // حفظ خطة التعلم القديمة
+  // حذف خطة التعلم القديمة من نفس الباكيت
   Future<void> saveOldLearningPlan(String oldUrl) async {
     try {
-      // Extract filename from URL
       final filename = oldUrl.split('/').last;
-
-      // First delete the existing file if it exists
-      try {
-        await _supabaseClient.storage
-            .from('learning-plans-archive')
-            .remove([filename]);
-      } catch (e) {
-        // If file doesn't exist, continue without error
-      }
-
-      // Download the file as bytes
-      final bytes =
-          await _supabaseClient.storage.from('learning-plans').download(oldUrl);
-
-      // Create a temporary file from bytes
-      final tempFile = await File('temp_${filename}').create();
-      await tempFile.writeAsBytes(bytes);
-
-      // Upload the temporary file
-      await _supabaseClient.storage
-          .from('learning-plans-archive')
-          .upload(filename, tempFile);
-
-      // Clean up the temporary file
-      await tempFile.delete();
+      await _supabaseClient.storage.from('learningplans').remove([filename]);
     } catch (e) {
-      throw Exception('فشل في حفظ خطة التعلم القديمة: $e');
+      // تجاهل الخطأ إذا لم يكن الملف موجوداً
     }
   }
 
-  // رفع خطة التعلم الجديدة
-  Future<String?> uploadLearningPlan(String fileName, List<int> bytes) async {
+  // رفع خطة التعلم الجديدة (مع استبدال الملف إذا كان موجوداً)
+  Future<String?> uploadLearningPlan(String fileName, Uint8List bytes) async {
     try {
-      // First delete the existing file if it exists
-      try {
-        await _supabaseClient.storage.from('learning-plans').remove([fileName]);
-      } catch (e) {
-        // If file doesn't exist, continue without error
-      }
+      // ارفع الملف مباشرة من الذاكرة، مع تفعيل خيار upsert للاستبدال
+      await _supabaseClient.storage.from('learningplans').uploadBinary(
+        fileName,
+        bytes,
+        fileOptions: const FileOptions(upsert: true),
+      );
 
-      // Create a temporary file from bytes
-      final tempFile = await File(fileName).writeAsBytes(bytes);
-
-      // Upload the file to Supabase
-      final response = await _supabaseClient.storage
-          .from('learning-plans')
-          .upload(fileName, tempFile);
-
-      // Get the public URL of the file
-      final url = await _supabaseClient.storage
-          .from('learning-plans')
-          .getPublicUrl(fileName);
-
-      // Clean up temporary file
-      await tempFile.delete();
-
+      // الحصول على الرابط العام
+      final url = _supabaseClient.storage.from('learningplans').getPublicUrl(fileName);
       return url;
     } catch (e) {
       throw Exception('فشل في رفع خطة التعلم: $e');
