@@ -7,6 +7,7 @@ class CircleStudentsTab extends StatelessWidget {
   final List<StudentRecord> students;
   final String teacherId;
   final String currentUserId;
+  final bool isAdmin;
   final Function(String, int)? onEvaluationChanged;
   final Function(String, int)? onEvaluationDelete;
   final Function(String, bool)? onAttendanceChanged;
@@ -17,6 +18,7 @@ class CircleStudentsTab extends StatelessWidget {
     required this.students,
     required this.teacherId,
     required this.currentUserId,
+    this.isAdmin = false,
     this.onEvaluationChanged,
     this.onEvaluationDelete,
     this.onAttendanceChanged,
@@ -28,7 +30,16 @@ class CircleStudentsTab extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final responsiveSize = screenWidth / 375;
 
-    if (students.isEmpty) {
+    // Determine which students to show:
+    // 1) Admin يرى الجميع
+    // 2) Teacher sees all (currentUserId == teacherId)
+    // 3) Student sees only his card
+    final bool showAll = isAdmin || currentUserId == teacherId;
+    final List<StudentRecord> visibleStudents = showAll
+        ? students
+        : students.where((s) => s.studentId == currentUserId).toList();
+
+    if (visibleStudents.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -71,9 +82,9 @@ class CircleStudentsTab extends StatelessWidget {
 
     return ListView.builder(
       padding: EdgeInsets.all(16 * responsiveSize),
-      itemCount: students.length,
+      itemCount: visibleStudents.length,
       itemBuilder: (context, index) {
-        final student = students[index];
+        final student = visibleStudents[index];
         final lastEvaluation = student.evaluations.isNotEmpty
             ? student.evaluations.last.rating
             : null;

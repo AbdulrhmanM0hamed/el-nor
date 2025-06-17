@@ -160,6 +160,7 @@ class _MemorizationCircleDetailsScreenState extends State<MemorizationCircleDeta
                                 students: state.circle.students,
                                 teacherId: state.circle.teacherId ?? '',
                                 currentUserId: state.userId,
+                                 isAdmin: state.userRole == UserRole.admin, 
                                 onEvaluationChanged: state.canManage 
                                     ? (studentId, rating) => context
                                         .read<CircleDetailsCubit>()

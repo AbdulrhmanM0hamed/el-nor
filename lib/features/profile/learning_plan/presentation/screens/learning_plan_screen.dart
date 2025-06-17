@@ -68,7 +68,7 @@ class _LearningPlanView extends StatelessWidget {
     final isAdmin = context.select<LearningPlanCubit, bool>((c) => c.isAdmin);
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'خطة التعلم'),
+      appBar: const CustomAppBar(title: 'عن المُلتقى'),
       floatingActionButton: isAdmin
           ? Column(
               mainAxisSize: MainAxisSize.min,
