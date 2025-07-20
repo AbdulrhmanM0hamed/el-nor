@@ -1,67 +1,42 @@
-# Privacy Policy
+Privacy Policy
 
-**Last Updated:** May 31, 2025  
-**Application Name:** Bayt Al-Islam (بيت الإسلام)  
-**Contact Email:** bodamohmed60@gmail.com
+Welcome to our mobile application! This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our mobile application (“Application”). By using the Application, you agree to the collection and use of information in accordance with this policy.
 
----
+Information We Collect When you use our Application, we may collect the following types of information:
+a. Information You Provide Your name, email, phone number, and password when you register.
 
-Welcome to **Bayt Al-Islam (بيت الإسلام)**! 🕌  
-Your privacy is important to us. This Privacy Policy is intended to clearly explain how we handle your data.
+Any information you submit via forms, surveys, or support messages.
 
----
+b. Automatically Collected Information Device Information: Includes your mobile device model, operating system, and device identifiers.
 
-## No Data Collection
+Usage Data: Pages or features visited, interaction times, crash reports.
 
-We respect your privacy. Our application:
+Location Data: Only if you grant permission through your device settings.
 
-- ❌ Does **not** require account creation or login.
-- ❌ Does **not** collect, store, or share any personal information.
-- ❌ Does **not** track your location or usage behavior.
-- ❌ Does **not** use third-party analytics or advertising tools.
+c. Third-Party Services We may integrate third-party tools such as Google Analytics for Firebase to understand usage patterns and improve app functionality.
 
-The app works entirely **offline** and all Islamic content such as:
-- Quran 📖  
-- Hadith 🕋  
-- Azkar 📿  
-- Prayer Times 🕰️  
-- Qibla Direction 🧭  
-- Digital Tasbih  
-- Asma’ Allah Al-Husna 🌟  
-are available locally and do **not** require internet access or user data.
+How We Use Your Information We use the information collected to:
+✔ Enhance app performance and reliability. ✔ Provide user support and respond to inquiries. ✔ Offer personalized content and features. ✔ Send updates, alerts, or promotional content (if you opt-in). ✔ Improve future versions of the Application through data insights.
 
----
+Information Sharing & Third-Party Access We do not sell or rent your personal information. Data may be shared in these circumstances:
+🔹 Service Providers: With third parties that support analytics, hosting, or payment services. 🔹 Legal Requirements: If required by law or legal process. 🔹 Business Transfers: During company restructuring, merger, or acquisition.
 
-## Permissions
+Data Security We use a variety of security measures to protect your data:
+🔒 Encrypted communication and storage. 🔒 Limited access to personal data by authorized staff only. 🔒 Regular updates and vulnerability checks.
 
-The app may request access to certain device features **only if needed**, such as:
+Your Rights & Options Delete Account: You may request to delete your data by contacting us.
+Marketing Opt-Out: You can unsubscribe from promotional emails or notifications.
 
-- **Location** (optional): Only used to calculate accurate prayer times and Qibla direction. The data is processed locally on your device and **never sent** to us or any server.
-- **Notifications** (optional): Used to remind you of prayer times or daily Azkar.
+Permissions Control: You may adjust camera, location, or push notification permissions via your device settings.
 
-You can control these permissions from your phone’s settings at any time.
+Data Retention We retain your information as long as needed for legitimate purposes. Upon your deletion request, we securely erase your data in accordance with applicable laws.
 
----
+Children's Privacy This Application is not intended for children under 13. We do not knowingly collect data from children. If such data is discovered, it will be deleted immediately.
 
-## Children’s Privacy
+Changes to This Policy We may update this Privacy Policy periodically. Continued use of the Application signifies acceptance of these changes. You’ll be notified through in-app updates.
 
-The app is suitable for all age groups and does **not** collect any information from children or adults.
+Contact Us If you have any questions or concerns about this Privacy Policy or your data, please contact us at:
 
----
+📧 Email: mohammadshaker061@gmail.com
 
-## Changes to This Policy
-
-We may update this Privacy Policy if necessary (e.g., if new features are added). Any changes will be reflected in this document within the app. Continued use of the app implies your agreement with the updated policy.
-
----
-
-## Contact Us
-
-If you have any questions or concerns about this Privacy Policy, feel free to contact us at:
-
-📧 **bodamohmed60@gmail.com**
-
----
-
-**Thank you for trusting Bayt Al-Islam.**  
-We pray it helps strengthen your faith and bring you closer to your Creator. 🤲🕊️
+Thank you for using our Application! 🌟
