@@ -1,42 +1,63 @@
 Privacy Policy
 
-Welcome to our mobile application! This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our mobile application (“Application”). By using the Application, you agree to the collection and use of information in accordance with this policy.
+Thank you for using our mobile application. This Privacy Policy outlines how we collect, use, share, and protect your personal information when you use our application (“ملتقى النور القرآني”). By accessing or using the App, you agree to the terms described in this policy.
 
-Information We Collect When you use our Application, we may collect the following types of information:
-a. Information You Provide Your name, email, phone number, and password when you register.
+1. Information We Collect
+a. Information You Provide
+We may collect personal details that you voluntarily provide when using the App, such as:
 
-Any information you submit via forms, surveys, or support messages.
+Your name, email address, phone number, and password during registration.
 
-b. Automatically Collected Information Device Information: Includes your mobile device model, operating system, and device identifiers.
+Any information you submit via forms, surveys, or support requests.
 
-Usage Data: Pages or features visited, interaction times, crash reports.
+b. Information Collected Automatically
 
-Location Data: Only if you grant permission through your device settings.
+Device Information: Including your device type, operating system version, and unique identifiers.
 
-c. Third-Party Services We may integrate third-party tools such as Google Analytics for Firebase to understand usage patterns and improve app functionality.
+Usage Data: Such as the screens you visit, time spent in the app, crash logs, and performance metrics.
 
-How We Use Your Information We use the information collected to:
-✔ Enhance app performance and reliability. ✔ Provide user support and respond to inquiries. ✔ Offer personalized content and features. ✔ Send updates, alerts, or promotional content (if you opt-in). ✔ Improve future versions of the Application through data insights.
+Location Data: Only if you allow location access through your device permissions.
 
-Information Sharing & Third-Party Access We do not sell or rent your personal information. Data may be shared in these circumstances:
-🔹 Service Providers: With third parties that support analytics, hosting, or payment services. 🔹 Legal Requirements: If required by law or legal process. 🔹 Business Transfers: During company restructuring, merger, or acquisition.
+c. Third-Party Services
+We may use services like Google Analytics for Firebase to analyze app usage and improve performance.
 
-Data Security We use a variety of security measures to protect your data:
-🔒 Encrypted communication and storage. 🔒 Limited access to personal data by authorized staff only. 🔒 Regular updates and vulnerability checks.
+2. How We Use Your Information
+Your data helps us:
+✔ Improve the app’s performance, features, and stability.
+✔ Provide customer support and respond to inquiries.
+✔ Deliver a personalized user experience.
+✔ Send app updates, alerts, or promotional content (if you opt in).
+✔ Analyze usage trends to guide future development.
 
-Your Rights & Options Delete Account: You may request to delete your data by contacting us.
-Marketing Opt-Out: You can unsubscribe from promotional emails or notifications.
+3. Information Sharing
+We do not sell or rent your personal information. However, we may share your data in the following situations:
+🔹 With Service Providers: For hosting, analytics, and other app-related services.
+🔹 Legal Compliance: When required by law, regulation, or legal proceedings.
+🔹 Business Transfers: In the event of a merger, acquisition, or asset sale.
 
-Permissions Control: You may adjust camera, location, or push notification permissions via your device settings.
+4. Data Security
+We implement strong security measures to protect your information:
+🔒 Encrypted data transmission and secure storage.
+🔒 Access limited to authorized personnel only.
+🔒 Regular security updates and system monitoring.
 
-Data Retention We retain your information as long as needed for legitimate purposes. Upon your deletion request, we securely erase your data in accordance with applicable laws.
+5. Your Rights and Choices
+Account Deletion: You can request account and data deletion by contacting us.
 
-Children's Privacy This Application is not intended for children under 13. We do not knowingly collect data from children. If such data is discovered, it will be deleted immediately.
+Marketing Preferences: You may opt out of promotional communications at any time.
 
-Changes to This Policy We may update this Privacy Policy periodically. Continued use of the Application signifies acceptance of these changes. You’ll be notified through in-app updates.
+Permissions: You can manage app permissions (e.g., camera, location, notifications) via your device settings.
 
-Contact Us If you have any questions or concerns about this Privacy Policy or your data, please contact us at:
+6. Data Retention
+We retain your information only as long as necessary for legitimate purposes. Once you request deletion, we will securely remove your data in accordance with applicable laws.
+
+7. Children’s Privacy
+Our App is not intended for children under 13. We do not knowingly collect data from children. If such data is discovered, it will be deleted promptly.
+
+8. Updates to This Policy
+This Privacy Policy may be updated from time to time. Continued use of the App after updates means you accept the revised policy. We will notify you of changes through in-app alerts.
+
+9. Contact Us
+If you have any questions or concerns regarding this Privacy Policy or your personal data, feel free to contact us:
 
 📧 Email: mohammadshaker061@gmail.com
-
-Thank you for using our Application! 🌟
